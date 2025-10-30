@@ -1,6 +1,7 @@
+// models/productModel.js
 import mongoose from 'mongoose'
 
-const productSchema = mongoose.Schema(
+const productSchema = new mongoose.Schema(
   {
     category_id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -10,9 +11,11 @@ const productSchema = mongoose.Schema(
     product_name: {
       type: String,
       required: true,
+      trim: true,
     },
     description: {
       type: String,
+      default: '',
     },
     price: {
       type: mongoose.Types.Decimal128,
@@ -27,11 +30,28 @@ const productSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+
+    images: [
+      {
+        image_url: { type: String, required: true },
+        is_primary: { type: Boolean, default: false }, // Ảnh chính
+      },
+    ],
   },
   {
     timestamps: true,
   }
 )
+
+
+productSchema.set('toJSON', {
+  transform: (doc, ret) => {
+    if (ret.price && ret.price.$numberDecimal) {
+      ret.price = parseFloat(ret.price.$numberDecimal)
+    }
+    return ret
+  },
+})
 
 const Product = mongoose.model('Product', productSchema)
 
