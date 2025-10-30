@@ -17,7 +17,7 @@ const HomeScreen = () => {
   const productList = useSelector((state) => state.productList)
   const { loading, error, products = [] } = productList
 
-  // 📦 Lấy danh mục từ API
+  // Lấy danh mục từ API
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -33,12 +33,12 @@ const HomeScreen = () => {
     fetchCategories()
   }, [])
 
-  // 📦 Lấy danh sách sản phẩm từ Redux
+  // Lấy danh sách sản phẩm từ Redux
   useEffect(() => {
     dispatch(listProducts())
   }, [dispatch])
 
-  // 🧠 Tự động lọc sản phẩm khi dữ liệu thay đổi
+  // Tự động lọc sản phẩm khi dữ liệu thay đổi
   useEffect(() => {
     filterProducts()
   }, [products, currentCategory, searchQuery])
@@ -50,7 +50,7 @@ const HomeScreen = () => {
     }
   }, [products])
 
-  // 🧩 Hàm lọc sản phẩm
+  //  Hàm lọc sản phẩm
   const filterProducts = () => {
     let filtered = [...products]
 
@@ -80,7 +80,7 @@ const HomeScreen = () => {
     setSearchQuery('')
   }
 
-  // 🏷️ Hiển thị tên danh mục hiện tại
+  // Hiển thị tên danh mục hiện tại
   const getCategoryName = () => {
     if (searchQuery) return `Kết quả tìm kiếm: "${searchQuery}"`
     if (currentCategory === 'all') return 'Tất cả sản phẩm'
