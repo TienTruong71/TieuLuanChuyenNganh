@@ -55,8 +55,13 @@ const HomeScreen = () => {
     let filtered = [...products]
 
     if (currentCategory !== 'all') {
-      filtered = filtered.filter((p) => p.category_id === currentCategory)
-    }
+  filtered = filtered.filter(
+    (p) =>
+      p.category_id?._id?.toString() === currentCategory.toString() ||
+      p.category_id?.toString() === currentCategory.toString()
+  )
+}
+
 
     if (searchQuery.trim()) {
       filtered = filtered.filter(
