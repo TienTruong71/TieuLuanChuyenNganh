@@ -20,7 +20,7 @@ const oldVehicleSchema = mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'evaluated', 'approved', 'rejected', 'completed'],
+      enum: ['pending','approved', 'rejected', 'completed'],
       default: 'pending',
     },
   },
