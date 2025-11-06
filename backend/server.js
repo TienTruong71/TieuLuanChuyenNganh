@@ -11,7 +11,7 @@ import { notFound, errorHandler } from './middleware/errorMiddleware.js'
 import categoryRoutes from './routes/admin/category.route.js'
 import adminRoutes from './routes/admin/index.route.js'
 
-import productRoute from './routes/product.route.js'
+import productRoute from './routes/admin/product.route.js'
 dotenv.config({ path: './backend/.env' })
 
 // Kết nối Database
