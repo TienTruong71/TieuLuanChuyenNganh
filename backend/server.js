@@ -34,7 +34,7 @@ import clientAuthRoutes from './routes/client/auth.route.js'
 import customerRoutes from './routes/admin/customer.route.js'
 // === MOUNT ROUTES ===
 app.use('/api/admin/categories', categoryRoutes)
-app.use('/api/products', productRoutes)
+app.use('/api/admin/products', productRoutes)
 app.use('/api/admin/customers', customerRoutes)
 app.use('/api/client/auth', clientAuthRoutes)
 
