@@ -32,12 +32,15 @@ import categoryRoutes from './routes/admin/category.route.js'
 import productRoutes from './routes/admin/product.route.js'
 import clientAuthRoutes from './routes/client/auth.route.js'
 import customerRoutes from './routes/admin/customer.route.js'
+import orderRoutes from './routes/client/order.route.js'
+import supportRoutes from './routes/client/support.route.js'
 // === MOUNT ROUTES ===
 app.use('/api/admin/categories', categoryRoutes)
 app.use('/api/admin/products', productRoutes)
 app.use('/api/admin/customers', customerRoutes)
 app.use('/api/client/auth', clientAuthRoutes)
-
+app.use('/api/client/orders', orderRoutes)
+app.use('/api/client/support', supportRoutes)
 // Uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
