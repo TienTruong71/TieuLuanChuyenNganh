@@ -1,81 +1,67 @@
+// backend/server.js
 import path from 'path'
-import fs from 'fs'
+import { fileURLToPath } from 'url'
 import express from 'express'
 import dotenv from 'dotenv'
 import morgan from 'morgan'
 import colors from 'colors'
-
 import connectDB from './config/db.js'
+import './models/index.js'
 import { notFound, errorHandler } from './middleware/errorMiddleware.js'
 
-import categoryRoutes from './routes/admin/category.route.js'
-import adminRoutes from './routes/admin/index.route.js'
+// Fix __dirname cho ESM
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
-import productRoute from './routes/admin/product.route.js'
-dotenv.config({ path: './backend/.env' })
+dotenv.config({ path: path.join(__dirname, '.env') })
 
-// Kết nối Database
+// Connect DB
 connectDB()
 
 const app = express()
-const __dirname = path.resolve()
 
-// Middleware cơ bản
+// Middleware
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'))
 }
 app.use(express.json())
 
-// Hàm tự động load route
-const loadRoutes = async (dir, basePath) => {
-  const files = fs.readdirSync(dir)
-  for (const file of files) {
-    const fullPath = path.join(dir, file)
-    const stat = fs.statSync(fullPath)
-    if (stat.isDirectory()) await loadRoutes(fullPath, `${basePath}/${file}`)
-    else if (file.endsWith('.js')) {
-      const route = (await import(`file://${fullPath}`)).default
-      if (route && typeof route === 'function') {
-        app.use(basePath, route)
-        console.log(`Loaded route: ${basePath}/${file}`)
-      }
-    }
-  }
-}
+// === IMPORT ROUTES ===
+import categoryRoutes from './routes/admin/category.route.js'
+import productRoutes from './routes/admin/product.route.js'
+import clientAuthRoutes from './routes/client/auth.route.js'
+import customerRoutes from './routes/admin/customer.route.js'
+// === MOUNT ROUTES ===
+app.use('/api/admin/categories', categoryRoutes)
+app.use('/api/admin/products', productRoutes)
+app.use('/api/admin/customers', customerRoutes)
+app.use('/api/client/auth', clientAuthRoutes)
 
-app.use('/api/products', productRoute)
-app.use('/api/admin', adminRoutes)
-//  Gắn route theo vai trò
-await loadRoutes(path.join(__dirname, '/backend/routes/client'), '/api/client')
-await loadRoutes(path.join(__dirname, '/backend/routes/admin'), '/api/admin')
-await loadRoutes(path.join(__dirname, '/backend/routes/staff'), '/api/staff')
-await loadRoutes(path.join(__dirname, '/backend/routes/common'), '/api/common')
+// Uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
-
-// Static upload (ảnh, file)
-app.use('/uploads', express.static(path.join(__dirname, '/uploads')))
-
-// Cấu hình thanh toán (PayPal)
+// PayPal
 app.get('/api/config/paypal', (req, res) =>
-  res.send(process.env.PAYPAL_CLIENT_ID)
+  res.send(process.env.PAYPAL_CLIENT_ID || '')
 )
 
+// Production
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '/frontend/build')))
+  const frontendBuild = path.join(__dirname, '../frontend/build')
+  app.use(express.static(frontendBuild))
   app.get('*', (req, res) =>
-    res.sendFile(path.resolve(__dirname, 'frontend', 'build', 'index.html'))
+    res.sendFile(path.join(frontendBuild, 'index.html'))
   )
 } else {
-  app.get('/', (req, res) => res.send(' API Server is running...'))
+  app.get('/', (req, res) => res.send('API is running...'))
 }
 
-// Middleware xử lý lỗi
+// Error Handler
 app.use(notFound)
 app.use(errorHandler)
 
-// Khởi chạy server
+// Start server
 const PORT = process.env.PORT || 5000
-app.listen(
-  PORT,
-  () => console.log(`Server running on port ${PORT}`.yellow.bold)
+app.listen(PORT, () =>
+  console.log(`Server running on port ${PORT}`.yellow.bold)
 )

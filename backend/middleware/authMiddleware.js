@@ -14,8 +14,7 @@ const protect = asyncHandler(async (req, res, next) => {
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
-      req.user = await User.findById(decoded.id).select('-password')
-
+      req.user = await User.findById(decoded.id).select('-password').populate('role_id')
       next()
     } catch (error) {
       console.error(error)
@@ -30,13 +29,31 @@ const protect = asyncHandler(async (req, res, next) => {
   }
 })
 
-const admin = (req, res, next) => {
-  if (req.user && req.user.isAdmin) {
+export const admin = (req, res, next) => {
+  if (req.user && (req.user.isAdmin || req.user.role_id.role_name === 'admin')) {
     next()
   } else {
-    res.status(401)
-    throw new Error('Not authorized as an admin')
+    res.status(403)
+    throw new Error('Không có quyền Admin')
   }
 }
 
-export { protect, admin }
+export const staff = (req, res, next) => {
+  if (req.user && req.user.role_id.role_name === 'staff') {
+    next()
+  } else {
+    res.status(403)
+    throw new Error('Không có quyền Staff')
+  }
+}
+
+export const customer = (req, res, next) => {
+  if (req.user && req.user.role_id.role_name === 'customer') {
+    next()
+  } else {
+    res.status(403)
+    throw new Error('Không có quyền Customer')
+  }
+}
+
+export { protect }
