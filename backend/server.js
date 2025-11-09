@@ -38,6 +38,8 @@ import tradeinVehicleRoutes from './routes/admin/tradeinVehicle.route.js'
 import bookingRoutes from './routes/client/booking.route.js'
 import cartRoutes from './routes/client/cart.route.js'
 import feedbackRoutes from './routes/client/feedback.route.js'
+import orderRoutes from './routes/client/order.route.js'
+import supportRoutes from './routes/client/support.route.js'
 // === MOUNT ROUTES ===
 app.use('/api/admin/categories', categoryRoutes)
 app.use('/api/admin/products', productRoutes)
@@ -49,6 +51,8 @@ app.use('/api/admin/tradein-vehicles', tradeinVehicleRoutes)
 app.use('/api/client/bookings', bookingRoutes)
 app.use('/api/client/cart', cartRoutes)
 app.use('/api/client/feedbacks', feedbackRoutes)
+app.use('/api/client/orders', orderRoutes)
+app.use('/api/client/support', supportRoutes)
 // Uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
