@@ -31,6 +31,12 @@ import categoryRoutes from './routes/admin/category.route.js'
 import productRoutes from './routes/admin/product.route.js'
 import clientAuthRoutes from './routes/client/auth.route.js'
 import customerRoutes from './routes/admin/customer.route.js'
+import staffRoutes from './routes/admin/staff.route.js'
+import servicePackageRoutes from './routes/admin/servicePackage.route.js'
+import tradeinVehicleRoutes from './routes/admin/tradeinVehicle.route.js'
+import bookingRoutes from './routes/client/booking.route.js'
+import cartRoutes from './routes/client/cart.route.js'
+import feedbackRoutes from './routes/client/feedback.route.js'
 import orderRoutes from './routes/client/order.route.js'
 import supportRoutes from './routes/client/support.route.js'
 // === MOUNT ROUTES ===
@@ -38,6 +44,12 @@ app.use('/api/admin/categories', categoryRoutes)
 app.use('/api/admin/products', productRoutes)
 app.use('/api/admin/customers', customerRoutes)
 app.use('/api/client/auth', clientAuthRoutes)
+app.use('/api/admin/staff', staffRoutes)
+app.use('/api/admin/service-packages', servicePackageRoutes)
+app.use('/api/admin/tradein-vehicles', tradeinVehicleRoutes)
+app.use('/api/client/bookings', bookingRoutes)
+app.use('/api/client/cart', cartRoutes)
+app.use('/api/client/feedbacks', feedbackRoutes)
 app.use('/api/client/orders', orderRoutes)
 app.use('/api/client/support', supportRoutes)
 // Uploads
