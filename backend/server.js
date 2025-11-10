@@ -43,6 +43,8 @@ import notificationRoutes from './routes/client/notification.route.js'
 import paymentRoutes from './routes/client/payment.route.js'
 import productRoutes from './routes/client/product.route.js'
 import profileRoutes from './routes/client/profile.route.js'
+import revenueReportRoutes from './routes/admin/revenuereport.route.js'
+import promotionRoutes from './routes/admin/promotion.route.js'
 // === MOUNT ROUTES ===
 app.use('/api/admin/categories', categoryRoutes)
 app.use('/api/admin/products', productAdminRoutes)
@@ -60,6 +62,8 @@ app.use('/api/client/notifications', notificationRoutes)
 app.use('/api/client/payments', paymentRoutes)
 app.use('/api/client/products', productRoutes)
 app.use('/api/client/profile', profileRoutes)
+app.use('/api/admin/revenue-reports', revenueReportRoutes)  
+app.use('/api/admin/promotions', promotionRoutes)
 // Uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
