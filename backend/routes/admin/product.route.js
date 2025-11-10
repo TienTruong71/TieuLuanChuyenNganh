@@ -1,16 +1,28 @@
 import express from 'express'
-import Product from '../../models/productModel.js'
+import {
+  getProductsByCategory,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+} from '../../controllers/admin/product.controller.js'
+import { protect, admin } from '../../middleware/authMiddleware.js'
 
 const router = express.Router()
 
-// [GET] /api/products - Public API cho frontend
-router.get('/', async (req, res) => { 
-  try {
-    const products = await Product.find().populate('category_id', 'category_name')
-    res.json(products)
-  } catch (err) {
-    res.status(500).json({ message: err.message })
-  }
-})
+// Chỉ manager/admin mới được thao tác
+router.use(protect)
+router.use(admin)
+
+// Lấy danh sách sản phẩm theo category
+router.get('/:categoryId', getProductsByCategory)
+
+// Thêm sản phẩm mới
+router.post('/', createProduct)
+
+// Cập nhật sản phẩm
+router.put('/:id', updateProduct)
+
+// Xóa sản phẩm
+router.delete('/:id', deleteProduct)
 
 export default router

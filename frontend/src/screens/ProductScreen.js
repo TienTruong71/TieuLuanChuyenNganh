@@ -15,7 +15,9 @@ const HomeScreen = () => {
   const [filteredProducts, setFilteredProducts] = useState([])
 
   const productList = useSelector((state) => state.productList)
-  const { loading, error, products = [] } = productList
+const { loading, error } = productList
+const products = Array.isArray(productList.products) ? productList.products : []
+
 
   // Lấy danh mục từ API
   useEffect(() => {
@@ -52,28 +54,30 @@ const HomeScreen = () => {
 
   //  Hàm lọc sản phẩm
   const filterProducts = () => {
-    let filtered = [...products]
+  // products chắc chắn là mảng
+  let filtered = Array.isArray(products) ? [...products] : []
 
-    if (currentCategory !== 'all') {
-  filtered = filtered.filter(
-    (p) =>
-      p.category_id?._id?.toString() === currentCategory.toString() ||
-      p.category_id?.toString() === currentCategory.toString()
-  )
-}
-
-
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(
-        (p) =>
-          p.product_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.brand?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    }
-
-    setFilteredProducts(filtered)
+  // Lọc theo category
+  if (currentCategory !== 'all') {
+    filtered = filtered.filter(
+      (p) =>
+        p.category_id?._id?.toString() === currentCategory.toString() ||
+        p.category_id?.toString() === currentCategory.toString()
+    )
   }
+
+  // Lọc theo search query
+  if (searchQuery.trim()) {
+    filtered = filtered.filter(
+      (p) =>
+        p.product_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.brand?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }
+
+  setFilteredProducts(filtered)
+}
 
   const handleSearch = (e) => {
     e.preventDefault()
