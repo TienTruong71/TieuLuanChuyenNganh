@@ -1,4 +1,3 @@
-// backend/routes/client/feedback.routes.js
 import express from 'express'
 import {
     getFeedbacks,

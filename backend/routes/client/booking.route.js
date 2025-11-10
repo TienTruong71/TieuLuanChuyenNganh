@@ -1,4 +1,3 @@
-// backend/routes/client/booking.routes.js
 import express from 'express'
 import {
     getBookings,

@@ -28,7 +28,7 @@ app.use(express.json())
 
 // === IMPORT ROUTES ===
 import categoryRoutes from './routes/admin/category.route.js'
-import productRoutes from './routes/admin/product.route.js'
+import productAdminRoutes from './routes/admin/product.route.js'
 import clientAuthRoutes from './routes/client/auth.route.js'
 import customerRoutes from './routes/admin/customer.route.js'
 import staffRoutes from './routes/admin/staff.route.js'
@@ -39,9 +39,13 @@ import cartRoutes from './routes/client/cart.route.js'
 import feedbackRoutes from './routes/client/feedback.route.js'
 import orderRoutes from './routes/client/order.route.js'
 import supportRoutes from './routes/client/support.route.js'
+import notificationRoutes from './routes/client/notification.route.js'
+import paymentRoutes from './routes/client/payment.route.js'
+import productRoutes from './routes/client/product.route.js'
+import profileRoutes from './routes/client/profile.route.js'
 // === MOUNT ROUTES ===
 app.use('/api/admin/categories', categoryRoutes)
-app.use('/api/admin/products', productRoutes)
+app.use('/api/admin/products', productAdminRoutes)
 app.use('/api/admin/customers', customerRoutes)
 app.use('/api/client/auth', clientAuthRoutes)
 app.use('/api/admin/staff', staffRoutes)
@@ -52,6 +56,10 @@ app.use('/api/client/cart', cartRoutes)
 app.use('/api/client/feedbacks', feedbackRoutes)
 app.use('/api/client/orders', orderRoutes)
 app.use('/api/client/support', supportRoutes)
+app.use('/api/client/notifications', notificationRoutes)
+app.use('/api/client/payments', paymentRoutes)
+app.use('/api/client/products', productRoutes)
+app.use('/api/client/profile', profileRoutes)
 // Uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
