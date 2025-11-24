@@ -47,6 +47,7 @@ import revenueReportRoutes from './routes/admin/revenuereport.route.js'
 import promotionRoutes from './routes/admin/promotion.route.js'
 import adminOrderRoutes from './routes/admin/order.route.js'
 import dashboardRoutes from './routes/admin/dashboard.route.js'
+import contractRoutes from './routes/staff/sale/contract.route.js'
 // === MOUNT ROUTES ===
 app.use('/api/admin/categories', categoryRoutes)
 app.use('/api/admin/products', productAdminRoutes)
@@ -68,6 +69,7 @@ app.use('/api/admin/revenue-reports', revenueReportRoutes)
 app.use('/api/admin/promotions', promotionRoutes)
 app.use('/api/admin/orders', adminOrderRoutes)
 app.use('/api/admin/dashboard', dashboardRoutes)
+app.use('/api/staff/sale/contracts', contractRoutes)
 // Uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
