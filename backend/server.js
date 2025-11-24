@@ -46,6 +46,8 @@ import profileRoutes from './routes/client/profile.route.js'
 import revenueReportRoutes from './routes/admin/revenuereport.route.js'
 import promotionRoutes from './routes/admin/promotion.route.js'
 import contractRoutes from './routes/staff/sale/contract.route.js'
+import SupportResponse from './routes/staff/sale/support.route.js'
+import feedbackManage from './routes/staff/sale/feedback.route.js'
 // === MOUNT ROUTES ===
 app.use('/api/admin/categories', categoryRoutes)
 app.use('/api/admin/products', productAdminRoutes)
@@ -53,7 +55,7 @@ app.use('/api/admin/customers', customerRoutes)
 app.use('/api/client/auth', clientAuthRoutes)
 app.use('/api/admin/staff', staffRoutes)
 app.use('/api/admin/service-packages', servicePackageRoutes)
-app.use('/api/admin/tradein-vehicles', tradeinVehicleRoutes)
+app.use('/api/admin/tradeinVehicles', tradeinVehicleRoutes)
 app.use('/api/client/bookings', bookingRoutes)
 app.use('/api/client/cart', cartRoutes)
 app.use('/api/client/feedbacks', feedbackRoutes)
@@ -63,9 +65,11 @@ app.use('/api/client/notifications', notificationRoutes)
 app.use('/api/client/payments', paymentRoutes)
 app.use('/api/client/products', productRoutes)
 app.use('/api/client/profile', profileRoutes)
-app.use('/api/admin/revenue-reports', revenueReportRoutes)  
+app.use('/api/admin/revenueReports', revenueReportRoutes)  
 app.use('/api/admin/promotions', promotionRoutes)
 app.use('/api/staff/sale/contracts', contractRoutes)  
+app.use('/api/staff/sale/support', SupportResponse)
+app.use('/api/staff/sale/feedbacks', feedbackManage)
 // Uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
