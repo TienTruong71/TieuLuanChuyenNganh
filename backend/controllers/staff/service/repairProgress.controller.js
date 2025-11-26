@@ -147,7 +147,7 @@ export const createRepairProgress = asyncHandler(async (req, res) => {
 // @route   PUT /api/staff/service/repair-progress/:id
 // @access  Private/Service Staff
 export const updateRepairProgress = asyncHandler(async (req, res) => {
-    const { status, notes, estimated_completion } = req.body
+    const { status, notes, estimated_completion, free_bay } = req.body
 
     const progress = await RepairProgress.findById(req.params.id)
     if (!progress) {
@@ -155,7 +155,6 @@ export const updateRepairProgress = asyncHandler(async (req, res) => {
         throw new Error('Tiến độ sửa chữa không tồn tại')
     }
 
-    // Chỉ cho phép nhân viên xử lý tiến độ của mình
     if (progress.staff_id.toString() !== req.user._id.toString()) {
         res.status(403)
         throw new Error('Không có quyền cập nhật tiến độ này')
@@ -168,9 +167,21 @@ export const updateRepairProgress = asyncHandler(async (req, res) => {
 
     progress.status = status || progress.status
     progress.notes = notes !== undefined ? notes : progress.notes
-    progress.estimated_completion = estimated_completion
-        ? new Date(estimated_completion)
-        : progress.estimated_completion
+    progress.estimated_completion = estimated_completion ? new Date(estimated_completion) : progress.estimated_completion
+
+    if (status === 'completed') {
+        await Booking.findByIdAndUpdate(progress.booking_id, { status: 'completed' });
+
+        if (free_bay === true) {
+            const bay = await ServiceBay.findOne({ current_booking: progress.booking_id });
+
+            if (bay) {
+                bay.status = 'available';
+                bay.current_booking = null;
+                await bay.save();
+            }
+        }
+    }
 
     const updated = await progress.save()
 

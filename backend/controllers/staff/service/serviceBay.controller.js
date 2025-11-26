@@ -104,22 +104,26 @@ export const updateServiceBay = asyncHandler(async (req, res) => {
 
     const serviceBay = await ServiceBay.findById(req.params.id)
     if (!serviceBay) {
-        res.status(404); throw new Error('Khu vực dịch vụ không tồn tại')
+        res.status(404)
+        throw new Error('Khu vực dịch vụ không tồn tại')
     }
 
-    // Validation Status
+    // Validate Status
     if (status && !['available', 'occupied', 'maintenance'].includes(status)) {
-        res.status(400); throw new Error('Trạng thái không hợp lệ')
+        res.status(400)
+        throw new Error('Trạng thái không hợp lệ')
     }
 
     if (current_booking) {
         const booking = await Booking.findById(current_booking)
         if (!booking) {
-            res.status(404); throw new Error('Lịch hẹn không tồn tại')
+            res.status(404)
+            throw new Error('Lịch hẹn không tồn tại')
         }
 
         if (booking.status !== 'confirmed') {
-            res.status(400); throw new Error(`Không thể đưa xe vào khoang. Lịch hẹn này đang ở trạng thái: ${booking.status} (Cần là confirmed)`)
+            res.status(400)
+            throw new Error(`Không thể đưa xe vào khoang. Lịch hẹn đang là: ${booking.status} (Yêu cầu: confirmed)`)
         }
 
         const existingBay = await ServiceBay.findOne({
@@ -127,16 +131,20 @@ export const updateServiceBay = asyncHandler(async (req, res) => {
             _id: { $ne: req.params.id },
         })
         if (existingBay) {
-            res.status(400); throw new Error(`Lịch hẹn này đã nằm ở khu vực ${existingBay.bay_number}`)
+            res.status(400)
+            throw new Error(`Lịch hẹn này đã được gán cho khu vực ${existingBay.bay_number}`)
         }
 
+        // Validate logic trạng thái
         if (status !== 'occupied') {
-            res.status(400); throw new Error('Khi gán lịch hẹn, trạng thái khoang phải là occupied')
+            res.status(400)
+            throw new Error('Khi gán lịch hẹn, trạng thái khoang phải là occupied')
         }
     }
 
     if (current_booking === null && status === 'occupied') {
-        res.status(400); throw new Error('Không thể set occupied khi không có lịch hẹn')
+        res.status(400)
+        throw new Error('Không thể set occupied khi không có lịch hẹn')
     }
 
     serviceBay.status = status || serviceBay.status
@@ -151,8 +159,14 @@ export const updateServiceBay = asyncHandler(async (req, res) => {
     }
 
     res.json({
-        message: 'Cập nhật khu vực & trạng thái lịch hẹn thành công',
-        serviceBay: await ServiceBay.findById(updatedBay._id).populate('current_booking')
+        message: 'Cập nhật khu vực dịch vụ thành công',
+        serviceBay: await ServiceBay.findById(updatedBay._id).populate({
+            path: 'current_booking',
+            populate: [
+                { path: 'user_id', select: 'full_name email phone' },
+                { path: 'service_id', select: 'service_name price duration' },
+            ],
+        }),
     })
 })
 
