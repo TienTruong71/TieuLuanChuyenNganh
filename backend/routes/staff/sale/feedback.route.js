@@ -5,12 +5,12 @@ import {
   approveFeedback,
   deleteFeedback,
 } from '../../../controllers/staff/sale/feedback.controller.js';
-import { protect, admin, staff } from '../../../middleware/authMiddleware.js';
+import { protect, admin, saleStaff } from '../../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 router.use(protect);
-router.use(staff);
+router.use(saleStaff);
 router.use(admin);
 
 

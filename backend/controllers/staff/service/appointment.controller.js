@@ -77,7 +77,7 @@ export const updateAppointment = asyncHandler(async (req, res) => {
         throw new Error('Lịch hẹn không tồn tại')
     }
 
-    if (!['pending', 'confirmed', 'completed', 'cancelled'].includes(status)) {
+    if (!['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'].includes(status)) {
         res.status(400)
         throw new Error('Trạng thái không hợp lệ')
     }
