@@ -1,3 +1,4 @@
+// backend/models/repairProgressModel.js
 import mongoose from 'mongoose'
 
 const repairProgressSchema = mongoose.Schema(
@@ -7,23 +8,22 @@ const repairProgressSchema = mongoose.Schema(
       ref: 'Booking',
       required: true,
     },
-    employee_id: {
+    staff_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Employee',
-      required: true,
-    },
-    description: {
-      type: String,
+      ref: 'User',
       required: true,
     },
     status: {
       type: String,
-      enum: ['not_started', 'in_progress', 'completed', 'on_hold'],
-      default: 'not_started',
+      enum: ['in_progress', 'waiting_parts', 'testing', 'completed'],
+      default: 'in_progress',
     },
-    updated_at: {
+    notes: {
+      type: String,
+      default: '',
+    },
+    estimated_completion: {
       type: Date,
-      default: Date.now,
     },
   },
   {

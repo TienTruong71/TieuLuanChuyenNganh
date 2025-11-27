@@ -5,8 +5,13 @@ import {
   updateInventory,
   deleteInventory,
 } from "../../../controllers/staff/inventory/inventory.controller.js";
+import { protect, inventoryStaff } from '../../../middleware/authMiddleware.js';
 
 const router = express.Router();
+
+router.use(protect);
+router.use(inventoryStaff);
+
 
 router.get("/", getInventoryList);         
 router.post("/", addInventory);            

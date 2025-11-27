@@ -4,14 +4,14 @@ import {
   getSupportRequestById,
   replyAndResolveSupportRequest
 } from '../../../controllers/staff/sale/support.controller.js';
-import { staff} from '../../../middleware/authMiddleware.js'; 
+import { saleStaff } from '../../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Bắt buộc đăng nhập
-router.use(staff);
+router.use(saleStaff);
 
-// Lấy danh sách yêu cầu
+// Lấy danh sách yêu cầu 
 router.get('/', getAllSupportRequests);
 
 // Lấy chi tiết yêu cầu

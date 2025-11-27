@@ -38,8 +38,35 @@ export const admin = (req, res, next) => {
   }
 }
 
-export const staff = (req, res, next) => {
-  if (req.user && req.user.role_id.role_name === 'staff') {
+export const inventoryStaff = (req, res, next) => {
+  if (req.user && req.user.role_id.role_name === 'inventory') {
+    next()
+  } else {
+    res.status(403)
+    throw new Error('Không có quyền Inventory Staff')
+  }
+}
+
+export const serviceStaff = (req, res, next) => {
+  if (req.user && req.user.role_id.role_name === 'service') {
+    next()
+  } else {
+    res.status(403)
+    throw new Error('Không có quyền Service Staff')
+  }
+}
+
+export const saleStaff = (req, res, next) => {
+  if (req.user && req.user.role_id.role_name === 'sale') {
+    next()
+  } else {
+    res.status(403)
+    throw new Error('Không có quyền Sale Staff')
+  }
+}
+
+export const anyStaff = (req, res, next) => {
+  if (req.user && ['inventory', 'service', 'sale'].includes(req.user.role_id.role_name)) {
     next()
   } else {
     res.status(403)
