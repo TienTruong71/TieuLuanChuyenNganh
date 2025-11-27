@@ -34,7 +34,7 @@ const productSchema = new mongoose.Schema(
     images: [
       {
         image_url: { type: String, required: true },
-        is_primary: { type: Boolean, default: false }, // Ảnh chính
+        is_primary: { type: Boolean, default: false }, 
       },
     ],
   },

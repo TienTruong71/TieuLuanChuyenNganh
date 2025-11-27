@@ -4,7 +4,7 @@ import {
   getSupportRequestById,
   replyAndResolveSupportRequest
 } from '../../../controllers/staff/sale/support.controller.js';
-import { staff} from '../../../middleware/authMiddleware.js'; // middleware auth Sale Staff
+import { staff} from '../../../middleware/authMiddleware.js'; 
 
 const router = express.Router();
 

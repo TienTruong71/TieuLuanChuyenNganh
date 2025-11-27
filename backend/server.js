@@ -48,8 +48,10 @@ import promotionRoutes from './routes/admin/promotion.route.js'
 import adminOrderRoutes from './routes/admin/order.route.js'
 import dashboardRoutes from './routes/admin/dashboard.route.js'
 import contractRoutes from './routes/staff/sale/contract.route.js'
-import SupportResponse from './routes/staff/sale/support.route.js'
-import feedbackManage from './routes/staff/sale/feedback.route.js'
+import SupportResponseRoutes from './routes/staff/sale/support.route.js'
+import feedbackManageRoutes from './routes/staff/sale/feedback.route.js'
+import inventoryRoutes from './routes/staff/inventory/inventory.route.js'
+import stockRoutes from './routes/staff/inventory/stock.route.js'
 // === MOUNT ROUTES ===
 app.use('/api/admin/categories', categoryRoutes)
 app.use('/api/admin/products', productAdminRoutes)
@@ -75,8 +77,11 @@ app.use('/api/staff/sale/contracts', contractRoutes)
 app.use('/api/admin/revenueReports', revenueReportRoutes)  
 app.use('/api/admin/promotions', promotionRoutes)
 app.use('/api/staff/sale/contracts', contractRoutes)  
-app.use('/api/staff/sale/support', SupportResponse)
-app.use('/api/staff/sale/feedbacks', feedbackManage)
+app.use('/api/staff/sale/support', SupportResponseRoutes)
+app.use('/api/staff/sale/feedbacks', feedbackManageRoutes)
+app.use('/api/staff/inventory', inventoryRoutes)
+app.use('/api/staff/stock', stockRoutes)
+
 // Uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
