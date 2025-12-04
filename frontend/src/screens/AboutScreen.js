@@ -1,5 +1,6 @@
 import React from 'react'
 
+
 const services = [
   {
     id: 1,
@@ -38,21 +39,22 @@ const creators = [
     id: 1,
     name: 'Nguyễn Đặng Đăng Nhựt',
     role: 'Thiết kế & Frontend',
-    avatar: 'https://cdn.discordapp.com/attachments/1415895456692699156/1416078177104691261/91977C6F-1A94-4166-A01A-35BA1C240494.jpg?ex=68e878d2&is=68e72752&hm=d97ff8afb7384b9bfbfcfe79edfd7319f191bb0c814f2f26a137b5200df8d25b&'
+    avatar: '/avatars/dangnhut.jpg'
   },
   {
     id: 2,
     name: 'Trương Thành Tiến',
     role: 'Backend & Hệ thống',
-    avatar: 'https://via.placeholder.com/96?text=B'
+    avatar: '/avatars/thanhtien.jpg'
   },
   {
     id: 3,
     name: 'Lê Phước Thành',
     role: 'Sản phẩm & Nội dung',
-    avatar: 'https://via.placeholder.com/96?text=C'
+    avatar: '/avatars/phuocthanh.jpg'
   }
 ]
+
 
 const AboutScreen = () => {
   return (

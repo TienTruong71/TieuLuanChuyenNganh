@@ -10,9 +10,16 @@ const Header = () => {
   const userLogin = useSelector((state) => state.userLogin)
   const { userInfo } = userLogin || {}
 
+  // ← THÊM: Lấy cart từ Redux
+  const cart = useSelector((state) => state.cart)
+  const { cartItems } = cart || { cartItems: [] }
+
   const logoutHandler = () => {
     dispatch(logout())
   }
+
+  // Tính tổng số sản phẩm trong giỏ
+  const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0)
 
   return (
     <header className='site-header'>
@@ -36,10 +43,20 @@ const Header = () => {
 
         {/* User actions ở góc phải */}
         <div className='header-actions'>
+          {/* ← THÊM: Cart Icon */}
+          {userInfo && (
+            <Link to='/cart' className='cart-link'>
+              <span className='cart-icon'>🛒</span>
+              {cartItemsCount > 0 && (
+                <span className='cart-badge'>{cartItemsCount}</span>
+              )}
+            </Link>
+          )}
+
           {userInfo ? (
             <>
               <Link to='/profile' className='user-name'>
-                <i className='fas fa-user'></i> {userInfo.name}
+                <i className='fas fa-user'></i> {userInfo.full_name || userInfo.username || userInfo.name}
               </Link>
               <button onClick={logoutHandler} className='btn-logout'>
                 Đăng xuất

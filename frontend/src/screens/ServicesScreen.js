@@ -1,161 +1,132 @@
-import React from 'react'
-
-const services = [
-  {
-    id: 1,
-    title: 'Bảo dưỡng định kỳ',
-    icon: '🔧',
-    description: 'Kiểm tra và bảo dưỡng xe định kỳ theo km hoặc thời gian sử dụng',
-    features: [
-      'Thay dầu máy & lọc dầu',
-      'Kiểm tra hệ thống phanh',
-      'Kiểm tra áp suất lốp',
-      'Vệ sinh buồng máy'
-    ],
-    price: 'Từ 500.000đ',
-    popular: true
-  },
-  {
-    id: 2,
-    title: 'Sửa chữa chuyên sâu',
-    icon: '⚙️',
-    description: 'Chẩn đoán và sửa chữa các hư hỏng phức tạp của xe',
-    features: [
-      'Sửa động cơ & hộp số',
-      'Sửa chữa điện & điện tử',
-      'Thay thế phụ tùng',
-      'Bảo hành dài hạn'
-    ],
-    price: 'Liên hệ',
-    popular: false
-  },
-  {
-    id: 3,
-    title: 'Chăm sóc nội thất',
-    icon: '✨',
-    description: 'Vệ sinh, làm sạch và phục hồi nội thất xe',
-    features: [
-      'Giặt ghế & thảm lót',
-      'Vệ sinh trần xe',
-      'Khử mùi & diệt khuẩn',
-      'Đánh bóng táp lô'
-    ],
-    price: 'Từ 300.000đ',
-    popular: true
-  },
-  {
-    id: 4,
-    title: 'Chăm sóc ngoại thất',
-    icon: '🚗',
-    description: 'Rửa xe, đánh bóng và bảo vệ bề mặt sơn xe',
-    features: [
-      'Rửa xe chuyên nghiệp',
-      'Đánh bóng sơn xe',
-      'Phủ ceramic bảo vệ',
-      'Làm mới đèn xe'
-    ],
-    price: 'Từ 200.000đ',
-    popular: false
-  },
-  {
-    id: 5,
-    title: 'Thay lốp & cân chỉnh',
-    icon: '⚫',
-    description: 'Thay lốp mới, vá lốp và cân chỉnh độ chụm bánh xe',
-    features: [
-      'Thay lốp mới các hãng',
-      'Vá lốp không săm',
-      'Cân bằng động bánh xe',
-      'Cân chỉnh độ chụm'
-    ],
-    price: 'Từ 100.000đ',
-    popular: false
-  },
-  {
-    id: 6,
-    title: 'Kiểm tra tổng thể',
-    icon: '🔍',
-    description: 'Kiểm tra toàn bộ tình trạng xe trước khi đi xa',
-    features: [
-      'Kiểm tra 50 hạng mục',
-      'Báo cáo chi tiết',
-      'Tư vấn sửa chữa',
-      'Miễn phí cho khách hàng thân thiết'
-    ],
-    price: 'Miễn phí',
-    popular: true
-  },
-  {
-    id: 7,
-    title: 'Cứu hộ 24/7',
-    icon: '🚨',
-    description: 'Dịch vụ cứu hộ xe hỏng, cạn xăng, hết bình',
-    features: [
-      'Hỗ trợ 24/7',
-      'Đến tận nơi trong 30 phút',
-      'Sửa chữa tại chỗ',
-      'Kéo xe về garage'
-    ],
-    price: 'Từ 200.000đ',
-    popular: false
-  },
-  {
-    id: 8,
-    title: 'Độ xe & phụ kiện',
-    icon: '🎨',
-    description: 'Độ xe theo phong cách riêng, lắp đặt phụ kiện',
-    features: [
-      'Độ bodykit & spoiler',
-      'Lắp camera & cảm biến',
-      'Độ đèn & âm thanh',
-      'Dán phim cách nhiệt'
-    ],
-    price: 'Liên hệ',
-    popular: false
-  }
-]
+import React, { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { useHistory } from 'react-router-dom'
+import { listServices } from '../actions/bookingActions'
 
 const ServicesScreen = () => {
+  const history = useHistory()
+  const dispatch = useDispatch()
+
+  const serviceList = useSelector((state) => state.serviceList)
+  const { loading, error, services } = serviceList
+
+  const userLogin = useSelector((state) => state.userLogin)
+  const { userInfo } = userLogin
+
+  useEffect(() => {
+    dispatch(listServices())
+  }, [dispatch])
+
+  const handleBooking = (serviceId) => {
+    if (!userInfo) {
+      alert('Vui lòng đăng nhập để đặt lịch')
+      history.push('/login')
+      return
+    }
+    history.push(`/booking/${serviceId}`)
+  }
+
+  // Map icon từ service name
+  const getServiceIcon = (name) => {
+    const iconMap = {
+      'Bảo dưỡng định kỳ': '🔧',
+      'Sửa chữa động cơ': '⚙️',
+      'Thay lốp xe': '⚫',
+      'Rửa xe': '🚗',
+      'Chăm sóc nội thất': '✨',
+      'Kiểm tra tổng thể': '🔍',
+      'Cứu hộ 24/7': '🚨',
+      'Độ xe': '🎨',
+    }
+    return iconMap[name] || '🔧'
+  }
+
+  // Parse features từ description
+  const getFeatures = (description) => {
+    // Nếu description có format đặc biệt, parse nó
+    // Mặc định trả về array rỗng, bạn có thể customize
+    return [
+      'Dịch vụ chuyên nghiệp',
+      'Bảo hành chính hãng',
+      'Giá cả hợp lý',
+      'Hỗ trợ tận tâm'
+    ]
+  }
+
+  const formatPrice = (price) => {
+    if (typeof price === 'object' && price.$numberDecimal) {
+      return parseFloat(price.$numberDecimal).toLocaleString('vi-VN')
+    }
+    return parseFloat(price || 0).toLocaleString('vi-VN')
+  }
+
   return (
     <main className='page-main'>
       <div className='services-container'>
         <div className='services-hero'>
-          <h1>Dịch vụ của chúng tôi</h1>
-          <p>Chăm sóc xe hơi toàn diện với đội ngũ kỹ thuật viên chuyên nghiệp</p>
+          <div className='hero-content'>
+            <h1>Dịch vụ của chúng tôi</h1>
+            <p>Chăm sóc xe hơi toàn diện với đội ngũ kỹ thuật viên chuyên nghiệp</p>
+          </div>
+          {userInfo && (
+            <button 
+              className='btn-my-bookings'
+              onClick={() => history.push('/my-bookings')}
+            >
+              <i className='fas fa-calendar-check'></i>
+              Dịch vụ của tôi
+            </button>
+          )}
         </div>
 
-        <div className='services-grid'>
-          {services.map(service => (
-            <div 
-              key={service.id} 
-              className={`service-card ${service.popular ? 'popular' : ''}`}
-            >
-              {service.popular && (
-                <div className='popular-badge'>Phổ biến</div>
-              )}
-              
-              <div className='service-icon'>{service.icon}</div>
-              
-              <h3 className='service-title'>{service.title}</h3>
-              
-              <p className='service-description'>{service.description}</p>
-              
-              <ul className='service-features'>
-                {service.features.map((feature, index) => (
-                  <li key={index}>
-                    <i className='fas fa-check-circle'></i>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              
-              <div className='service-footer'>
-                <div className='service-price'>{service.price}</div>
-                <button className='btn-book'>Đặt lịch</button>
+        {loading ? (
+          <div className='loading-container'>
+            <div className='loading-spinner'></div>
+            <p>Đang tải dịch vụ...</p>
+          </div>
+        ) : error ? (
+          <div className='error-container'>
+            <p className='error-message'>{error}</p>
+          </div>
+        ) : (
+          <div className='services-grid'>
+            {services.map((service) => (
+              <div key={service._id} className='service-card'>
+                <div className='service-icon'>{getServiceIcon(service.service_name)}</div>
+
+                <h3 className='service-title'>{service.service_name}</h3>
+
+                <p className='service-description'>{service.description}</p>
+
+                <ul className='service-features'>
+                  {getFeatures(service.description).map((feature, index) => (
+                    <li key={index}>
+                      <i className='fas fa-check-circle'></i>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+
+                <div className='service-duration'>
+                  <i className='fas fa-clock'></i>
+                  <span>Thời gian: {service.duration}</span>
+                </div>
+
+                <div className='service-footer'>
+                  <div className='service-price'>
+                    {formatPrice(service.price)}đ
+                  </div>
+                  <button
+                    className='btn-book'
+                    onClick={() => handleBooking(service._id)}
+                  >
+                    Đặt lịch
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <div className='services-cta'>
           <h2>Cần tư vấn thêm?</h2>

@@ -92,7 +92,7 @@ export const vnpayReturn = asyncHandler(async (req, res) => {
   delete vnp_Params.vnp_SecureHash
   delete vnp_Params.vnp_SecureHashType
 
-  //Sắp xếp object trước khi tính hash
+  // Sắp xếp object trước khi tính hash
   vnp_Params = sortObject(vnp_Params)
   const signData = qs.stringify(vnp_Params, { encode: false })
 
@@ -102,7 +102,8 @@ export const vnpayReturn = asyncHandler(async (req, res) => {
 
   // So sánh chữ ký
   if (secureHash !== signed) {
-    return res.status(400).json({ message: 'Sai chữ ký bảo mật' })
+    // ✅ Redirect về frontend với lỗi
+    return res.redirect(`${process.env.FRONTEND_URL}/payment/failed?reason=invalid_signature`)
   }
 
   // Lấy paymentId và code response
@@ -112,15 +113,16 @@ export const vnpayReturn = asyncHandler(async (req, res) => {
   // Tìm payment record
   const payment = await Payment.findById(paymentId)
   if (!payment) {
-    return res.status(404).json({ message: 'Không tìm thấy giao dịch' })
+    return res.redirect(`${process.env.FRONTEND_URL}/payment/failed?reason=payment_not_found`)
   }
 
   // Tìm order liên quan
   const order = await Order.findById(payment.order_id)
 
-  //  Xử lý kết quả thanh toán
+  // ✅ Xử lý kết quả thanh toán
   if (rspCode === '00') {
     payment.status = 'completed'
+    payment.transaction_id = vnp_Params.vnp_TransactionNo // Lưu mã GD từ VNPay
     await payment.save()
 
     if (order) {
@@ -129,19 +131,22 @@ export const vnpayReturn = asyncHandler(async (req, res) => {
       await order.save()
     }
 
-    res.status(200).json({
-      message: 'Thanh toán thành công qua VNPay',
-      order_id: order._id,
-      payment_id: payment._id,
-      status: 'completed',
-    })
+    console.log('✅ Payment success:', { order_id: order._id, payment_id: payment._id })
+
+    // ✅ Redirect về frontend success page
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/payment/success?order_id=${order._id}&payment_id=${payment._id}`
+    )
   } else {
     payment.status = 'failed'
     await payment.save()
-    res.status(400).json({
-      message: 'Thanh toán thất bại',
-      code: rspCode,
-    })
+
+    console.log('❌ Payment failed:', { code: rspCode, payment_id: payment._id })
+
+    // ✅ Redirect về frontend failed page
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/payment/failed?reason=payment_failed&code=${rspCode}`
+    )
   }
 })
 
