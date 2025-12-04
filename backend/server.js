@@ -8,7 +8,7 @@ import colors from 'colors'
 import connectDB from './config/db.js'
 import './models/index.js'
 import { notFound, errorHandler } from './middleware/errorMiddleware.js'
-
+import cors from "cors";
 // Fix __dirname cho ESM
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -19,6 +19,7 @@ dotenv.config({ path: path.join(__dirname, '.env') })
 connectDB()
 
 const app = express()
+app.use(cors());
 
 // Middleware
 if (process.env.NODE_ENV === 'development') {
@@ -108,8 +109,7 @@ app.use('/api/admin/orders', adminOrderRoute)
 app.use('/api/ai', AIroutes)
 
 
-import cors from "cors";
-app.use(cors());
+
 
 
 // Uploads

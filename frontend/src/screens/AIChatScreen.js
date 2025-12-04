@@ -18,6 +18,8 @@ const AIChatScreen = () => {
         message,
       });
 
+
+      console.log("AI Response:", res);
       // Kiểm tra success từ backend
       if (res.data.success === false) {
         setChat((prev) => [

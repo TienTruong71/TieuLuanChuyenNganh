@@ -18,7 +18,7 @@ const services = [
     id: 3,
     title: 'Bảo dưỡng & sửa chữa',
     description: 'Dịch vụ tại gara đối tác với kỹ thuật viên chuyên nghiệp.',
-    image: 'https://thumbs.dreamstime.com/b/auto-car-repair-service-center-mechanic-checking-engine-oil-level.jpg'
+    image: 'https://thumbs.dreamstime.com/b/auto-car-repair-service-center-mechanic-checking-engine-oil-level-auto-car-repair-service-center-mechanic-checking-engine-oil-166202634.jpg'
   },
   {
     id: 4,
