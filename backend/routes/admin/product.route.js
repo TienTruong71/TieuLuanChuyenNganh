@@ -1,6 +1,7 @@
 import express from 'express'
 import {
   getProductsByCategory,
+  getAllProducts,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -12,6 +13,8 @@ const router = express.Router()
 // Chỉ manager/admin mới được thao tác
 router.use(protect)
 router.use(admin)
+
+router.get('/', getAllProducts)
 
 // Lấy danh sách sản phẩm theo category
 router.get('/:categoryId', getProductsByCategory)

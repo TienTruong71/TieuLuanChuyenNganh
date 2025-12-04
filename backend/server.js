@@ -29,12 +29,12 @@ app.use(express.json())
 // === IMPORT ROUTES ===
 import categoryRoutes from './routes/admin/category.route.js'
 import productAdminRoutes from './routes/admin/product.route.js'
+import clientProductRoutes from './routes/client/product.route.js'
 import clientAuthRoutes from './routes/client/auth.route.js'
 import customerRoutes from './routes/admin/customer.route.js'
 import staffRoutes from './routes/admin/staff.route.js'
 import servicePackageRoutes from './routes/admin/servicePackage.route.js'
 import tradeinVehicleRoutes from './routes/admin/tradeinVehicle.route.js'
-import bookingRoutes from './routes/client/booking.route.js'
 import cartRoutes from './routes/client/cart.route.js'
 import feedbackRoutes from './routes/client/feedback.route.js'
 import orderRoutes from './routes/client/order.route.js'
@@ -57,6 +57,12 @@ import repairProgressRoutes from './routes/staff/service/repair.route.js'
 import serviceBayRoutes from './routes/staff/service/serviceBay.route.js'
 import SupportResponse from './routes/staff/sale/support.route.js'
 import feedbackManage from './routes/staff/sale/feedback.route.js'
+import bookingRoutes from './routes/client/booking.route.js'
+import serviceRoutes from './routes/client/service.route.js'
+import adminRoutes from './routes/admin/index.route.js'
+import clientCategoryRoutes from './routes/client/category.routes.js'
+import adminOrderRoute from './routes/admin/order.route.js'
+
 // === MOUNT ROUTES ===
 app.use('/api/admin/categories', categoryRoutes)
 app.use('/api/admin/products', productAdminRoutes)
@@ -66,6 +72,7 @@ app.use('/api/admin/staff', staffRoutes)
 app.use('/api/admin/service-packages', servicePackageRoutes)
 app.use('/api/admin/tradeinVehicles', tradeinVehicleRoutes)
 app.use('/api/client/bookings', bookingRoutes)
+app.use('/api/client/products', clientProductRoutes)
 app.use('/api/client/cart', cartRoutes)
 app.use('/api/client/feedbacks', feedbackRoutes)
 app.use('/api/client/orders', orderRoutes)
@@ -93,6 +100,12 @@ app.use('/api/staff/stock', stockRoutes)
 app.use('/api/staff/sale/contracts', contractRoutes)
 app.use('/api/staff/sale/support', SupportResponse)
 app.use('/api/staff/sale/feedbacks', feedbackManage)
+app.use('/api/client/bookings', bookingRoutes)
+app.use('/api/client/services', serviceRoutes)
+app.use('/api/admin', adminRoutes)
+app.use('/api/client/categories', clientCategoryRoutes)
+app.use('/api/admin/orders', adminOrderRoute)
+
 // Uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 

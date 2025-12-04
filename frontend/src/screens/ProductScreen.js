@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useHistory } from 'react-router-dom'
 import { listProducts } from '../actions/productActions'
 import axios from 'axios'
 
-const HomeScreen = () => {
+const ProductScreen = () => {
+  const history = useHistory()
   const dispatch = useDispatch()
 
   const [categories, setCategories] = useState([])
@@ -15,16 +17,18 @@ const HomeScreen = () => {
   const [filteredProducts, setFilteredProducts] = useState([])
 
   const productList = useSelector((state) => state.productList)
-const { loading, error } = productList
-const products = Array.isArray(productList.products) ? productList.products : []
+  const { loading, error, products: rawProducts } = productList
 
+  const products = Array.isArray(rawProducts) 
+    ? rawProducts 
+    : rawProducts?.products || rawProducts?.data || []
 
   // Lấy danh mục từ API
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         setLoadingCat(true)
-        const { data } = await axios.get('/api/admin/categories')
+        const { data } = await axios.get('/api/client/categories')
         setCategories(data)
       } catch (err) {
         setErrorCat(err.response?.data?.message || err.message)
@@ -40,48 +44,40 @@ const products = Array.isArray(productList.products) ? productList.products : []
     dispatch(listProducts())
   }, [dispatch])
 
-  // Tự động lọc sản phẩm khi dữ liệu thay đổi
+  // Lọc sản phẩm
   useEffect(() => {
-    filterProducts()
-  }, [products, currentCategory, searchQuery])
-
-  // Debug kiểm tra dữ liệu sản phẩm
-  useEffect(() => {
-    if (products?.length) {
-      console.log('Example product:', products[0])
+    if (!products) {
+      setFilteredProducts([])
+      return
     }
-  }, [products])
 
-  //  Hàm lọc sản phẩm
-  const filterProducts = () => {
-  // products chắc chắn là mảng
-  let filtered = Array.isArray(products) ? [...products] : []
+    let filtered = [...products]
 
-  // Lọc theo category
-  if (currentCategory !== 'all') {
-    filtered = filtered.filter(
-      (p) =>
-        p.category_id?._id?.toString() === currentCategory.toString() ||
-        p.category_id?.toString() === currentCategory.toString()
-    )
-  }
+    // Lọc theo category
+    if (currentCategory !== 'all') {
+      filtered = filtered.filter(
+        (p) =>
+          p.category_id?._id?.toString() === currentCategory.toString() ||
+          p.category_id?.toString() === currentCategory.toString()
+      )
+    }
 
-  // Lọc theo search query
-  if (searchQuery.trim()) {
-    filtered = filtered.filter(
-      (p) =>
-        p.product_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.brand?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  }
+    // Lọc theo search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(
+        (p) =>
+          p.product_name?.toLowerCase().includes(query) ||
+          p.title?.toLowerCase().includes(query) ||
+          p.brand?.toLowerCase().includes(query)
+      )
+    }
 
-  setFilteredProducts(filtered)
-}
+    setFilteredProducts(filtered)
+  }, [JSON.stringify(products), currentCategory, searchQuery])
 
   const handleSearch = (e) => {
     e.preventDefault()
-    filterProducts()
   }
 
   const handleCategoryClick = (catId) => {
@@ -89,13 +85,47 @@ const products = Array.isArray(productList.products) ? productList.products : []
     setSearchQuery('')
   }
 
-  // Hiển thị tên danh mục hiện tại
+  const handleProductClick = (productId) => {
+    console.log('🎯 handleProductClick called')
+    console.log('🎯 productId:', productId)
+    console.log('🎯 typeof productId:', typeof productId)
+    
+    if (!productId) {
+      console.error('❌ Product ID is null/undefined!')
+      return
+    }
+    
+    console.log('🎯 Navigating to:', `/product/${productId}`)
+    history.push(`/product/${productId}`)
+  }
+
   const getCategoryName = () => {
     if (searchQuery) return `Kết quả tìm kiếm: "${searchQuery}"`
     if (currentCategory === 'all') return 'Tất cả sản phẩm'
 
     const foundCat = categories.find((c) => c._id === currentCategory)
     return foundCat?.category_name || foundCat?.name || foundCat?.title || 'Danh mục'
+  }
+
+  // ✅ Helper: Get first image from product (handle multiple formats)
+  const getProductImage = (product) => {
+    // Check images array
+    if (Array.isArray(product.images) && product.images.length > 0) {
+      const img = product.images[0]
+      
+      // Format 1: {image_url: "...", is_primary: true}
+      if (typeof img === 'object' && img !== null) {
+        return img.image_url || img.url || null
+      }
+      
+      // Format 2: "https://..."
+      if (typeof img === 'string') {
+        return img
+      }
+    }
+    
+    // Fallback: single image field
+    return product.image || null
   }
 
   return (
@@ -130,11 +160,12 @@ const products = Array.isArray(productList.products) ? productList.products : []
                   className={`category-card ${currentCategory === 'all' ? 'active' : ''}`}
                   onClick={() => handleCategoryClick('all')}
                 >
-                  <img
-                    src='https://via.placeholder.com/64?text=All'
-                    alt='Tất cả'
-                    onError={(e) => (e.target.src = 'https://via.placeholder.com/64?text=All')}
-                  />
+                  <div style={{
+                    fontSize: '48px',
+                    marginBottom: '8px'
+                  }}>
+                    
+                  </div>
                   <div style={{
                     fontWeight: '700',
                     color: currentCategory === 'all' ? '#00bfff' : '#f0f0f0',
@@ -142,9 +173,10 @@ const products = Array.isArray(productList.products) ? productList.products : []
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px'
                   }}>
-                    Tất cả
+                    Tất cả SẢN PHẨM
                   </div>
                 </div>
+
                 {/* Danh mục động */}
                 {categories.map((category) => {
                   const catName =
@@ -158,7 +190,7 @@ const products = Array.isArray(productList.products) ? productList.products : []
                       ? category.image
                       : category?.image
                       ? `http://localhost:5000${category.image}`
-                      : 'https://via.placeholder.com/64?text=No+Image'
+                      : null
 
                   return (
                     <div
@@ -168,18 +200,26 @@ const products = Array.isArray(productList.products) ? productList.products : []
                       }`}
                       onClick={() => handleCategoryClick(category._id)}
                     >
-                      <img
-                        src={catImage}
-                        alt={catName}
-                        onError={(e) => {
-                          e.target.src = 'https://via.placeholder.com/64?text=No+Image'
-                        }}
-                      />
+                      {catImage ? (
+                        <img
+                          src={catImage}
+                          alt={catName}
+                          onError={(e) => {
+                            e.target.style.display = 'none'
+                            e.target.nextSibling.style.display = 'block'
+                          }}
+                        />
+                      ) : null}
+                      <div style={{
+                        fontSize: '48px',
+                        display: catImage ? 'none' : 'block'
+                      }}>
+                        🏍️
+                      </div>
                       <div>{catName}</div>
                     </div>
                   )
                 })}
-
               </div>
             )}
           </div>
@@ -196,19 +236,22 @@ const products = Array.isArray(productList.products) ? productList.products : []
               ) : error ? (
                 <div className='error'>{error}</div>
               ) : filteredProducts.length === 0 ? (
-                <div className='empty'>Không tìm thấy sản phẩm nào</div>
+                <div className='empty'>
+                  {products.length === 0 
+                    ? 'Chưa có sản phẩm nào' 
+                    : 'Không tìm thấy sản phẩm nào'}
+                </div>
               ) : (
                 filteredProducts.map((product) => {
-          
+                  console.log('🔍 Product:', product.product_name, 'ID:', product._id)
                   const title =
                     product.product_name || product.title || 'Không có tên'
 
-                 const categoryName =
+                  const categoryName =
                     product.category_id?.category_name ||
                     product.category_id?.name ||
                     product.category_id?.title ||
                     'Không rõ hãng'
-
 
                   const price =
                     typeof product.price === 'object'
@@ -217,27 +260,47 @@ const products = Array.isArray(productList.products) ? productList.products : []
                         0
                       : product.price || 0
 
-                  const rawImage =
-                    Array.isArray(product.images) && product.images.length > 0
-                      ? product.images.find((img) => img.is_primary)?.image_url ||
-                        product.images[0].image_url
-                      : product.image || ''
+                  // ✅ Use helper function
+                  const rawImage = getProductImage(product)
 
                   const imageUrl = rawImage?.startsWith('http')
                     ? rawImage
                     : rawImage
                     ? `http://localhost:5000${rawImage}`
-                    : 'https://via.placeholder.com/200?text=No+Image'
+                    : null
 
                   return (
-                    <div key={product._id} className='product-card'>
-                      <img
-                        src={imageUrl}
-                        alt={title}
-                        onError={(e) => {
-                          e.target.src = 'https://via.placeholder.com/200?text=No+Image'
-                        }}
-                      />
+                    <div 
+                      key={product._id} 
+                      className='product-card'
+                      onClick={() => {
+                        console.log('🔍 Click product:', product)
+                        console.log('🔍 Product ID:', product._id)
+                        handleProductClick(product._id)
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={title}
+                          onError={(e) => {
+                            e.target.style.display = 'none'
+                            e.target.nextSibling.style.display = 'flex'
+                          }}
+                        />
+                      ) : null}
+                      <div style={{
+                        display: imageUrl ? 'none' : 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '100%',
+                        height: '200px',
+                        background: '#f0f0f0',
+                        fontSize: '48px'
+                      }}>
+                        🏍️
+                      </div>
                       <div className='title'>{title}</div>
                       <div className='meta'>{categoryName}</div>
                       <div className='price'>
@@ -255,4 +318,4 @@ const products = Array.isArray(productList.products) ? productList.products : []
   )
 }
 
-export default HomeScreen
+export default ProductScreen

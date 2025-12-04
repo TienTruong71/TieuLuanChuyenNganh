@@ -6,20 +6,18 @@ import {
     removeFromCart,
     clearCart,
 } from '../../controllers/client/cart.controller.js'
-import { protect, customer } from '../../middleware/authMiddleware.js'
+import { protect } from '../../middleware/authMiddleware.js'
 
 const router = express.Router()
 
-// Bảo vệ tất cả route bằng customer
-router.use(protect, customer)
-
+// ✅ Chỉ dùng protect, BỎ customer
 router.route('/')
-    .get(getCart)         // GET /api/client/cart
-    .post(addToCart)      // POST /api/client/cart
-    .put(updateCartItem)  // PUT /api/client/cart
-    .delete(clearCart)    // DELETE /api/client/cart
+    .get(protect, getCart)
+    .post(protect, addToCart)
+    .put(protect, updateCartItem)
+    .delete(protect, clearCart)
 
 router.route('/:product_id')
-    .delete(removeFromCart) // DELETE /api/client/cart/:product_id
+    .delete(protect, removeFromCart)
 
 export default router

@@ -3,10 +3,10 @@ import { getProducts, getProductById } from '../../controllers/client/product.co
 
 const router = express.Router()
 
-// Route: Lấy danh sách sản phẩm, có thể lọc theo category hoặc price
+// GET /api/client/products
 router.get('/', getProducts)
 
-// Route: Xem chi tiết sản phẩm theo id
+// GET /api/client/products/:id
 router.get('/:id', getProductById)
 
 export default router

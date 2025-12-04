@@ -1,5 +1,4 @@
 import React from 'react'
-import logo from '../assets/logo.png'
 
 const contacts = [
   {
@@ -7,21 +6,21 @@ const contacts = [
     name: 'Nguyễn Đặng Đăng Nhựt',
     email: '22110195@student.hcmute.edu.vn',
     phone: '0377885501',
-    avatar: 'https://via.placeholder.com/96?text=DN'
+    avatar: '/avatars/dangnhut.jpg'
   },
   {
     id: 2,
     name: 'Trương Thành Tiến',
     email: '22110245@student.hcmute.edu.vn',
     phone: '0366443231',
-    avatar: 'https://via.placeholder.com/96?text=TT'
+    avatar: '/avatars/thanhtien.jpg'
   },
   {
     id: 3,
     name: 'Lê Phước Thành',
     email: '22110244@student.hcmute.edu.vn',
     phone: '0988299075',
-    avatar: 'https://via.placeholder.com/96?text=PT'
+    avatar: '/avatars/phuocthanh.jpg'
   }
 ]
 
@@ -60,7 +59,7 @@ const ContactScreen = () => {
             TP. Hồ Chí Minh.
           </p>
           <div className='office-image'>
-            <img src='/assets/auto.jpg' alt='logo công ty' />
+            <img src='/assets/logo.jpg' alt='logo công ty' />
           </div>
         </div>
       </section>

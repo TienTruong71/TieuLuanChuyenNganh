@@ -43,27 +43,6 @@ export const createOrder = asyncHandler(async (req, res) => {
   });
 });
 
-// [GET] Lấy danh sách đơn hàng của người dùng hiện tại (kèm chi tiết sản phẩm)
-// Route: GET /api/client/orders
-// Access: Private
-export const getMyOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({ user_id: req.user._id })
-    .sort({ createdAt: -1 })
-    .lean(); // dùng lean để populate thêm dễ dàng
-
-  if (!orders.length) {
-    return res.status(404).json({ message: 'Không có lịch sử đơn hàng' });
-  }
-
-  // Lấy OrderItem cho từng order
-  for (let order of orders) {
-    const items = await OrderItem.find({ order_id: order._id }).populate('product_id', 'name price');
-    order.items = items;
-  }
-
-  res.status(200).json(orders);
-});
-
 // [GET] Lấy chi tiết 1 đơn hàng (kèm chi tiết sản phẩm)
 // Route: GET /api/client/orders/:id
 // Access: Private
@@ -73,16 +52,51 @@ export const getOrderById = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
   }
 
-  // chỉ cho phép xem đơn hàng của chính user
+  // Kiểm tra quyền truy cập
   if (order.user_id.toString() !== req.user._id.toString()) {
     return res.status(403).json({ message: 'Bạn không có quyền xem đơn hàng này' });
   }
 
-  // Lấy chi tiết OrderItem
-  const items = await OrderItem.find({ order_id: order._id }).populate('product_id', 'name price');
+  // ✅ FIX: Populate đầy đủ thông tin product
+  const items = await OrderItem.find({ order_id: order._id })
+    .populate({
+      path: 'product_id',
+      select: 'product_name price images category_id stock_quantity',  // ← Sửa 'name' thành 'product_name'
+      populate: { 
+        path: 'category_id', 
+        select: 'category_name' 
+      }
+    });
+  
   order.items = items;
 
   res.status(200).json(order);
+});
+
+// [GET] Lấy danh sách đơn hàng của người dùng hiện tại
+export const getMyOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.find({ user_id: req.user._id })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  if (!orders.length) {
+    return res.status(404).json({ message: 'Không có lịch sử đơn hàng' });
+  }
+
+  for (let order of orders) {
+    const items = await OrderItem.find({ order_id: order._id })
+      .populate({
+        path: 'product_id',
+        select: 'product_name price images category_id',  
+        populate: { 
+          path: 'category_id', 
+          select: 'category_name' 
+        }
+      });
+    order.items = items;
+  }
+
+  res.status(200).json(orders);
 });
 
 // [PUT] Hủy đơn hàng (nếu còn pending và chưa thanh toán)

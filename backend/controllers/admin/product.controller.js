@@ -2,6 +2,14 @@ import asyncHandler from 'express-async-handler'
 import Product from '../../models/productModel.js'
 import mongoose from 'mongoose'
 
+// @desc    Lấy TẤT CẢ sản phẩm
+// @route   GET /api/admin/products
+// @access  Private (Manager)
+export const getAllProducts = asyncHandler(async (req, res) => {
+  const products = await Product.find({}).populate('category_id', 'category_name')
+  res.json(products)
+})
+
 // @desc    Lấy danh sách sản phẩm theo category
 // @route   GET /api/admin/products/:categoryId
 // @access  Private (Manager)
@@ -55,8 +63,7 @@ export const createProduct = asyncHandler(async (req, res) => {
 // @access  Private (Manager)
 export const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params
-  const { product_name, description, price, stock_quantity, type, images } =
-    req.body
+  const { product_name, description, price, stock_quantity, type, images } = req.body
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     res.status(400)
@@ -97,6 +104,6 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     throw new Error('Sản phẩm không tồn tại')
   }
 
-  await product.remove()
+  await product.deleteOne()
   res.json({ message: 'Sản phẩm đã được xóa' })
 })

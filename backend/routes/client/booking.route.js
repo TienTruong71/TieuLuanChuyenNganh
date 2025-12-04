@@ -20,4 +20,7 @@ router.route('/:id')
     .get(getBookingById)   // GET /api/client/bookings/:id
     .delete(cancelBooking) // DELETE /api/client/bookings/:id
 
+// PUT /api/client/bookings/:id/cancel
+router.put('/:id/cancel', protect, cancelBooking)
+
 export default router

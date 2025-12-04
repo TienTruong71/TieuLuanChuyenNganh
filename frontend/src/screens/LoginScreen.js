@@ -7,39 +7,49 @@ const LoginScreen = () => {
   const history = useHistory()
   const dispatch = useDispatch()
 
-  const [username, setUsername] = useState('')
+  // State cho form
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [usernameError, setUsernameError] = useState('')
+  const [emailError, setEmailError] = useState('')
   const [passwordError, setPasswordError] = useState('')
   const [showSuccess, setShowSuccess] = useState(false)
 
+  // Lấy state từ Redux
   const userLogin = useSelector((state) => state.userLogin)
   const { loading, error, userInfo } = userLogin
 
+  // Redirect nếu đã đăng nhập
   useEffect(() => {
     if (userInfo) {
       setShowSuccess(true)
       setTimeout(() => {
-        history.push('/')
+        // Redirect dựa vào role
+        if (userInfo.isAdmin || userInfo.role === 'Admin') {
+          history.push('/admin')
+        } else {
+          history.push('/')
+        }
       }, 1200)
     }
   }, [history, userInfo])
 
+  // Validate email
   const isValidEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return emailRegex.test(email)
   }
 
+  // Validate form
   const validateForm = () => {
     let isValid = true
-    setUsernameError('')
+    setEmailError('')
     setPasswordError('')
 
-    if (username.trim() === '') {
-      setUsernameError('Vui lòng nhập tên đăng nhập hoặc email')
+    if (email.trim() === '') {
+      setEmailError('Vui lòng nhập email')
       isValid = false
-    } else if (username.includes('@') && !isValidEmail(username)) {
-      setUsernameError('Email không hợp lệ')
+    } else if (!isValidEmail(email)) {
+      setEmailError('Email không hợp lệ')
       isValid = false
     }
 
@@ -54,14 +64,17 @@ const LoginScreen = () => {
     return isValid
   }
 
+  // Submit handler
   const submitHandler = (e) => {
     e.preventDefault()
     
     if (validateForm()) {
-      dispatch(login(username, password))
+      // Dispatch login action với EMAIL và PASSWORD
+      dispatch(login(email, password))
     }
   }
 
+  // Forgot password handler
   const handleForgotPassword = (e) => {
     e.preventDefault()
     alert('Chức năng "Quên mật khẩu" sẽ được triển khai sau!')
@@ -72,15 +85,17 @@ const LoginScreen = () => {
       <div className='login-container'>
         <div className='login-header'>
           <h1>Đăng Nhập</h1>
-          {/* <p>Chào mừng trở lại!</p> */}
+          <p>Chào mừng trở lại!</p>
         </div>
 
+        {/* Success Message */}
         {showSuccess && (
           <div className='success-message show'>
             Đăng nhập thành công!
           </div>
         )}
 
+        {/* Error Message từ API */}
         {error && (
           <div className='error-message show'>
             {error}
@@ -88,26 +103,29 @@ const LoginScreen = () => {
         )}
 
         <form onSubmit={submitHandler}>
+          {/* Email Input */}
           <div className='form-group'>
-            <label htmlFor='username'>Tên đăng nhập hoặc Email</label>
+            <label htmlFor='email'>Email</label>
             <div className='input-wrapper'>
               <input
-                type='text'
-                id='username'
-                placeholder='Nhập email hoặc tên đăng nhập'
-                value={username}
+                type='email'
+                id='email'
+                placeholder='Nhập email của bạn'
+                value={email}
                 onChange={(e) => {
-                  setUsername(e.target.value)
-                  setUsernameError('')
+                  setEmail(e.target.value)
+                  setEmailError('')
                 }}
-                autoComplete='username'
+                autoComplete='email'
+                disabled={loading}
               />
             </div>
-            {usernameError && (
-              <div className='error-message show'>{usernameError}</div>
+            {emailError && (
+              <div className='error-message show'>{emailError}</div>
             )}
           </div>
 
+          {/* Password Input */}
           <div className='form-group'>
             <label htmlFor='password'>Mật khẩu</label>
             <div className='input-wrapper'>
@@ -121,6 +139,7 @@ const LoginScreen = () => {
                   setPasswordError('')
                 }}
                 autoComplete='current-password'
+                disabled={loading}
               />
             </div>
             {passwordError && (
@@ -128,17 +147,20 @@ const LoginScreen = () => {
             )}
           </div>
 
+          {/* Forgot Password Link */}
           <div className='forgot-password'>
             <a href='#' onClick={handleForgotPassword}>
               Quên mật khẩu?
             </a>
           </div>
 
+          {/* Submit Button */}
           <button type='submit' className='btn-login' disabled={loading}>
             {loading ? 'Đang đăng nhập...' : 'Đăng Nhập'}
           </button>
         </form>
 
+        {/* Register Link */}
         <div className='register-link'>
           Chưa có tài khoản?{' '}
           <a href='#' onClick={() => history.push('/register')}>
