@@ -7744,3 +7744,136 @@ body::before {
     font-size: 16px;
   }
 }
+
+
+
+
+
+/* ====== FIX HEADER CHE KHUẤT & CENTER CHAT ====== */
+
+.ai-chat-container {
+  position: fixed;
+  bottom: 70px;
+  right: 20px;
+  width: 380px;
+  max-width: 90%;
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  z-index: 99999 !important;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: fadeInUp 0.25s ease;
+}
+
+/* ====== HIỆU ỨNG MỞ UI ====== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ====== NỀN MỜ HUYỀN ẢO ====== */
+.ai-chat-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(6px);
+  z-index: 99998 !important;
+  pointer-events: auto;
+}
+
+/* ====== HEADER ====== */
+.ai-title {
+  padding: 18px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #007bff, #0058cc);
+  color: white;
+}
+
+/* ====== KHUNG CHAT ====== */
+.ai-chat-box {
+  height: 380px;
+  padding: 15px;
+  background: #f7f7f7;
+  overflow-y: auto;
+}
+
+/* ====== YOU ====== */
+.chat-bubble.user {
+  background: #007bff;
+  color: white;
+  border-radius: 15px 15px 0 15px;
+  margin: 10px 0 10px auto;
+  padding: 12px 16px;
+  max-width: 80%;
+  font-size: 15px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+/* ====== AI ====== */
+.chat-bubble.ai {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 15px 15px 15px 0;
+  margin: 10px auto 10px 0;
+  padding: 12px 16px;
+  max-width: 80%;
+  font-size: 15px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.12);
+}
+
+/* ====== INPUT ====== */
+.chat-input-area {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  background: white;
+  border-top: 1px solid #ddd;
+}
+
+.chat-input-area input {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+
+.chat-input-area input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.chat-input-area button {
+  padding: 10px 18px;
+  border: none;
+  background: #007bff;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.chat-input-area button:hover {
+  background: #005fcc;
+}
+
+/* ====== MOBILE TỐI ƯU ====== */
+@media (max-width: 768px) {
+  .ai-chat-container {
+    width: 100%;
+    max-width: 100%;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    border-radius: 0;
+  }
+
+  .ai-chat-box {
+    height: calc(100vh - 150px);
+  }
+}
+
