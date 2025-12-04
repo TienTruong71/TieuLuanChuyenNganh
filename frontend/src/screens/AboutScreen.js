@@ -12,25 +12,25 @@ const services = [
     id: 2,
     title: 'Bán xe cũ',
     description: 'Đăng bán nhanh chóng, tiếp cận người mua tiềm năng trong khu vực.',
-    image: 'https://images.unsplash.com/photo-1511918984145-48de785d4c4a?q=80&w=1600'
+    image: 'https://images.unsplash.com/photo-1698697475670-e84c588010a1?q=80&w=1742&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
   },
   {
     id: 3,
     title: 'Bảo dưỡng & sửa chữa',
     description: 'Dịch vụ tại gara đối tác với kỹ thuật viên chuyên nghiệp.',
-    image: 'https://images.unsplash.com/photo-1549924231-f129b911e442?q=80&w=1600'
+    image: 'https://thumbs.dreamstime.com/b/auto-car-repair-service-center-mechanic-checking-engine-oil-level-auto-car-repair-service-center-mechanic-checking-engine-oil-166202634.jpg'
   },
   {
     id: 4,
     title: 'Bán phụ tùng & đồ chơi',
     description: 'Phụ tùng chính hãng và phụ kiện đa dạng cho xe của bạn.',
-    image: 'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?q=80&w=1600'
+    image: 'https://images.unsplash.com/photo-1606577924006-27d39b132ae2?q=80&w=776&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
   },
   {
     id: 5,
     title: 'Tư vấn mua bán & định giá',
     description: 'Chuyên gia của chúng tôi hỗ trợ định giá và thương lượng cho bạn.',
-    image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1600'
+    image: 'https://plus.unsplash.com/premium_photo-1661373362347-9dad03c78287?q=80&w=1738&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
   }
 ]
 
