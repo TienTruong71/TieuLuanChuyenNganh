@@ -5,6 +5,7 @@ const AIChatScreen = () => {
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false); // Thêm state để toggle chat
 
   const sendMessage = async () => {
     if (!message.trim()) return;
@@ -18,9 +19,7 @@ const AIChatScreen = () => {
         message,
       });
 
-
       console.log("AI Response:", res);
-      // Kiểm tra success từ backend
       if (res.data.success === false) {
         setChat((prev) => [
           ...prev,
@@ -47,34 +46,67 @@ const AIChatScreen = () => {
     setLoading(false);
   };
 
+  const toggleChat = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
-    <div className="ai-chat-container">
-      <h1 className="ai-title">Tư Vấn Viên</h1>
+    <>
+      {/* Nút Icon Messenger */}
+      <button className="chat-icon-button" onClick={toggleChat}>
+        {isOpen ? (
+          // Icon X khi chat đang mở
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        ) : (
+          // Icon chat khi đóng
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+          </svg>
+        )}
+        {/* Badge thông báo */}
+        {!isOpen && chat.length > 0 && (
+          <span className="chat-icon-badge">
+            {chat.filter(m => m.sender === 'ai').length}
+          </span>
+        )}
+      </button>
 
-      <div className="ai-chat-box">
-        {chat.map((msg, i) => (
-          <div
-            key={i}
-            className={`chat-bubble ${msg.sender === "user" ? "user" : "ai"}`}
-          >
-            {msg.text}
+      {/* Chat Container */}
+      {isOpen && (
+        <div className="ai-chat-container">
+          <div className="ai-title">
+            <div className="ai-title-text">Tư Vấn Viên</div>
+            <button className="close-button" onClick={toggleChat}>-</button>
           </div>
-        ))}
 
-        {loading && <div className="chat-bubble ai">Đang xử lý...</div>}
-      </div>
+          <div className="ai-chat-box">
+            {chat.map((msg, i) => (
+              <div
+                key={i}
+                className={`chat-bubble ${msg.sender === "user" ? "user" : "ai"}`}
+              >
+                {msg.text}
+              </div>
+            ))}
 
-      <div className="chat-input-area">
-        <input
-          type="text"
-          placeholder="Nhập câu hỏi về mua bán hoặc định giá xe..."
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        />
+            {loading && <div className="chat-bubble ai">Đang xử lý...</div>}
+          </div>
 
-        <button onClick={sendMessage}>Gửi</button>
-      </div>
-    </div>
+          <div className="chat-input-area">
+            <input
+              type="text"
+              placeholder="Nhập câu hỏi về mua bán hoặc định giá xe..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+            />
+            <button onClick={sendMessage}>Gửi</button>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

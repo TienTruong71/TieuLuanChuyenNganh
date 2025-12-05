@@ -7748,7 +7748,6 @@ body::before {
 
 
 
-
 /* ====== FIX HEADER CHE KHUẤT & CENTER CHAT ====== */
 
 .ai-chat-container {
@@ -7785,12 +7784,37 @@ body::before {
 
 /* ====== HEADER ====== */
 .ai-title {
+  display: flex;
+  justify-content: space-between;
   padding: 18px;
   text-align: center;
   font-size: 20px;
   font-weight: 600;
   background: linear-gradient(135deg, #007bff, #0058cc);
   color: white;
+}
+
+.close-button {
+  background: white;          /* Màu nền */
+  border: none;               /* Không viền */
+  border-radius: 50%;         /* Hình tròn */
+  width: 25px;                /* Kích thước lớn hơn */
+  height: 25px;
+  font-size: 25px;            /* Dấu '-' rõ hơn */
+  font-weight: bold;
+  cursor: pointer;
+
+  display: flex;              /* Canh giữa icon */
+  justify-content: center;
+  align-items: center;
+
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15); /* Bóng nhẹ */
+  transition: 0.2s;
+}
+
+.close-button:hover {
+  background: #f0f0f0;
+  transform: scale(1.05);
 }
 
 /* ====== KHUNG CHAT ====== */
@@ -7877,3 +7901,52 @@ body::before {
   }
 }
 
+
+
+/* ====== NÚT ICON MESSENGER ====== */
+.chat-icon-button {
+  position: fixed;
+  bottom: 70px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #007bff, #0058cc);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+  z-index: 99999;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.chat-icon-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 123, 255, 0.6);
+}
+
+.chat-icon-button svg {
+  width: 28px;
+  height: 28px;
+  fill: white;
+}
+
+/* Badge thông báo */
+.chat-icon-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ff4444;
+  color: white;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  border: 2px solid white;
+}
