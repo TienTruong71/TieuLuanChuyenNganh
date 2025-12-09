@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.use(protect);
 router.use(saleStaff);
-router.use(admin);
+// router.use(admin);
 
 
 router.get('/', getAllFeedbacks);

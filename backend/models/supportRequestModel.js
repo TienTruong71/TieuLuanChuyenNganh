@@ -11,6 +11,10 @@ const supportRequestSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    reply: {
+      type: String,
+      default: '',
+    },
     status: {
       type: String,
       enum: ['pending', 'in_progress', 'resolved'],

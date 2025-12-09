@@ -4,11 +4,12 @@ import {
   getSupportRequestById,
   replyAndResolveSupportRequest
 } from '../../../controllers/staff/sale/support.controller.js';
-import { saleStaff } from '../../../middleware/authMiddleware.js';
+import { protect, saleStaff } from '../../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Bắt buộc đăng nhập
+router.use(protect);
 router.use(saleStaff);
 
 // Lấy danh sách yêu cầu 

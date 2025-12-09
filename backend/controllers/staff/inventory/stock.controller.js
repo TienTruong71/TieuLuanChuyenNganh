@@ -7,6 +7,8 @@ import Product from "../../../models/productModel.js";
 export const getStockTransactions = asyncHandler(async (req, res) => {
   const history = await StockTransaction.find()
     .populate("product_id", "product_name price images stock_quantity")
+    .populate("created_by", "full_name email")
+    // ------------------------------------------
     .sort({ createdAt: -1 });
 
   res.status(200).json(history);

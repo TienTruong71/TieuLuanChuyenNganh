@@ -2,7 +2,7 @@
 import ServiceBay from '../../../models/serviceBayModel.js'
 import Booking from '../../../models/bookingModel.js'
 import asyncHandler from 'express-async-handler'
-
+import RepairProgress from '../../../models/repairProgressModel.js'
 // @desc    Lấy danh sách khu vực dịch vụ (cho Service Staff)
 // @route   GET /api/staff/service/service-bays
 // @access  Private/Service Staff
@@ -155,9 +155,21 @@ export const updateServiceBay = asyncHandler(async (req, res) => {
     const updatedBay = await serviceBay.save()
 
     if (status === 'occupied' && current_booking) {
+        // 1. Cập nhật trạng thái Booking
         await Booking.findByIdAndUpdate(current_booking, { status: 'in_progress' });
-    }
 
+        const existingProgress = await RepairProgress.findOne({ booking_id: current_booking });
+
+        if (!existingProgress) {
+            await RepairProgress.create({
+                booking_id: current_booking,
+                staff_id: req.user._id,
+                status: 'in_progress',
+                notes: 'Xe đã được đưa vào khoang, bắt đầu quy trình sửa chữa.',
+                estimated_completion: null
+            });
+        }
+    }
     res.json({
         message: 'Cập nhật khu vực dịch vụ thành công',
         serviceBay: await ServiceBay.findById(updatedBay._id).populate({

@@ -92,8 +92,7 @@ export const printContract = async (req, res) => {
       doc
         .fontSize(12)
         .text(
-          `${index + 1}. ${item.product_name} - SL: ${
-            item.quantity
+          `${index + 1}. ${item.product_name} - SL: ${item.quantity
           } - Giá: ${Number(item.price).toLocaleString()} VND`
         );
     });
@@ -116,5 +115,17 @@ export const printContract = async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+// @desc    Lấy danh sách hợp đồng
+// @route   GET /api/staff/sale/contracts
+export const getAllContracts = async (req, res) => {
+  try {
+    // Lấy tất cả hợp đồng, sắp xếp mới nhất lên đầu
+    const contracts = await Contract.find().sort({ createdAt: -1 });
+    res.json(contracts);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

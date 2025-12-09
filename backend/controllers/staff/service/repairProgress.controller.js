@@ -5,7 +5,7 @@ import User from '../../../models/userModel.js'
 import ServicePackage from '../../../models/servicepackageModel.js'
 import asyncHandler from 'express-async-handler'
 import mongoose from 'mongoose'
-
+import ServiceBay from '../../../models/serviceBayModel.js'
 // @desc    Lấy danh sách tiến độ sửa chữa (cho Service Staff)
 // @route   GET /api/staff/service/repair-progress
 // @access  Private/Service Staff
