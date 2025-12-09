@@ -15,7 +15,7 @@ const contractSchema = mongoose.Schema(
     },
 
     generated_file_url: {
-      type: String, // link file PDF
+      type: String,
     },
 
     status: {
