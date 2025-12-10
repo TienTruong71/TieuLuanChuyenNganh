@@ -34,17 +34,28 @@ export const createStockTransaction = asyncHandler(async (req, res) => {
   //  -----  Update Stock  -----  //
   if (type === "inbound") {
     inventory.quantity_available += quantity;
-  } else if (type === "outbound") {
+  }   else if (type === "outbound") {
     inventory.quantity_available -= quantity;
+
+    await Product.findByIdAndUpdate(product_id, {
+      $inc: { stock_quantity: quantity }
+    });
   }
 
   inventory.last_updated = new Date();
   await inventory.save();
 
+
+
+
+  
   /** Đồng bộ sang product.stock_quantity */
   await Product.findByIdAndUpdate(product_id, {
     stock_quantity: inventory.quantity_available,
   });
+
+
+
 
   //  -----  Save Transaction Log  -----  //
   const transaction = await StockTransaction.create({
