@@ -7908,8 +7908,8 @@ body::before {
   position: fixed;
   bottom: 70px;
   right: 20px;
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   background: linear-gradient(135deg, #007bff, #0058cc);
   border-radius: 50%;
   display: flex;
