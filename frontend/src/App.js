@@ -14,8 +14,8 @@ import AdminScreen from './screens/AdminScreen'
 import TermsScreen from './screens/TermsScreen'
 import CartScreen from './screens/CartScreen'
 import CheckoutScreen from './screens/CheckoutScreen'
-import PaymentSuccessScreen from './screens/PaymentSuccessScreen';
-import PaymentFailedScreen from './screens/PaymentFailedScreen';
+import PaymentSuccessScreen from './screens/PaymentSuccessScreen'
+import PaymentFailedScreen from './screens/PaymentFailedScreen'
 import OrderHistoryScreen from './screens/OrderHistoryScreen'
 import OrderDetailScreen from './screens/OrderDetailScreen'
 import ServicesScreen from './screens/ServicesScreen'
