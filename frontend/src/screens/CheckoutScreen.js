@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 import { createOrder } from '../actions/orderActions'
 import { getCart } from '../actions/cartActions'
+import axios from 'axios'
 
 const CheckoutScreen = () => {
   const history = useHistory()
@@ -22,6 +23,58 @@ const CheckoutScreen = () => {
   const [shippingAddress, setShippingAddress] = useState('')
   const [phone, setPhone] = useState('')
   const [note, setNote] = useState('')
+  const [processingVNPay, setProcessingVNPay] = useState(false)
+
+  // ✅ Phân loại sản phẩm trong giỏ hàng
+  const cartAnalysis = useMemo(() => {
+    const vehicles = cartItems.filter(item => 
+      item.type === 'vehicle' || 
+      item.category?.toLowerCase().includes('xe') ||
+      item.category?.toLowerCase().includes('ô tô') ||
+      item.category?.toLowerCase().includes('sedan') ||
+      item.category?.toLowerCase().includes('suv')
+    )
+    
+    const accessories = cartItems.filter(item => 
+      item.type !== 'vehicle' && 
+      !item.category?.toLowerCase().includes('xe') &&
+      !item.category?.toLowerCase().includes('ô tô')
+    )
+
+    const hasVehicles = vehicles.length > 0
+    const hasAccessories = accessories.length > 0
+    const isOnlyVehicles = hasVehicles && !hasAccessories
+    const isOnlyAccessories = hasAccessories && !hasVehicles
+    const isMixed = hasVehicles && hasAccessories
+
+    // Tính tiền
+    const vehicleTotal = vehicles.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+    const accessoryTotal = accessories.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+    
+    // Tiền cọc xe (20%)
+    const depositRate = 0.2
+    const vehicleDeposit = Math.round(vehicleTotal * depositRate)
+
+    return {
+      vehicles,
+      accessories,
+      hasVehicles,
+      hasAccessories,
+      isOnlyVehicles,
+      isOnlyAccessories,
+      isMixed,
+      vehicleTotal,
+      accessoryTotal,
+      vehicleDeposit,
+      depositRate,
+      // Tổng tiền cần thanh toán
+      totalPayable: isMixed 
+        ? vehicleDeposit + accessoryTotal 
+        : isOnlyVehicles 
+          ? vehicleDeposit 
+          : accessoryTotal
+    }
+  }, [cartItems])
 
   useEffect(() => {
     if (!userInfo) {
@@ -35,10 +88,44 @@ const CheckoutScreen = () => {
 
   useEffect(() => {
     if (success && order) {
-      alert('Đặt hàng thành công!')
-      history.push(`/orders/${order.order._id}`)
+      if (paymentMethod === 'e_wallet') {
+        handleVNPayPayment(order.order._id, cartAnalysis.totalPayable)
+      } else {
+        alert('Đặt hàng thành công!')
+        history.push(`/orders/${order.order._id}`)
+      }
     }
-  }, [success, order, history])
+  }, [success, order, history, paymentMethod, cartAnalysis.totalPayable])
+
+  // Xử lý thanh toán VNPay
+  const handleVNPayPayment = async (orderId, amount) => {
+    try {
+      setProcessingVNPay(true)
+
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userInfo.token}`,
+        },
+      }
+
+      const { data } = await axios.post(
+        '/api/payments/vnpay',
+        { order_id: orderId, amount: Math.floor(amount) },
+        config
+      )
+
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        throw new Error('Không nhận được URL thanh toán')
+      }
+    } catch (error) {
+      console.error('VNPay Error:', error)
+      alert(error.response?.data?.message || 'Lỗi khi tạo thanh toán VNPay')
+      setProcessingVNPay(false)
+    }
+  }
 
   const submitHandler = (e) => {
     e.preventDefault()
@@ -59,12 +146,16 @@ const CheckoutScreen = () => {
         product_id: item.product_id,
         quantity: item.quantity,
         price: item.price,
+        type: item.type || 'product',
       })),
       total_amount: total,
+      payment_amount: cartAnalysis.totalPayable, // Số tiền thực thanh toán
       payment_method: paymentMethod,
       shipping_address: shippingAddress,
       phone: phone,
       note: note,
+      has_vehicle: cartAnalysis.hasVehicles,
+      vehicle_deposit: cartAnalysis.vehicleDeposit,
     }
 
     dispatch(createOrder(orderData))
@@ -75,16 +166,35 @@ const CheckoutScreen = () => {
       <div className='checkout-container'>
         <h1 className='checkout-title'>Thanh Toán</h1>
 
-        {loading && (
+        {(loading || processingVNPay) && (
           <div className='loading-overlay'>
             <div className='loading-spinner'></div>
-            <p>Đang xử lý đơn hàng...</p>
+            <p>
+              {processingVNPay
+                ? 'Đang chuyển đến VNPay...'
+                : 'Đang xử lý đơn hàng...'}
+            </p>
           </div>
         )}
 
-        {error && (
-          <div className='error-message'>
-            {error}
+        {error && <div className='error-message'>{error}</div>}
+
+        {/* ✅ Thông báo về loại đơn hàng */}
+        {cartAnalysis.hasVehicles && (
+          <div className='order-type-notice'>
+            <div className='notice-icon'>
+              <span role='img' aria-label='car'>🚗</span>
+            </div>
+            <div className='notice-content'>
+              <h3>Đơn hàng có xe ô tô</h3>
+              <p>
+                Với các sản phẩm là xe ô tô, bạn chỉ cần đặt cọc <strong>{cartAnalysis.depositRate * 100}%</strong> giá trị xe.
+                Số tiền còn lại sẽ thanh toán khi nhận xe.
+              </p>
+              {cartAnalysis.isMixed && (
+                <p>Phụ kiện/linh kiện sẽ được thanh toán đầy đủ.</p>
+              )}
+            </div>
           </div>
         )}
 
@@ -129,10 +239,12 @@ const CheckoutScreen = () => {
                 </div>
 
                 <div className='form-group'>
-                  <label htmlFor='address'>Địa chỉ giao hàng *</label>
+                  <label htmlFor='address'>
+                    {cartAnalysis.hasVehicles ? 'Địa chỉ nhận xe / giao hàng *' : 'Địa chỉ giao hàng *'}
+                  </label>
                   <textarea
                     id='address'
-                    placeholder='Nhập địa chỉ chi tiết (số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố)'
+                    placeholder='Nhập địa chỉ chi tiết'
                     rows='3'
                     value={shippingAddress}
                     onChange={(e) => setShippingAddress(e.target.value)}
@@ -157,41 +269,32 @@ const CheckoutScreen = () => {
                 <h2>Phương Thức Thanh Toán</h2>
 
                 <div className='payment-options'>
-                  <label className='payment-option'>
-                    <input
-                      type='radio'
-                      name='payment'
-                      value='cash'
-                      checked={paymentMethod === 'cash'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                    />
-                    <div className='option-content'>
-                      <span className='option-icon'>💵</span>
-                      <div>
-                        <strong>Thanh toán khi nhận hàng (COD)</strong>
-                        <p>Thanh toán bằng tiền mặt khi nhận hàng</p>
+                  {/* COD - Chỉ hiện khi KHÔNG có xe hoặc có cả 2 */}
+                  {!cartAnalysis.isOnlyVehicles && (
+                    <label className='payment-option'>
+                      <input
+                        type='radio'
+                        name='payment'
+                        value='cash'
+                        checked={paymentMethod === 'cash'}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                      />
+                      <div className='option-content'>
+                        <span className='option-icon' role='img' aria-label='cash'>💵</span>
+                        <div>
+                          <strong>Thanh toán khi nhận hàng (COD)</strong>
+                          <p>
+                            {cartAnalysis.isMixed 
+                              ? 'Áp dụng cho phụ kiện/linh kiện. Xe cần đặt cọc trước.'
+                              : 'Thanh toán bằng tiền mặt khi nhận hàng'}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </label>
+                    </label>
+                  )}
 
-                  <label className='payment-option'>
-                    <input
-                      type='radio'
-                      name='payment'
-                      value='bank_transfer'
-                      checked={paymentMethod === 'bank_transfer'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                    />
-                    <div className='option-content'>
-                      <span className='option-icon'>🏦</span>
-                      <div>
-                        <strong>Chuyển khoản ngân hàng</strong>
-                        <p>Chuyển khoản qua tài khoản ngân hàng</p>
-                      </div>
-                    </div>
-                  </label>
-
-                  <label className='payment-option'>
+                  {/* VNPay */}
+                  <label className='payment-option vnpay-option'>
                     <input
                       type='radio'
                       name='payment'
@@ -200,39 +303,58 @@ const CheckoutScreen = () => {
                       onChange={(e) => setPaymentMethod(e.target.value)}
                     />
                     <div className='option-content'>
-                      <span className='option-icon'>📱</span>
+                      <span className='option-icon vnpay-logo'>
+                        <img 
+                          src='https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1.png' 
+                          alt='VNPay'
+                          style={{ width: '40px', height: '40px', objectFit: 'contain' }}
+                        />
+                      </span>
                       <div>
-                        <strong>Ví điện tử (VNPay)</strong>
-                        <p>Thanh toán qua ví điện tử VNPay</p>
+                        <strong>Thanh toán VNPay</strong>
+                        <p>
+                          {cartAnalysis.hasVehicles 
+                            ? `Đặt cọc ${cartAnalysis.depositRate * 100}% qua VNPay`
+                            : 'Quét mã QR hoặc thanh toán qua ứng dụng ngân hàng'}
+                        </p>
                       </div>
                     </div>
                   </label>
 
-                  <label className='payment-option'>
-                    <input
-                      type='radio'
-                      name='payment'
-                      value='card'
-                      checked={paymentMethod === 'card'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                    />
-                    <div className='option-content'>
-                      <span className='option-icon'>💳</span>
-                      <div>
-                        <strong>Thẻ tín dụng/ghi nợ</strong>
-                        <p>Thanh toán bằng thẻ Visa, Mastercard</p>
+                  {/* Chuyển khoản - Chỉ hiện khi có xe */}
+                  {cartAnalysis.hasVehicles && (
+                    <label className='payment-option'>
+                      <input
+                        type='radio'
+                        name='payment'
+                        value='bank_transfer'
+                        checked={paymentMethod === 'bank_transfer'}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                      />
+                      <div className='option-content'>
+                        <span className='option-icon' role='img' aria-label='bank'>🏦</span>
+                        <div>
+                          <strong>Chuyển khoản ngân hàng</strong>
+                          <p>Chuyển khoản đặt cọc {cartAnalysis.depositRate * 100}% giá trị xe</p>
+                        </div>
                       </div>
-                    </div>
-                  </label>
+                    </label>
+                  )}
                 </div>
               </div>
 
               <button
                 type='submit'
                 className='btn-submit-order'
-                disabled={loading || cartItems.length === 0}
+                disabled={loading || processingVNPay || cartItems.length === 0}
               >
-                {loading ? 'Đang xử lý...' : 'Đặt Hàng'}
+                {loading || processingVNPay
+                  ? 'Đang xử lý...'
+                  : cartAnalysis.hasVehicles
+                    ? `Đặt Cọc ${cartAnalysis.totalPayable.toLocaleString('vi-VN')}₫`
+                    : paymentMethod === 'e_wallet'
+                      ? 'Thanh Toán với VNPay'
+                      : 'Đặt Hàng'}
               </button>
             </form>
           </div>
@@ -241,42 +363,86 @@ const CheckoutScreen = () => {
           <div className='order-summary'>
             <h2>Đơn Hàng Của Bạn</h2>
 
-            <div className='summary-items'>
-              {cartItems.map((item) => (
-                <div key={item.product_id} className='summary-item'>
-                  <div className='item-info'>
-                    <img
-                      src={
-                        item.image?.startsWith('http')
-                          ? item.image
-                          : item.image
-                          ? `http://localhost:5000${item.image}`
-                          : null
-                      }
-                      alt={item.product_name}
-                      onError={(e) => {
-                        e.target.style.display = 'none'
-                      }}
-                    />
-                    <div>
-                      <h4>{item.product_name}</h4>
-                      <p>Số lượng: {item.quantity}</p>
+            {/* Xe ô tô */}
+            {cartAnalysis.vehicles.length > 0 && (
+              <div className='summary-section'>
+                <h3 className='section-title'>
+                  <span role='img' aria-label='car'>🚗</span> Xe ô tô
+                </h3>
+                <div className='summary-items'>
+                  {cartAnalysis.vehicles.map((item) => (
+                    <div key={item.product_id} className='summary-item'>
+                      <div className='item-info'>
+                        <div>
+                          <h4>{item.product_name}</h4>
+                          <p>Số lượng: {item.quantity}</p>
+                        </div>
+                      </div>
+                      <div className='item-price'>
+                        {(item.price * item.quantity).toLocaleString('vi-VN')} ₫
+                      </div>
                     </div>
-                  </div>
-                  <div className='item-price'>
-                    {(item.price * item.quantity).toLocaleString('vi-VN')} ₫
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+                <div className='summary-row vehicle-deposit'>
+                  <span>Tiền cọc ({cartAnalysis.depositRate * 100}%):</span>
+                  <span className='deposit-amount'>
+                    {cartAnalysis.vehicleDeposit.toLocaleString('vi-VN')} ₫
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Phụ kiện / Linh kiện */}
+            {cartAnalysis.accessories.length > 0 && (
+              <div className='summary-section'>
+                <h3 className='section-title'>
+                  <span role='img' aria-label='parts'>🔧</span> Phụ kiện / Linh kiện
+                </h3>
+                <div className='summary-items'>
+                  {cartAnalysis.accessories.map((item) => (
+                    <div key={item.product_id} className='summary-item'>
+                      <div className='item-info'>
+                        <div>
+                          <h4>{item.product_name}</h4>
+                          <p>Số lượng: {item.quantity}</p>
+                        </div>
+                      </div>
+                      <div className='item-price'>
+                        {(item.price * item.quantity).toLocaleString('vi-VN')} ₫
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className='summary-row'>
+                  <span>Thành tiền:</span>
+                  <span>{cartAnalysis.accessoryTotal.toLocaleString('vi-VN')} ₫</span>
+                </div>
+              </div>
+            )}
 
             <div className='summary-divider'></div>
 
             <div className='summary-totals'>
-              <div className='summary-row'>
-                <span>Tạm tính:</span>
-                <span>{(total || 0).toLocaleString('vi-VN')} ₫</span>
-              </div>
+              {cartAnalysis.hasVehicles && (
+                <>
+                  <div className='summary-row'>
+                    <span>Tổng giá trị xe:</span>
+                    <span>{cartAnalysis.vehicleTotal.toLocaleString('vi-VN')} ₫</span>
+                  </div>
+                  <div className='summary-row'>
+                    <span>Tiền cọc xe ({cartAnalysis.depositRate * 100}%):</span>
+                    <span>{cartAnalysis.vehicleDeposit.toLocaleString('vi-VN')} ₫</span>
+                  </div>
+                </>
+              )}
+
+              {cartAnalysis.hasAccessories && (
+                <div className='summary-row'>
+                  <span>Phụ kiện/Linh kiện:</span>
+                  <span>{cartAnalysis.accessoryTotal.toLocaleString('vi-VN')} ₫</span>
+                </div>
+              )}
 
               <div className='summary-row'>
                 <span>Phí vận chuyển:</span>
@@ -286,17 +452,38 @@ const CheckoutScreen = () => {
               <div className='summary-divider'></div>
 
               <div className='summary-row total'>
-                <span>Tổng cộng:</span>
+                <span>
+                  {cartAnalysis.hasVehicles ? 'Tổng thanh toán hôm nay:' : 'Tổng cộng:'}
+                </span>
                 <span className='total-amount'>
-                  {(total || 0).toLocaleString('vi-VN')} ₫
+                  {cartAnalysis.totalPayable.toLocaleString('vi-VN')} ₫
                 </span>
               </div>
+
+              {cartAnalysis.hasVehicles && (
+                <div className='summary-row remaining'>
+                  <span>Còn lại (thanh toán khi nhận xe):</span>
+                  <span className='remaining-amount'>
+                    {(cartAnalysis.vehicleTotal - cartAnalysis.vehicleDeposit).toLocaleString('vi-VN')} ₫
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className='summary-notes'>
-              <p>✓ Miễn phí vận chuyển toàn quốc</p>
-              <p>✓ Hỗ trợ đổi trả trong 7 ngày</p>
-              <p>✓ Bảo hành chính hãng</p>
+              {cartAnalysis.hasVehicles ? (
+                <>
+                  <p>✔ Đặt cọc {cartAnalysis.depositRate * 100}% để giữ xe</p>
+                  <p>✔ Thanh toán phần còn lại khi nhận xe</p>
+                  <p>✔ Hỗ trợ đổi trả trong 7 ngày</p>
+                </>
+              ) : (
+                <>
+                  <p>✔ Miễn phí vận chuyển toàn quốc</p>
+                  <p>✔ Hỗ trợ đổi trả trong 7 ngày</p>
+                  <p>✔ Bảo hành chính hãng</p>
+                </>
+              )}
             </div>
           </div>
         </div>

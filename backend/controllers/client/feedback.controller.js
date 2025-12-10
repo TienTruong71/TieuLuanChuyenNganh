@@ -115,9 +115,10 @@ export const createFeedback = asyncHandler(async (req, res) => {
     })
 })
 
-// @desc    Cập nhật feedback
+// @desc Cập nhật feedback
 // @route   PUT /api/client/feedbacks/:id
 // @access  Private/Customer
+
 export const updateFeedback = asyncHandler(async (req, res) => {
     const { rating, comment } = req.body
 

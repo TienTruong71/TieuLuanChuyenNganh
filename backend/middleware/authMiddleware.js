@@ -43,7 +43,7 @@ export const admin = (req, res, next) => {
   )) {
     next()
   } else {
-    console.error('❌ Admin check failed:', {
+    console.error('Admin check failed:', {
       hasUser: !!req.user,
       isAdmin: req.user?.isAdmin,
       roleName: req.user?.role_id?.role_name,
@@ -89,7 +89,7 @@ export const anyStaff = (req, res, next) => {
   }
 }
 
-// ✅ Customer middleware đã đúng rồi
+// Customer middleware đã đúng rồi
 export const customer = (req, res, next) => {
   if (req.user && (
     req.user.role_id?.role_name?.toLowerCase() === 'customer' ||

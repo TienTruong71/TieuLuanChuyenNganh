@@ -14,7 +14,6 @@ const ProductDetailScreen = () => {
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
 
-  // Lấy product details từ Redux
   const productDetails = useSelector((state) => state.productDetails)
   const { loading, error, product } = productDetails
 
@@ -22,43 +21,74 @@ const ProductDetailScreen = () => {
     dispatch(getProductDetails(id))
   }, [dispatch, id])
 
-  // ✅ Helper: Get ALL images from product (handle multiple formats)
+  const convertBrokenObjectToString = (obj) => {
+    if (typeof obj !== 'object' || obj === null) return null
+    
+    // Kiểm tra xem có phải object chứa từng ký tự không
+    if (!obj.hasOwnProperty('0') || !obj.hasOwnProperty('1')) return null
+    
+    // Lọc bỏ các key không phải số (như 'is_primary')
+    const charKeys = Object.keys(obj)
+      .filter(key => !isNaN(parseInt(key)))
+      .sort((a, b) => parseInt(a) - parseInt(b))
+    
+    // Ghép lại thành string
+    const reconstructedUrl = charKeys.map(key => obj[key]).join('')
+    
+    if (reconstructedUrl.startsWith('http')) {
+      return reconstructedUrl
+    }
+    
+    return null
+  }
+
   const getProductImages = () => {
     if (!product) return []
 
     const images = []
 
-    console.log('🔍 DEBUG - product.images:', product.images)
-    console.log('🔍 DEBUG - product.image:', product.image)
-
     // Check images array
     if (Array.isArray(product.images) && product.images.length > 0) {
-      product.images.forEach((img, index) => {
-        console.log(`🔍 DEBUG - image[${index}]:`, img, typeof img)
-        
-        // Format 1: {image_url: "...", is_primary: true}
-        if (typeof img === 'object' && img !== null) {
-          const url = img.image_url || img.url
-          if (url) {
-            images.push(url)
-            console.log(`✅ Added object image: ${url}`)
+      product.images.forEach((img) => {
+        let url = null
+
+        // Case 1: String bình thường
+        if (typeof img === 'string' && img.trim()) {
+          url = img
+        }
+        // Case 2: Object
+        else if (typeof img === 'object' && img !== null) {
+          // Có image_url hoặc url
+          if (img.image_url) {
+            url = img.image_url
+          } else if (img.url) {
+            url = img.url
+          } else {
+            // 🔥 FIX: Data bị lưu sai dạng {0: 'h', 1: 't', ...}
+            url = convertBrokenObjectToString(img)
           }
         }
-        // Format 2: "https://..." (string)
-        else if (typeof img === 'string' && img.trim()) {
-          images.push(img)
-          console.log(`✅ Added string image: ${img}`)
+
+        // Thêm vào array nếu có URL hợp lệ
+        if (url) {
+          images.push(url)
         }
       })
     }
 
     // Fallback: single image field
     if (images.length === 0 && product.image) {
-      images.push(product.image)
-      console.log(`✅ Added fallback image: ${product.image}`)
+      if (typeof product.image === 'string') {
+        images.push(product.image)
+      } else if (typeof product.image === 'object') {
+        const reconstructed = convertBrokenObjectToString(product.image)
+        if (reconstructed) {
+          images.push(reconstructed)
+        }
+      }
     }
 
-    console.log('🎯 Final images array:', images)
+    console.log('🎯 All images:', images)
     return images
   }
 
@@ -119,9 +149,9 @@ const ProductDetailScreen = () => {
       <div className='product-detail-container'>
         {/* Breadcrumb */}
         <div className='breadcrumb'>
-          <a onClick={() => history.push('/')}>Trang chủ</a>
+          <button onClick={() => history.push('/')} className='breadcrumb-link'>Trang chủ</button>
           <span> / </span>
-          <a onClick={() => history.push('/product')}>Sản phẩm</a>
+          <button onClick={() => history.push('/product')} className='breadcrumb-link'>Sản phẩm</button>
           <span> / </span>
           <span className='current'>{categoryName}</span>
         </div>
@@ -133,7 +163,9 @@ const ProductDetailScreen = () => {
           </div>
         ) : error ? (
           <div className='error-container'>
-            <div className='error-icon'>⚠️</div>
+            <div className='error-icon'>
+              <span role='img' aria-label='warning'>⚠️</span>
+            </div>
             <h2>Không thể tải sản phẩm</h2>
             <p>{error}</p>
             <button onClick={() => history.push('/product')} className='btn-back'>
@@ -153,7 +185,7 @@ const ProductDetailScreen = () => {
                       alt={productName}
                       onError={(e) => {
                         e.target.style.display = 'none'
-                        e.target.nextSibling.style.display = 'flex'
+                        if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex'
                       }}
                     />
                     <div style={{
@@ -165,7 +197,7 @@ const ProductDetailScreen = () => {
                       background: '#f0f0f0',
                       fontSize: '120px'
                     }}>
-                      🏍️
+                      <span role='img' aria-label='product'>🚗</span>
                     </div>
 
                     {/* Navigation Arrows - Only if multiple images */}
@@ -201,7 +233,7 @@ const ProductDetailScreen = () => {
                     background: '#f0f0f0',
                     fontSize: '120px'
                   }}>
-                    🏍️
+                    <span role='img' aria-label='product'>🚗</span>
                   </div>
                 )}
 
@@ -304,7 +336,7 @@ const ProductDetailScreen = () => {
                 {inStock ? (
                   <>
                     <button className='btn-add-cart' onClick={addToCartHandler}>
-                      <span className='icon'>🛒</span>
+                      <span className='icon' role='img' aria-label='cart'>🛒</span>
                       Thêm vào giỏ hàng
                     </button>
                     <button className='btn-buy-now' onClick={buyNowHandler}>
@@ -321,21 +353,21 @@ const ProductDetailScreen = () => {
               {/* Product Features */}
               <div className='product-features'>
                 <div className='feature-item'>
-                  <span className='icon'>🚚</span>
+                  <span className='icon' role='img' aria-label='shipping'>🚚</span>
                   <div>
                     <strong>Miễn phí vận chuyển</strong>
                     <p>Cho đơn hàng từ 500.000₫</p>
                   </div>
                 </div>
                 <div className='feature-item'>
-                  <span className='icon'>↩️</span>
+                  <span className='icon' role='img' aria-label='return'>↩️</span>
                   <div>
                     <strong>Đổi trả dễ dàng</strong>
                     <p>Trong vòng 7 ngày</p>
                   </div>
                 </div>
                 <div className='feature-item'>
-                  <span className='icon'>✓</span>
+                  <span className='icon' role='img' aria-label='warranty'>✓</span>
                   <div>
                     <strong>Bảo hành chính hãng</strong>
                     <p>Theo nhà sản xuất</p>
