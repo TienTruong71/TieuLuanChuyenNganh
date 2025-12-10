@@ -7950,3 +7950,66 @@ body::before {
   font-weight: bold;
   border: 2px solid white;
 }
+
+/* Order Type Notice */
+.order-type-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+  border: 1px solid #ffc107;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.order-type-notice .notice-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.order-type-notice .notice-content h3 {
+  margin: 0 0 8px 0;
+  color: #856404;
+  font-size: 18px;
+}
+
+.order-type-notice .notice-content p {
+  margin: 4px 0;
+  color: #856404;
+  font-size: 14px;
+}
+
+/* Summary Sections */
+.summary-section {
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.vehicle-deposit {
+  background: #e3f2fd;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.deposit-amount {
+  font-weight: 700;
+  color: #1976d2;
+}
+
+.summary-row.remaining {
+  color: #666;
+  font-size: 14px;
+}
+
+.remaining-amount {
+  color: #666;
+}

@@ -21,6 +21,71 @@ const CartScreen = () => {
     }
   }, [dispatch, history, userInfo])
 
+  // ✅ Helper: Convert object {0:'h', 1:'t'...} thành string
+  const convertBrokenObjectToString = (obj) => {
+    if (typeof obj !== 'object' || obj === null) return null
+    if (!obj.hasOwnProperty('0') || !obj.hasOwnProperty('1')) return null
+    
+    const charKeys = Object.keys(obj)
+      .filter(key => !isNaN(parseInt(key)))
+      .sort((a, b) => parseInt(a) - parseInt(b))
+    
+    const reconstructedUrl = charKeys.map(key => obj[key]).join('')
+    
+    if (reconstructedUrl.startsWith('http')) {
+      return reconstructedUrl
+    }
+    return null
+  }
+
+  // ✅ Helper: Get image URL from item
+  const getItemImage = (item) => {
+    // Check images array first
+    if (item.images && Array.isArray(item.images) && item.images.length > 0) {
+      const firstImage = item.images[0]
+      
+      if (typeof firstImage === 'string' && firstImage.trim()) {
+        return firstImage
+      }
+      
+      if (typeof firstImage === 'object' && firstImage !== null) {
+        if (firstImage.image_url) return firstImage.image_url
+        if (firstImage.url) return firstImage.url
+        
+        // Fix broken object
+        const reconstructed = convertBrokenObjectToString(firstImage)
+        if (reconstructed) return reconstructed
+      }
+    }
+    
+    // Check single image field
+    if (item.image) {
+      if (typeof item.image === 'string' && item.image.trim()) {
+        return item.image
+      }
+      
+      if (typeof item.image === 'object') {
+        const reconstructed = convertBrokenObjectToString(item.image)
+        if (reconstructed) return reconstructed
+      }
+    }
+    
+    return null
+  }
+
+  // ✅ Helper: Get final image URL with localhost prefix if needed
+  const getImageUrl = (item) => {
+    const rawImage = getItemImage(item)
+    
+    if (!rawImage) return null
+    
+    if (rawImage.startsWith('http://') || rawImage.startsWith('https://')) {
+      return rawImage
+    }
+    
+    return `http://localhost:5000${rawImage}`
+  }
+
   const updateQuantityHandler = async (product_id, newQuantity) => {
     if (newQuantity < 1) return
     try {
@@ -64,7 +129,9 @@ const CartScreen = () => {
           </div>
         ) : cartItems.length === 0 ? (
           <div className='empty-cart'>
-            <div className='empty-icon'>🛒</div>
+            <div className='empty-icon'>
+              <span role='img' aria-label='cart'>🛒</span>
+            </div>
             <h2>Giỏ hàng trống</h2>
             <p>Bạn chưa có sản phẩm nào trong giỏ hàng</p>
             <button onClick={continueShopping} className='btn-continue-shopping'>
@@ -75,95 +142,104 @@ const CartScreen = () => {
           <div className='cart-content'>
             {/* Cart Items */}
             <div className='cart-items'>
-              {cartItems.map((item) => (
-                <div key={item.product_id} className='cart-item'>
-                  <div className='item-image'>
-                    <img
-                      src={
-                        item.image?.startsWith('http')
-                          ? item.image
-                          : item.image
-                          ? `http://localhost:5000${item.image}`
-                          : null
-                      }
-                      alt={item.product_name}
-                      onError={(e) => {
-                        e.target.style.display = 'none'
-                        e.target.nextSibling.style.display = 'flex'
-                      }}
-                    />
-                    <div
-                      style={{
-                        display: item.image ? 'none' : 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '100px',
-                        height: '100px',
-                        background: '#f0f0f0',
-                        fontSize: '32px',
-                      }}
-                    >
-                      🏍️
+              {cartItems.map((item) => {
+                // 🔍 DEBUG
+                console.log('🛒 Cart item:', item)
+                console.log('🛒 item.image:', item.image)
+                console.log('🛒 item.images:', item.images)
+                
+                const imageUrl = getImageUrl(item)
+                console.log('🛒 Final imageUrl:', imageUrl)
+                
+                return (
+                  <div key={item.product_id} className='cart-item'>
+                    <div className='item-image'>
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={item.product_name}
+                          onError={(e) => {
+                            e.target.style.display = 'none'
+                            if (e.target.nextSibling) {
+                              e.target.nextSibling.style.display = 'flex'
+                            }
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        style={{
+                          display: imageUrl ? 'none' : 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '100px',
+                          height: '100px',
+                          background: '#f0f0f0',
+                          fontSize: '32px',
+                        }}
+                      >
+                        <span role='img' aria-label='product'>🚗</span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className='item-details'>
-                    <h3 className='item-name'>
-                      <Link to={`/product/${item.product_id}`}>
-                        {item.product_name}
-                      </Link>
-                    </h3>
-                    <p className='item-category'>{item.category}</p>
-                    <p className='item-price'>
-                      {item.price.toLocaleString('vi-VN')} ₫
-                    </p>
-                  </div>
+                    <div className='item-details'>
+                      <h3 className='item-name'>
+                        <Link to={`/product/${item.product_id}`}>
+                          {item.product_name}
+                        </Link>
+                      </h3>
+                      <p className='item-category'>{item.category}</p>
+                      <p className='item-price'>
+                        {item.price.toLocaleString('vi-VN')} ₫
+                      </p>
+                    </div>
 
-                  <div className='item-quantity'>
+                    <div className='item-quantity'>
+                      <button
+                        className='qty-btn'
+                        onClick={() =>
+                          updateQuantityHandler(item.product_id, item.quantity - 1)
+                        }
+                        disabled={item.quantity <= 1}
+                      >
+                        −
+                      </button>
+                      <input
+                        type='number'
+                        className='qty-input'
+                        value={item.quantity}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value) || 1
+                          updateQuantityHandler(item.product_id, val)
+                        }}
+                        min='1'
+                      />
+                      <button
+                        className='qty-btn'
+                        onClick={() =>
+                          updateQuantityHandler(item.product_id, item.quantity + 1)
+                        }
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    <div className='item-subtotal'>
+                      <p className='subtotal-label'>Tạm tính:</p>
+                      <p className='subtotal-price'>
+                        {(item.price * item.quantity).toLocaleString('vi-VN')} ₫
+                      </p>
+                    </div>
+
                     <button
-                      className='qty-btn'
-                      onClick={() =>
-                        updateQuantityHandler(item.product_id, item.quantity - 1)
-                      }
-                      disabled={item.quantity <= 1}
+                      className='btn-remove'
+                      onClick={() => removeHandler(item.product_id)}
+                      aria-label='Xóa sản phẩm'
                     >
-                      −
-                    </button>
-                    <input
-                      type='number'
-                      className='qty-input'
-                      value={item.quantity}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value) || 1
-                        updateQuantityHandler(item.product_id, val)
-                      }}
-                      min='1'
-                    />
-                    <button
-                      className='qty-btn'
-                      onClick={() =>
-                        updateQuantityHandler(item.product_id, item.quantity + 1)
-                      }
-                    >
-                      +
+                      <span role='img' aria-label='delete'>🗑️</span>
                     </button>
                   </div>
-
-                  <div className='item-subtotal'>
-                    <p className='subtotal-label'>Tạm tính:</p>
-                    <p className='subtotal-price'>
-                      {(item.price * item.quantity).toLocaleString('vi-VN')} ₫
-                    </p>
-                  </div>
-
-                  <button
-                    className='btn-remove'
-                    onClick={() => removeHandler(item.product_id)}
-                  >
-                    🗑️
-                  </button>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             {/* Cart Summary */}
@@ -211,9 +287,9 @@ const CartScreen = () => {
               <div className='payment-methods'>
                 <p>Chấp nhận thanh toán:</p>
                 <div className='payment-icons'>
-                  <span>💳</span>
-                  <span>🏦</span>
-                  <span>💵</span>
+                  <span role='img' aria-label='card'>💳</span>
+                  <span role='img' aria-label='bank'>🏦</span>
+                  <span role='img' aria-label='cash'>💵</span>
                 </div>
               </div>
             </div>

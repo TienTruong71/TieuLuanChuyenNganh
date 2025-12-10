@@ -53,7 +53,6 @@ const ProductScreen = () => {
 
     let filtered = [...products]
 
-    // Lọc theo category
     if (currentCategory !== 'all') {
       filtered = filtered.filter(
         (p) =>
@@ -62,7 +61,6 @@ const ProductScreen = () => {
       )
     }
 
-    // Lọc theo search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
@@ -86,16 +84,10 @@ const ProductScreen = () => {
   }
 
   const handleProductClick = (productId) => {
-    console.log('🎯 handleProductClick called')
-    console.log('🎯 productId:', productId)
-    console.log('🎯 typeof productId:', typeof productId)
-    
     if (!productId) {
-      console.error('❌ Product ID is null/undefined!')
+      console.error('Product ID is null/undefined!')
       return
     }
-    
-    console.log('🎯 Navigating to:', `/product/${productId}`)
     history.push(`/product/${productId}`)
   }
 
@@ -107,25 +99,39 @@ const ProductScreen = () => {
     return foundCat?.category_name || foundCat?.name || foundCat?.title || 'Danh mục'
   }
 
-  // ✅ Helper: Get first image from product (handle multiple formats)
+  // ✅ Helper: Get first image from product (FIX cho data bị lỗi)
   const getProductImage = (product) => {
-    // Check images array
-    if (Array.isArray(product.images) && product.images.length > 0) {
-      const img = product.images[0]
-      
-      // Format 1: {image_url: "...", is_primary: true}
-      if (typeof img === 'object' && img !== null) {
-        return img.image_url || img.url || null
-      }
-      
-      // Format 2: "https://..."
-      if (typeof img === 'string') {
-        return img
+    if (!product.images || !Array.isArray(product.images) || product.images.length === 0) {
+      return product.image || null
+    }
+
+    const firstImage = product.images[0]
+
+    // Case 1: Đã là string bình thường
+    if (typeof firstImage === 'string') {
+      return firstImage
+    }
+
+    // Case 2: Object có image_url hoặc url
+    if (typeof firstImage === 'object' && firstImage !== null) {
+      if (firstImage.image_url) return firstImage.image_url
+      if (firstImage.url) return firstImage.url
+
+      // 🔥 FIX: Data bị lưu sai dạng {0: 'h', 1: 't', 2: 't', 3: 'p', ...}
+      if (firstImage.hasOwnProperty('0') && firstImage.hasOwnProperty('1')) {
+        const charKeys = Object.keys(firstImage)
+          .filter(key => !isNaN(parseInt(key)))
+          .sort((a, b) => parseInt(a) - parseInt(b))
+        
+        const reconstructedUrl = charKeys.map(key => firstImage[key]).join('')
+        
+        if (reconstructedUrl.startsWith('http')) {
+          return reconstructedUrl
+        }
       }
     }
-    
-    // Fallback: single image field
-    return product.image || null
+
+    return null
   }
 
   return (
@@ -154,18 +160,12 @@ const ProductScreen = () => {
               <div className='error'>{errorCat}</div>
             ) : (
               <div className='categories-list'>
-                {/* Tất cả */}
                 <div
                   key='all'
                   className={`category-card ${currentCategory === 'all' ? 'active' : ''}`}
                   onClick={() => handleCategoryClick('all')}
                 >
-                  <div style={{
-                    fontSize: '48px',
-                    marginBottom: '8px'
-                  }}>
-                    
-                  </div>
+                  <div style={{ fontSize: '48px', marginBottom: '8px' }}></div>
                   <div style={{
                     fontWeight: '700',
                     color: currentCategory === 'all' ? '#00bfff' : '#f0f0f0',
@@ -177,7 +177,6 @@ const ProductScreen = () => {
                   </div>
                 </div>
 
-                {/* Danh mục động */}
                 {categories.map((category) => {
                   const catName =
                     category?.category_name?.trim() ||
@@ -195,9 +194,7 @@ const ProductScreen = () => {
                   return (
                     <div
                       key={category._id}
-                      className={`category-card ${
-                        currentCategory === category._id ? 'active' : ''
-                      }`}
+                      className={`category-card ${currentCategory === category._id ? 'active' : ''}`}
                       onClick={() => handleCategoryClick(category._id)}
                     >
                       {catImage ? (
@@ -206,14 +203,11 @@ const ProductScreen = () => {
                           alt={catName}
                           onError={(e) => {
                             e.target.style.display = 'none'
-                            e.target.nextSibling.style.display = 'block'
+                            if (e.target.nextSibling) e.target.nextSibling.style.display = 'block'
                           }}
                         />
                       ) : null}
-                      <div style={{
-                        fontSize: '48px',
-                        display: catImage ? 'none' : 'block'
-                      }}>
+                      <div style={{ fontSize: '48px', display: catImage ? 'none' : 'block' }}>
                         🏍️
                       </div>
                       <div>{catName}</div>
@@ -243,9 +237,7 @@ const ProductScreen = () => {
                 </div>
               ) : (
                 filteredProducts.map((product) => {
-                  console.log('🔍 Product:', product.product_name, 'ID:', product._id)
-                  const title =
-                    product.product_name || product.title || 'Không có tên'
+                  const title = product.product_name || product.title || 'Không có tên'
 
                   const categoryName =
                     product.category_id?.category_name ||
@@ -255,29 +247,25 @@ const ProductScreen = () => {
 
                   const price =
                     typeof product.price === 'object'
-                      ? product.price?.value ||
-                        product.price?.$numberDecimal ||
-                        0
+                      ? product.price?.value || product.price?.$numberDecimal || 0
                       : product.price || 0
 
-                  // ✅ Use helper function
                   const rawImage = getProductImage(product)
 
-                  const imageUrl = rawImage?.startsWith('http')
-                    ? rawImage
-                    : rawImage
-                    ? `http://localhost:5000${rawImage}`
-                    : null
+                  let imageUrl = null
+                  if (rawImage) {
+                    if (rawImage.startsWith('http://') || rawImage.startsWith('https://')) {
+                      imageUrl = rawImage
+                    } else {
+                      imageUrl = `http://localhost:5000${rawImage}`
+                    }
+                  }
 
                   return (
                     <div 
                       key={product._id} 
                       className='product-card'
-                      onClick={() => {
-                        console.log('🔍 Click product:', product)
-                        console.log('🔍 Product ID:', product._id)
-                        handleProductClick(product._id)
-                      }}
+                      onClick={() => handleProductClick(product._id)}
                       style={{ cursor: 'pointer' }}
                     >
                       {imageUrl ? (
@@ -286,7 +274,7 @@ const ProductScreen = () => {
                           alt={title}
                           onError={(e) => {
                             e.target.style.display = 'none'
-                            e.target.nextSibling.style.display = 'flex'
+                            if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex'
                           }}
                         />
                       ) : null}
