@@ -94,7 +94,7 @@ app.use('/api/admin/revenue-reports', revenueReportRoutes)
 app.use('/api/admin/promotions', promotionRoutes)
 app.use('/api/admin/orders', adminOrderRoutes)
 app.use('/api/admin/dashboard', dashboardRoutes)
-app.use('/api/admin', adminRoutes) // Index admin route (nếu có các route con khác)
+app.use('/api/admin', adminRoutes)
 
 // --- CLIENT ---
 app.use('/api/client/auth', clientAuthRoutes)
