@@ -5,7 +5,7 @@ const productSchema = mongoose.Schema(
     category_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
-      required: false, 
+      required: false,
     },
     product_name: {
       type: String,
@@ -18,10 +18,12 @@ const productSchema = mongoose.Schema(
       type: Number,
       required: true,
       default: 0,
+      min: [0, 'Giá bán không được nhỏ hơn 0'],
     },
     stock_quantity: {
       type: Number,
       default: 0,
+      min: [0, 'Số lượng tồn kho không được nhỏ hơn 0'],
     },
     type: {
       type: String,
@@ -36,7 +38,7 @@ const productSchema = mongoose.Schema(
     images: [
       {
         image_url: { type: String, required: true },
-        is_primary: { type: Boolean, default: false }, 
+        is_primary: { type: Boolean, default: false },
       },
     ],
   },

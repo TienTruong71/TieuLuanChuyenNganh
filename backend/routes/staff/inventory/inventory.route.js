@@ -4,6 +4,7 @@ import {
   addInventory,
   updateInventory,
   deleteInventory,
+  addInventoryByName,
 } from "../../../controllers/staff/inventory/inventory.controller.js";
 import { protect, inventoryStaff } from '../../../middleware/authMiddleware.js';
 
@@ -13,9 +14,12 @@ router.use(protect);
 router.use(inventoryStaff);
 
 
-router.get("/", getInventoryList);         
-router.post("/", addInventory);            
-router.put("/:id", updateInventory);       
-router.delete("/:id", deleteInventory);    
+router.get("/", getInventoryList);
+router.post("/", addInventory);
+
+router.post("/add-by-name", addInventoryByName);
+
+router.put("/:id", updateInventory);
+router.delete("/:id", deleteInventory);
 
 export default router;

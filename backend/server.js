@@ -48,6 +48,7 @@ import stockRoutes from './routes/staff/inventory/stock.route.js'
 import appointmentRoutes from './routes/staff/service/appointment.route.js'
 import repairProgressRoutes from './routes/staff/service/repair.route.js'
 import serviceBayRoutes from './routes/staff/service/serviceBay.route.js'
+import categoryStaffRoutes from './routes/staff/inventory/category.route.js';
 
 // === IMPORT ROUTES (Other) ===
 import AIroutes from './routes/AI/AI.route.js'
@@ -118,6 +119,7 @@ app.use('/api/staff/sale/support', staffSupportRoutes)
 // --- STAFF (INVENTORY) ---
 app.use('/api/staff/inventory', inventoryRoutes)
 app.use('/api/staff/stock', stockRoutes)
+app.use('/api/staff/categories', categoryStaffRoutes);
 
 // --- STAFF (SERVICE) ---
 app.use('/api/staff/service/appointments', appointmentRoutes)
