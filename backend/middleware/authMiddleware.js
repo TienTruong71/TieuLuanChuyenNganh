@@ -54,7 +54,7 @@ export const admin = (req, res, next) => {
 }
 
 export const inventoryStaff = (req, res, next) => {
-  if (req.user && req.user.role_id.role_name === 'inventory') {
+  if (req.user && req.user.role_id?.role_name?.toLowerCase() === 'inventory') {
     next()
   } else {
     res.status(403)
@@ -63,7 +63,7 @@ export const inventoryStaff = (req, res, next) => {
 }
 
 export const serviceStaff = (req, res, next) => {
-  if (req.user && req.user.role_id.role_name === 'service') {
+  if (req.user && req.user.role_id?.role_name?.toLowerCase() === 'service') {
     next()
   } else {
     res.status(403)
@@ -72,7 +72,7 @@ export const serviceStaff = (req, res, next) => {
 }
 
 export const saleStaff = (req, res, next) => {
-  if (req.user && req.user.role_id.role_name === 'sale') {
+  if (req.user && req.user.role_id?.role_name?.toLowerCase() === 'sale') {
     next()
   } else {
     res.status(403)
@@ -81,11 +81,37 @@ export const saleStaff = (req, res, next) => {
 }
 
 export const anyStaff = (req, res, next) => {
-  if (req.user && ['inventory', 'service', 'sale'].includes(req.user.role_id.role_name)) {
+  const roleName = req.user?.role_id?.role_name?.toLowerCase()
+  if (req.user && ['inventory', 'service', 'sale'].includes(roleName)) {
     next()
   } else {
     res.status(403)
     throw new Error('Không có quyền Staff')
+  }
+}
+
+// Admin hoặc bất kỳ Staff nào
+export const adminOrStaff = (req, res, next) => {
+  const roleName = req.user?.role_id?.role_name?.toLowerCase()
+  const userDebug = {
+    hasUser: !!req.user,
+    userId: req.user?._id,
+    isAdmin: req.user?.isAdmin,
+    roleId: req.user?.role_id,
+    roleName: roleName,
+  }
+  console.log('🔍 adminOrStaff check:', userDebug)
+  
+  if (req.user && (
+    req.user.isAdmin || 
+    roleName === 'admin' ||
+    ['inventory', 'service', 'sale'].includes(roleName)
+  )) {
+    next()
+  } else {
+    console.error('❌ Permission denied:', userDebug)
+    res.status(403)
+    throw new Error('Không có quyền Admin hoặc Staff')
   }
 }
 

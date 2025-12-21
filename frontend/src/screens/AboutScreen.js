@@ -1,5 +1,6 @@
 import React from 'react'
-import AIChatScreen from "./AIChatScreen";
+import AIChatScreen from "./AIChatScreen"
+import '../styles/about.css'
 
 const services = [
   {

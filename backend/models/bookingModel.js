@@ -10,7 +10,18 @@ const bookingSchema = mongoose.Schema(
     service_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'ServicePackage',
+      required: false,
+    },
+    product_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product',
+      required: false,
+    },
+    booking_type: {
+      type: String,
+      enum: ['service', 'vehicle'],
       required: true,
+      default: 'service',
     },
     booking_date: {
       type: Date,
@@ -25,11 +36,22 @@ const bookingSchema = mongoose.Schema(
       enum: ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'],
       default: 'pending',
     },
+    note: {
+      type: String,
+      required: false,
+    },
   },
   {
     timestamps: true,
   }
 )
+
+bookingSchema.pre('save', function (next) {
+  if (!this.service_id && !this.product_id) {
+    next(new Error('Booking phải có service_id hoặc product_id'))
+  }
+  next()
+})
 
 const Booking = mongoose.model('Booking', bookingSchema)
 

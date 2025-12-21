@@ -4,6 +4,7 @@ import { useHistory } from 'react-router-dom'
 import { createOrder } from '../actions/orderActions'
 import { getCart } from '../actions/cartActions'
 import axios from 'axios'
+import '../styles/checkout.css'
 
 const CheckoutScreen = () => {
   const history = useHistory()

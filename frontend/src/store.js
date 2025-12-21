@@ -32,6 +32,19 @@ import {
   orderCancelReducer,
 } from './reducers/orderReducers'
 
+import { feedbackReducer } from './reducers/feedbackReducers'
+
+import { supportReducer } from './reducers/supportReducers'
+
+import { supportAdminReducer } from './reducers/supportAdminReducers'
+
+import {
+  adminStaffListReducer,
+  adminStaffCreateReducer,
+  adminStaffUpdateReducer,
+  adminStaffDeleteReducer,
+} from './reducers/staffReducers'
+
 // ✅ Import TẤT CẢ admin reducers
 import {
   adminDashboardStatsReducer,
@@ -82,6 +95,15 @@ const reducer = combineReducers({
   bookingDetails: bookingDetailsReducer,
   bookingCancel: bookingCancelReducer,
 
+  // Feedback reducer
+  feedback: feedbackReducer,
+
+  // Support reducer
+  support: supportReducer,
+
+  // Support Admin reducer
+  supportAdmin: supportAdminReducer,
+
   // ✅ Admin reducers - Dashboard & Orders & Customers
   adminDashboardStats: adminDashboardStatsReducer,
   adminOrderList: adminOrderListReducer,
@@ -106,6 +128,12 @@ const reducer = combineReducers({
   adminServiceCreate: adminServiceCreateReducer,
   adminServiceUpdate: adminServiceUpdateReducer,
   adminServiceDelete: adminServiceDeleteReducer,
+
+  // ✅ Admin reducers - Staff
+  adminStaffList: adminStaffListReducer,
+  adminStaffCreate: adminStaffCreateReducer,
+  adminStaffUpdate: adminStaffUpdateReducer,
+  adminStaffDelete: adminStaffDeleteReducer,
 
   adminCategoryUpdate: adminCategoryUpdateReducer,
   adminCategoryDelete: adminCategoryDeleteReducer,

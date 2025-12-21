@@ -4,12 +4,13 @@ import {
   getSupportRequestById,
   replyAndResolveSupportRequest
 } from '../../../controllers/staff/sale/support.controller.js';
-import { saleStaff } from '../../../middleware/authMiddleware.js';
+import { protect, adminOrStaff } from '../../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Bắt buộc đăng nhập
-router.use(saleStaff);
+// Bắt buộc đăng nhập - Admin hoặc Staff
+router.use(protect);
+router.use(adminOrStaff);
 
 // Lấy danh sách yêu cầu 
 router.get('/', getAllSupportRequests);

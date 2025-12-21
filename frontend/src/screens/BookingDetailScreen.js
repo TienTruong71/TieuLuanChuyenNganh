@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useHistory, useParams, Link } from 'react-router-dom'
 import { getBookingDetails, cancelBooking } from '../actions/bookingActions'
 import { BOOKING_CANCEL_RESET } from '../constants/bookingConstants'
+import '../styles/booking.css'
 
 const BookingDetailScreen = () => {
   const { id } = useParams()
@@ -39,6 +40,34 @@ const BookingDetailScreen = () => {
 
   const handleCancelBooking = () => {
     dispatch(cancelBooking(id))
+  }
+
+  // ✅ Helper: Kiểm tra loại booking
+  const isVehicleBooking = booking?.booking_type === 'vehicle' && booking?.product_id
+
+  // ✅ Helper: Lấy thông tin hiển thị
+  const getBookingInfo = () => {
+    if (isVehicleBooking) {
+      return {
+        name: booking.product_id?.product_name || 'Xe ô tô',
+        description: booking.product_id?.description || 'Lái thử xe ô tô',
+        duration: '30-45 phút',
+        price: 'Miễn phí',
+        isPaid: false,
+        type: 'vehicle',
+        typeLabel: '🚗 Lái thử xe',
+      }
+    }
+
+    return {
+      name: booking.service_id?.service_name || 'Dịch vụ',
+      description: booking.service_id?.description || 'Không có mô tả',
+      duration: booking.service_id?.duration || 'N/A',
+      price: formatPrice(booking.service_id?.price) + 'đ',
+      isPaid: true,
+      type: 'service',
+      typeLabel: '🔧 Dịch vụ',
+    }
   }
 
   const getStatusBadge = (status) => {
@@ -85,6 +114,8 @@ const BookingDetailScreen = () => {
     }
     return parseFloat(price || 0).toLocaleString('vi-VN')
   }
+
+  const bookingInfo = booking ? getBookingInfo() : null
 
   return (
     <main className='page-main'>
@@ -138,10 +169,10 @@ const BookingDetailScreen = () => {
                 </div>
               </div>
               <div className={`timeline-step ${['in_progress', 'completed'].includes(booking.status) ? 'completed' : ''}`}>
-                <div className='step-icon'>🔧</div>
+                <div className='step-icon'>{isVehicleBooking ? '🚗' : '🔧'}</div>
                 <div className='step-content'>
-                  <h4>Đang thực hiện</h4>
-                  <p>{['in_progress', 'completed'].includes(booking.status) ? 'Đang làm' : 'Chưa bắt đầu'}</p>
+                  <h4>{isVehicleBooking ? 'Đang lái thử' : 'Đang thực hiện'}</h4>
+                  <p>{['in_progress', 'completed'].includes(booking.status) ? (isVehicleBooking ? 'Đang lái thử' : 'Đang làm') : 'Chưa bắt đầu'}</p>
                 </div>
               </div>
               <div className={`timeline-step ${booking.status === 'completed' ? 'completed' : ''}`}>
@@ -154,45 +185,69 @@ const BookingDetailScreen = () => {
             </div>
 
             <div className='booking-detail-content'>
-              {/* Service Info */}
+              {/* Service/Vehicle Info */}
               <div className='detail-section'>
                 <div className='info-card'>
-                  <h2>Thông tin dịch vụ</h2>
+                  {/* ✅ Tiêu đề động theo loại booking */}
+                  <h2>
+                    {isVehicleBooking ? (
+                      <>🚗 Thông tin dịch vụ</>
+                    ) : (
+                      <>🔧 Thông tin dịch vụ</>
+                    )}
+                  </h2>
                   <div className='info-grid'>
                     <div className='info-item'>
-                      <i className='fas fa-wrench'></i>
+                      <i className={isVehicleBooking ? 'fas fa-car' : 'fas fa-wrench'}></i>
                       <div>
-                        <span className='label'>Dịch vụ</span>
-                        <span className='value'>{booking.service_id?.service_name || 'N/A'}</span>
+                        <span className='label'>{isVehicleBooking ? 'Tên xe' : 'Dịch vụ'}</span>
+                        <span className='value'>{isVehicleBooking ? 'Trải nghiệm' : ''} {bookingInfo?.name}</span>
                       </div>
                     </div>
                     <div className='info-item'>
                       <i className='fas fa-align-left'></i>
                       <div>
                         <span className='label'>Mô tả</span>
-                        <span className='value'>{booking.service_id?.description || 'Không có mô tả'}</span>
+                        <span className='value'>{bookingInfo?.description}</span>
                       </div>
                     </div>
                     <div className='info-item'>
                       <i className='fas fa-hourglass-half'></i>
                       <div>
-                        <span className='label'>Thời gian thực hiện</span>
-                        <span className='value'>{booking.service_id?.duration || 'N/A'}</span>
+                        <span className='label'>Thời gian</span>
+                        <span className='value'>{bookingInfo?.duration}</span>
                       </div>
                     </div>
                     <div className='info-item'>
                       <i className='fas fa-money-bill-wave'></i>
                       <div>
-                        <span className='label'>Chi phí dịch vụ</span>
-                        <span className='value price'>{formatPrice(booking.service_id?.price)}đ</span>
+                        <span className='label'>Chi phí</span>
+                        <span className={`value ${bookingInfo?.isPaid ? 'price' : 'free-price'}`}>
+                          {bookingInfo?.price}
+                        </span>
                       </div>
                     </div>
                   </div>
+
+                  {/* {isVehicleBooking && (
+                    <div className='vehicle-booking-alert'>
+                      <div className='alert-icon'>💡</div>
+                      <div className='alert-content'>
+                        <strong>Lưu ý quan trọng cho lái thử xe:</strong>
+                        <ul>
+                          <li>Vui lòng mang theo <strong>CMND/CCCD</strong> và <strong>Giấy phép lái xe</strong> hợp lệ</li>
+                          <li>Chuyên viên tư vấn sẽ đồng hành cùng bạn trong suốt quá trình lái thử</li>
+                          <li>Thời gian lái thử: 30-45 phút</li>
+                          <li>Hoàn toàn <strong>MIỄN PHÍ</strong></li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}  */}
                 </div>
 
                 {/* Booking Info */}
                 <div className='info-card'>
-                  <h2>Thông tin lịch hẹn</h2>
+                  <h2>📅 Thông tin lịch hẹn</h2>
                   <div className='info-grid'>
                     <div className='info-item'>
                       <i className='fas fa-calendar-alt'></i>
@@ -232,13 +287,17 @@ const BookingDetailScreen = () => {
                   <h3>Tóm tắt</h3>
                   <div className='summary-rows'>
                     <div className='summary-row'>
-                      <span>Chi phí dịch vụ:</span>
-                      <span>{formatPrice(booking.service_id?.price)}đ</span>
+                      <span>{isVehicleBooking ? 'Lái thử xe:' : 'Chi phí dịch vụ:'}</span>
+                      <span className={bookingInfo?.isPaid ? '' : 'free-text'}>
+                        {bookingInfo?.price}
+                      </span>
                     </div>
                     <div className='summary-divider'></div>
                     <div className='summary-row total'>
                       <span>Tổng cộng:</span>
-                      <span className='total-price'>{formatPrice(booking.service_id?.price)}đ</span>
+                      <span className={bookingInfo?.isPaid ? 'total-price' : 'free-total'}>
+                        {bookingInfo?.price}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -256,7 +315,7 @@ const BookingDetailScreen = () => {
                   </div>
                 )}
 
-                {booking.status === 'completed' && (
+                {booking.status === 'completed' && !isVehicleBooking && (
                   <div className='action-buttons'>
                     <Link to='/services' className='btn-rebook'>
                       Đặt lại dịch vụ
@@ -268,10 +327,21 @@ const BookingDetailScreen = () => {
                 <div className='info-card notes-card'>
                   <h4>Lưu ý quan trọng</h4>
                   <ul className='notes-list'>
-                    <li>Vui lòng đến đúng giờ đã đặt</li>
-                    <li>Chỉ có thể hủy lịch ở trạng thái "Chờ xác nhận"</li>
-                    <li>Mang theo giấy tờ xe khi đến</li>
-                    <li>Liên hệ hotline nếu cần hỗ trợ</li>
+                    {isVehicleBooking ? (
+                      <>
+                        <li>Mang theo CMND/CCCD và GPLX</li>
+                        <li>Đến đúng giờ đã đặt</li>
+                        <li>Chuyên viên sẽ đồng hành</li>
+                        <li>Liên hệ hotline: <strong>037788551</strong> nếu cần hỗ trợ</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>Vui lòng đến đúng giờ đã đặt</li>
+                        <li>Chỉ có thể hủy lịch ở trạng thái "Chờ xác nhận"</li>
+                        <li>Mang theo giấy tờ xe khi đến</li>
+                        <li>Liên hệ hotline: <strong>037788551</strong> nếu cần hỗ trợ</li>
+                      </>
+                    )}
                   </ul>
                 </div>
               </div>
@@ -282,7 +352,7 @@ const BookingDetailScreen = () => {
               <div className='modal-overlay' onClick={() => setShowCancelModal(false)}>
                 <div className='modal-content' onClick={(e) => e.stopPropagation()}>
                   <h3>Xác nhận hủy lịch hẹn</h3>
-                  <p>Bạn có chắc chắn muốn hủy lịch hẹn này?</p>
+                  <p>Bạn có chắc chắn muốn hủy lịch {isVehicleBooking ? 'lái thử xe' : 'dịch vụ'} này?</p>
                   <div className='modal-buttons'>
                     <button
                       className='btn-confirm-cancel'

@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
-import { useHistory, useLocation, Link } from 'react-router-dom';
+import React, { useEffect } from 'react'
+import { useHistory, useLocation, Link } from 'react-router-dom'
+import '../styles/checkout.css'
 
 const PaymentSuccessScreen = () => {
   const history = useHistory();

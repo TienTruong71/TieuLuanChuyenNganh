@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory, useParams, Link } from 'react-router-dom'
 import { getOrderDetails, cancelOrder } from '../actions/orderActions'
+import '../styles/order.css'
 
 const OrderDetailScreen = () => {
   const { id } = useParams()

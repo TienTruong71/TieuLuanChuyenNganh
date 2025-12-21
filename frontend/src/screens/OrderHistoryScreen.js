@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory, Link } from 'react-router-dom'
 import { listMyOrders } from '../actions/orderActions'
+import '../styles/order.css'
 
 const OrderHistoryScreen = () => {
   const history = useHistory()

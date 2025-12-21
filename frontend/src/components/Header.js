@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { logout } from '../actions/userActions'
 import logo from '../assets/logo.png'
+import '../styles/shared.css'
 
 const Header = () => {
   const dispatch = useDispatch()

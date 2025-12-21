@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useRef, useEffect } from "react"
+import axios from "axios"
+import '../styles/ai.css'
 
 const AIChatScreen = () => {
   const [message, setMessage] = useState("");

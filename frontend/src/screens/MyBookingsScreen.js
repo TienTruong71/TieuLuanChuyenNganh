@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useHistory, Link } from 'react-router-dom'
 import { listMyBookings, cancelBooking } from '../actions/bookingActions'
 import { BOOKING_CANCEL_RESET } from '../constants/bookingConstants'
+import '../styles/booking.css'
 
 const MyBookingsScreen = () => {
   const history = useHistory()
@@ -85,13 +86,47 @@ const MyBookingsScreen = () => {
     setCurrentPage(page)
   }
 
+  // ✅ Helper: Lấy thông tin booking (service hoặc vehicle)
+  const getBookingInfo = (booking) => {
+    if (booking.booking_type === 'vehicle' && booking.product_id) {
+      return {
+        name: booking.product_id.product_name,
+        type: 'vehicle',
+        typeLabel: '🚗 Lái thử xe',
+        duration: '30-45 phút',
+        price: 'Miễn phí',
+        isPaid: false,
+      }
+    }
+    
+    if (booking.service_id) {
+      return {
+        name: booking.service_id.service_name,
+        type: 'service',
+        typeLabel: '🔧 Dịch vụ',
+        duration: booking.service_id.duration || 'N/A',
+        price: formatPrice(booking.service_id.price) + 'đ',
+        isPaid: true,
+      }
+    }
+
+    return {
+      name: 'Không rõ',
+      type: 'unknown',
+      typeLabel: '❓ Không rõ',
+      duration: 'N/A',
+      price: '0đ',
+      isPaid: false,
+    }
+  }
+
   return (
     <main className='page-main'>
       <div className='my-bookings-container'>
         <div className='bookings-header'>
           <div className='header-left'>
             <h1>Lịch hẹn của tôi</h1>
-            <p>Quản lý tất cả lịch hẹn dịch vụ của bạn</p>
+            <p>Quản lý tất cả lịch hẹn dịch vụ và lái thử xe của bạn</p>
           </div>
           <Link to='/services' className='btn-new-booking'>
             + Đặt lịch mới
@@ -145,7 +180,7 @@ const MyBookingsScreen = () => {
           <div className='empty-bookings'>
             <div className='empty-icon'>📅</div>
             <h2>Chưa có lịch hẹn nào</h2>
-            <p>Bạn chưa đặt lịch dịch vụ nào</p>
+            <p>Bạn chưa đặt lịch dịch vụ hoặc lái thử xe nào</p>
             <Link to='/services' className='btn-book-now'>
               Đặt lịch ngay
             </Link>
@@ -153,74 +188,90 @@ const MyBookingsScreen = () => {
         ) : (
           <>
             <div className='bookings-list'>
-              {bookings.map((booking) => (
-                <div key={booking._id} className='booking-card'>
-                  <div className='booking-header'>
-                    <div className='booking-info'>
-                      <h3>{booking.service_id?.service_name || 'Dịch vụ'}</h3>
-                      <p className='booking-id'>Mã: #{booking._id.slice(-8)}</p>
+              {bookings.map((booking) => {
+                const bookingInfo = getBookingInfo(booking)
+                
+                return (
+                  <div key={booking._id} className='booking-card'>
+                    {/* ✅ Header với type badge */}
+                    <div className='booking-header'>
+                      <div className='booking-info'>
+                        <div className='booking-type-label'>
+                          {bookingInfo.typeLabel}
+                        </div>
+                        <h3>{bookingInfo.name}</h3>
+                        <p className='booking-id'>Mã: #{booking._id.slice(-8)}</p>
+                      </div>
+                      {getStatusBadge(booking.status)}
                     </div>
-                    {getStatusBadge(booking.status)}
-                  </div>
 
-                  <div className='booking-body'>
-                    <div className='booking-detail'>
-                      <div className='detail-item'>
-                        <i className='fas fa-calendar'></i>
-                        <div>
-                          <span className='label'>Ngày hẹn</span>
-                          <span className='value'>{formatDate(booking.booking_date)}</span>
+                    <div className='booking-body'>
+                      <div className='booking-detail'>
+                        <div className='detail-item'>
+                          <i className='fas fa-calendar'></i>
+                          <div>
+                            <span className='label'>Ngày hẹn</span>
+                            <span className='value'>{formatDate(booking.booking_date)}</span>
+                          </div>
+                        </div>
+
+                        <div className='detail-item'>
+                          <i className='fas fa-clock'></i>
+                          <div>
+                            <span className='label'>Khung giờ</span>
+                            <span className='value'>{booking.time_slot}</span>
+                          </div>
+                        </div>
+
+                        <div className='detail-item'>
+                          <i className='fas fa-hourglass-half'></i>
+                          <div>
+                            <span className='label'>Thời gian</span>
+                            <span className='value'>{bookingInfo.duration}</span>
+                          </div>
+                        </div>
+
+                        <div className='detail-item'>
+                          <i className='fas fa-money-bill-wave'></i>
+                          <div>
+                            <span className='label'>Chi phí</span>
+                            <span className={`value ${bookingInfo.isPaid ? 'price' : 'free'}`}>
+                              {bookingInfo.price}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
-                      <div className='detail-item'>
-                        <i className='fas fa-clock'></i>
-                        <div>
-                          <span className='label'>Khung giờ</span>
-                          <span className='value'>{booking.time_slot}</span>
+                      {/* ✅ Ghi chú đặc biệt cho xe */}
+                      {bookingInfo.type === 'vehicle' && (
+                        <div className='vehicle-note'>
+                          <span className='note-icon'>💡</span>
+                          <span>Vui lòng mang theo CMND/CCCD và Giấy phép lái xe</span>
                         </div>
-                      </div>
-
-                      <div className='detail-item'>
-                        <i className='fas fa-hourglass-half'></i>
-                        <div>
-                          <span className='label'>Thời gian</span>
-                          <span className='value'>{booking.service_id?.duration || 'N/A'}</span>
-                        </div>
-                      </div>
-
-                      <div className='detail-item'>
-                        <i className='fas fa-money-bill-wave'></i>
-                        <div>
-                          <span className='label'>Chi phí</span>
-                          <span className='value price'>
-                            {formatPrice(booking.service_id?.price)}đ
-                          </span>
-                        </div>
-                      </div>
+                      )}
                     </div>
-                  </div>
 
-                  <div className='booking-footer'>
-                    <Link to={`/booking-detail/${booking._id}`} className='btn-view-detail'>
-                      Xem chi tiết
-                    </Link>
-                    {booking.status === 'pending' && (
-                      <button
-                        className='btn-cancel'
-                        onClick={() => handleCancelBooking(booking._id)}
-                      >
-                        Hủy lịch
-                      </button>
-                    )}
-                    {booking.status === 'completed' && (
-                      <Link to='/services' className='btn-rebook'>
-                        Đặt lại
+                    <div className='booking-footer'>
+                      <Link to={`/booking-detail/${booking._id}`} className='btn-view-detail'>
+                        Xem chi tiết
                       </Link>
-                    )}
+                      {booking.status === 'pending' && (
+                        <button
+                          className='btn-cancel'
+                          onClick={() => handleCancelBooking(booking._id)}
+                        >
+                          Hủy lịch
+                        </button>
+                      )}
+                      {booking.status === 'completed' && bookingInfo.type === 'service' && (
+                        <Link to='/services' className='btn-rebook'>
+                          Đặt lại
+                        </Link>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             {/* Pagination */}

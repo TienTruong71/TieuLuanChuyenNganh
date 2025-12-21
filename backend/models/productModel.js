@@ -5,7 +5,7 @@ const productSchema = mongoose.Schema(
     category_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
-      required: false, 
+      required: false,
     },
     product_name: {
       type: String,
@@ -25,20 +25,13 @@ const productSchema = mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['product', 'service'],
+      enum: ['product', 'vehicle', 'accessory', 'part'],
       default: 'product',
     },
     images: {
-      type: [String],
+      type: [mongoose.Schema.Types.Mixed],
       default: [],
     },
-
-    images: [
-      {
-        image_url: { type: String, required: true },
-        is_primary: { type: Boolean, default: false }, 
-      },
-    ],
   },
   {
     timestamps: true,

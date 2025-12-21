@@ -10,9 +10,12 @@ import {
   updateCustomer,
   deleteCustomer,
 } from '../actions/adminActions'
+import '../styles/admin.css'
 import { ADMIN_ORDER_UPDATE_RESET, ADMIN_CUSTOMER_UPDATE_RESET } from '../constants/adminConstants'
 import ProductsManagementScreen from './ProductsManagementScreen'
 import ServicesManagementScreen from './ServicesManagementScreen'
+import StaffManagementScreen from './StaffManagementScreen'
+import SupportAdminPanel from '../components/SupportAdminPanel'
 
 const AdminScreen = () => {
   const history = useHistory()
@@ -159,7 +162,7 @@ const AdminScreen = () => {
       cancelled: { label: 'Đã hủy', class: 'danger' },
     }
     const config = statusMap[status] || { label: status, class: 'default' }
-    return <span className={`status-badge ${config.class}`}>{config.label}</span>
+    return <span className={`admin-status-badge ${config.class}`}>{config.label}</span>
   }
 
   return (
@@ -173,34 +176,46 @@ const AdminScreen = () => {
         {/* Tab Navigation */}
         <div className='admin-tabs'>
           <button 
-            className={`tab-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
+            className={`admin-tab-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
             onClick={() => setActiveTab('dashboard')}
           >
             📊 Dashboard
           </button>
           <button 
-            className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
+            className={`admin-tab-btn ${activeTab === 'users' ? 'active' : ''}`}
             onClick={() => setActiveTab('users')}
           >
             👥 Khách hàng
           </button>
           <button 
-            className={`tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
+            className={`admin-tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
             onClick={() => setActiveTab('orders')}
           >
             📦 Đơn hàng
           </button>
           <button 
-            className={`tab-btn ${activeTab === 'products' ? 'active' : ''}`}
+            className={`admin-tab-btn ${activeTab === 'products' ? 'active' : ''}`}
             onClick={() => setActiveTab('products')}
           >
             🚗 Sản phẩm
           </button>
           <button 
-            className={`tab-btn ${activeTab === 'services' ? 'active' : ''}`}
+            className={`admin-tab-btn ${activeTab === 'services' ? 'active' : ''}`}
             onClick={() => setActiveTab('services')}
           >
             🔧 Dịch vụ
+          </button>
+          <button 
+            className={`admin-tab-btn ${activeTab === 'support' ? 'active' : ''}`}
+            onClick={() => setActiveTab('support')}
+          >
+            💬 Hỗ trợ
+          </button>
+          <button 
+            className={`admin-tab-btn ${activeTab === 'staff' ? 'active' : ''}`}
+            onClick={() => setActiveTab('staff')}
+          >
+            👥 Nhân viên
           </button>
         </div>
 
@@ -217,37 +232,37 @@ const AdminScreen = () => {
             ) : stats ? (
               <>
                 {/* Stats Cards */}
-                <div className='stats-grid'>
-                  <div className='stat-card'>
-                    <div className='stat-icon'>💰</div>
-                    <div className='stat-info'>
-                      <div className='stat-title'>Tổng doanh thu</div>
-                      <div className='stat-value'>{formatPrice(stats.totalRevenue)}đ</div>
-                      <div className='stat-trend'>30 ngày gần nhất</div>
+                <div className='admin-stats-grid'>
+                  <div className='admin-stat-card'>
+                    <div className='admin-stat-icon'>💰</div>
+                    <div className='admin-stat-info'>
+                      <div className='admin-stat-title'>Tổng doanh thu</div>
+                      <div className='admin-stat-value'>{formatPrice(stats.totalRevenue)}đ</div>
+                      <div className='admin-stat-trend'>30 ngày gần nhất</div>
                     </div>
                   </div>
-                  <div className='stat-card'>
-                    <div className='stat-icon'>📦</div>
-                    <div className='stat-info'>
-                      <div className='stat-title'>Đơn hàng hoàn thành</div>
-                      <div className='stat-value'>{stats.orderCount}</div>
-                      <div className='stat-trend'>30 ngày gần nhất</div>
+                  <div className='admin-stat-card'>
+                    <div className='admin-stat-icon'>📦</div>
+                    <div className='admin-stat-info'>
+                      <div className='admin-stat-title'>Đơn hàng hoàn thành</div>
+                      <div className='admin-stat-value'>{stats.orderCount}</div>
+                      <div className='admin-stat-trend'>30 ngày gần nhất</div>
                     </div>
                   </div>
-                  <div className='stat-card'>
-                    <div className='stat-icon'>👥</div>
-                    <div className='stat-info'>
-                      <div className='stat-title'>Khách hàng mới</div>
-                      <div className='stat-value'>{stats.newCustomers}</div>
-                      <div className='stat-trend'>30 ngày gần nhất</div>
+                  <div className='admin-stat-card'>
+                    <div className='admin-stat-icon'>👥</div>
+                    <div className='admin-stat-info'>
+                      <div className='admin-stat-title'>Khách hàng mới</div>
+                      <div className='admin-stat-value'>{stats.newCustomers}</div>
+                      <div className='admin-stat-trend'>30 ngày gần nhất</div>
                     </div>
                   </div>
-                  <div className='stat-card'>
-                    <div className='stat-icon'>⚠️</div>
-                    <div className='stat-info'>
-                      <div className='stat-title'>Sản phẩm tồn kho thấp</div>
-                      <div className='stat-value'>{stats.lowStockProducts}</div>
-                      <div className='stat-trend'>Dưới 5 sản phẩm</div>
+                  <div className='admin-stat-card'>
+                    <div className='admin-stat-icon'>⚠️</div>
+                    <div className='admin-stat-info'>
+                      <div className='admin-stat-title'>Sản phẩm tồn kho thấp</div>
+                      <div className='admin-stat-value'>{stats.lowStockProducts}</div>
+                      <div className='admin-stat-trend'>Dưới 5 sản phẩm</div>
                     </div>
                   </div>
                 </div>
@@ -290,7 +305,7 @@ const AdminScreen = () => {
               <div className='section-header'>
                 <h2>Quản lý khách hàng</h2>
               </div>
-              <form className='search-bar-admin' onSubmit={handleCustomerSearch}>
+              <form className='admin-search-bar' onSubmit={handleCustomerSearch}>
                 <input 
                   type='text' 
                   placeholder='Tìm kiếm theo tên, email, số điện thoại...'
@@ -308,7 +323,7 @@ const AdminScreen = () => {
                 <div className='error-message'>{errorCustomers}</div>
               ) : (
                 <>
-                  <div className='table-container'>
+                  <div className='admin-table-container'>
                     <table className='admin-table'>
                       <thead>
                         <tr>
@@ -332,9 +347,9 @@ const AdminScreen = () => {
                               <td>{customer.address || 'N/A'}</td>
                               <td>{formatDate(customer.createdAt)}</td>
                               <td>
-                                <div className='action-buttons'>
+                                <div className='admin-action-buttons'>
                                   <button 
-                                    className='btn-action delete'
+                                    className='admin-btn-action delete'
                                     onClick={() => handleCustomerDelete(customer._id)}
                                   >
                                     🗑️
@@ -389,8 +404,8 @@ const AdminScreen = () => {
               </div>
 
               {/* Filters */}
-              <div className='filters-bar'>
-                <form className='search-bar-admin' onSubmit={handleOrderSearch}>
+              <div className='admin-filters-bar'>
+                <form className='admin-search-bar' onSubmit={handleOrderSearch}>
                   <input 
                     type='text' 
                     placeholder='Tìm kiếm theo tên khách hàng, email...'
@@ -398,6 +413,7 @@ const AdminScreen = () => {
                     onChange={(e) => setOrderSearch(e.target.value)}
                   />
                   <select
+                    className='admin-order-status-select'
                     value={orderStatus}
                     onChange={(e) => {
                       setOrderStatus(e.target.value)
@@ -423,7 +439,7 @@ const AdminScreen = () => {
                 <div className='error-message'>{errorOrders}</div>
               ) : (
                 <>
-                  <div className='table-container'>
+                  <div className='admin-table-container'>
                     <table className='admin-table'>
                       <thead>
                         <tr>
@@ -534,6 +550,7 @@ const AdminScreen = () => {
               <div className='form-group'>
                 <label>Trạng thái mới:</label>
                 <select
+                  className='form-group-select'
                   value={orderNewStatus}
                   onChange={(e) => setOrderNewStatus(e.target.value)}
                 >
@@ -561,6 +578,20 @@ const AdminScreen = () => {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Support Tab */}
+        {activeTab === 'support' && (
+          <div className='admin-content'>
+            <SupportAdminPanel />
+          </div>
+        )}
+
+        {/* Staff Tab */}
+        {activeTab === 'staff' && (
+          <div className='admin-content'>
+            <StaffManagementScreen />
           </div>
         )}
       </div>

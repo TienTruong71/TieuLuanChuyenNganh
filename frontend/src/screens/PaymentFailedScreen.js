@@ -1,5 +1,6 @@
 import React from 'react'
 import { useLocation, Link } from 'react-router-dom'
+import '../styles/checkout.css'
 
 const PaymentFailedScreen = () => {
   const location = useLocation()

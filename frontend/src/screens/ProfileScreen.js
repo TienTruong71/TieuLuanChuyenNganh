@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import '../styles/profile.css'
 
 const ProfileScreen = () => {
   const history = useHistory()

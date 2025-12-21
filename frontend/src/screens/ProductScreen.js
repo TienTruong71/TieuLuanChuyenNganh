@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 import { listProducts } from '../actions/productActions'
 import axios from 'axios'
+import '../styles/home.css'
 
 const ProductScreen = () => {
   const history = useHistory()

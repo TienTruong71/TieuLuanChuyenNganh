@@ -3,12 +3,34 @@ import SupportRequest from '../../../models/supportRequestModel.js';
 // Lấy tất cả yêu cầu hỗ trợ
 export const getAllSupportRequests = async (req, res) => {
   try {
-    const requests = await SupportRequest.find().populate('user', 'username email');
+    console.log('📂 Fetching all support requests...');
+    const requests = await SupportRequest.find()
+      .populate('user', 'username email')
+      .populate('messages.sender', 'username email')
+      .sort({ createdAt: -1 });
+    console.log(`✅ Found ${requests.length} support requests`);
+    
     if (!requests.length) {
-      return res.status(404).json({ message: 'Không có yêu cầu hỗ trợ' });
+      return res.status(200).json({ 
+        supportRequests: [],
+        pagination: {
+          currentPage: 1,
+          totalPages: 0,
+          totalRequests: 0
+        }
+      });
     }
-    res.json(requests);
+    
+    res.json({
+      supportRequests: requests,
+      pagination: {
+        currentPage: 1,
+        totalPages: 1,
+        totalRequests: requests.length
+      }
+    });
   } catch (error) {
+    console.error('❌ Error fetching support requests:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -16,7 +38,9 @@ export const getAllSupportRequests = async (req, res) => {
 // Lấy chi tiết yêu cầu theo ID
 export const getSupportRequestById = async (req, res) => {
   try {
-    const request = await SupportRequest.findById(req.params.id).populate('user', 'username email');
+    const request = await SupportRequest.findById(req.params.id)
+      .populate('user', 'username email')
+      .populate('messages.sender', 'username email');
     if (!request) {
       return res.status(404).json({ message: 'Yêu cầu không tồn tại' });
     }
@@ -26,24 +50,50 @@ export const getSupportRequestById = async (req, res) => {
   }
 };
 
-// Trả lời và đóng yêu cầu
+// Admin/Staff gửi tin nhắn trả lời
 export const replyAndResolveSupportRequest = async (req, res) => {
   try {
-    const { replyMessage } = req.body; // nội dung trả lời của Sale Staff
+    const { text, status } = req.body;
+    
+    console.log('💬 Admin replying to support request:', req.params.id, { text, status });
+    
     const request = await SupportRequest.findById(req.params.id);
 
     if (!request) {
       return res.status(404).json({ message: 'Yêu cầu không tồn tại' });
     }
 
-    // Cập nhật trạng thái và lưu reply
-    request.status = 'resolved';
-    request.reply = replyMessage; // bạn có thể thêm trường reply trong model nếu muốn lưu
-    request.updatedAt = Date.now();
+    // Thêm tin nhắn của admin/staff
+    if (text && text.trim()) {
+      request.messages.push({
+        sender: req.user._id,
+        senderName: req.user.name || req.user.username,
+        senderRole: 'staff',
+        text: text.trim(),
+        timestamp: new Date(),
+      });
+    }
 
+    // Update status nếu được cung cấp
+    if (status) {
+      request.status = status;
+    }
+    
+    request.updatedAt = Date.now();
     await request.save();
-    res.json({ message: 'Đã trả lời và đóng yêu cầu', request });
+
+    const updatedRequest = await SupportRequest.findById(request._id)
+      .populate('user', 'username email')
+      .populate('messages.sender', 'username email');
+    
+    console.log('✅ Support request updated:', updatedRequest);
+    
+    res.json({ 
+      message: 'Đã gửi tin nhắn', 
+      supportRequest: updatedRequest 
+    });
   } catch (error) {
+    console.error('❌ Error replying to support request:', error);
     res.status(500).json({ message: error.message });
   }
 };

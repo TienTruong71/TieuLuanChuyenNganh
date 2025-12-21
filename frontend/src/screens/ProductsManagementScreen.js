@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import '../styles/admin.css'
 import {
   listCategories,
   createCategory,
@@ -23,7 +24,7 @@ import {
 const ProductsManagementScreen = () => {
   const dispatch = useDispatch()
 
-  const [viewMode, setViewMode] = useState('category') // 'category' hoặc 'all'
+  const [viewMode, setViewMode] = useState('category')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [showCategoryModal, setShowCategoryModal] = useState(false)
   const [showProductModal, setShowProductModal] = useState(false)
@@ -53,7 +54,7 @@ const ProductsManagementScreen = () => {
   const { loading: loadingCategoryUpdate, success: successCategoryUpdate } = categoryUpdate
 
   const categoryDelete = useSelector((state) => state.adminCategoryDelete)
-  const { loading: loadingCategoryDelete, success: successCategoryDelete } = categoryDelete
+  const { success: successCategoryDelete } = categoryDelete
 
   const productList = useSelector((state) => state.adminProductList)
   const { loading: loadingProducts, products, error: errorProducts } = productList
@@ -65,7 +66,18 @@ const ProductsManagementScreen = () => {
   const { loading: loadingProductUpdate, success: successProductUpdate } = productUpdate
 
   const productDelete = useSelector((state) => state.adminProductDelete)
-  const { loading: loadingProductDelete, success: successProductDelete } = productDelete
+  const { success: successProductDelete } = productDelete
+
+  // ✅ Helper: Lấy label và icon cho loại sản phẩm
+  const getProductTypeInfo = (type) => {
+    const typeMap = {
+      vehicle: { label: 'Xe ô tô', icon: '🚗', class: 'vehicle' },
+      accessory: { label: 'Phụ kiện', icon: '🔧', class: 'accessory' },
+      part: { label: 'Linh kiện', icon: '⚙️', class: 'part' },
+      product: { label: 'Sản phẩm khác', icon: '📦', class: 'product' },
+    }
+    return typeMap[type] || typeMap['product']
+  }
 
   useEffect(() => {
     dispatch(listCategories())
@@ -113,9 +125,11 @@ const ProductsManagementScreen = () => {
       dispatch({ type: ADMIN_PRODUCT_CREATE_RESET })
       if (selectedCategory) {
         dispatch(listProductsByCategory(selectedCategory))
+      } else if (viewMode === 'all') {
+        dispatch(listAllProducts())
       }
     }
-  }, [successProductCreate, dispatch, selectedCategory])
+  }, [successProductCreate, dispatch, selectedCategory, viewMode])
 
   useEffect(() => {
     if (successProductUpdate) {
@@ -125,20 +139,23 @@ const ProductsManagementScreen = () => {
       dispatch({ type: ADMIN_PRODUCT_UPDATE_RESET })
       if (selectedCategory) {
         dispatch(listProductsByCategory(selectedCategory))
+      } else if (viewMode === 'all') {
+        dispatch(listAllProducts())
       }
     }
-  }, [successProductUpdate, dispatch, selectedCategory])
+  }, [successProductUpdate, dispatch, selectedCategory, viewMode])
 
   useEffect(() => {
     if (successProductDelete) {
       alert('Xóa sản phẩm thành công!')
       if (selectedCategory) {
         dispatch(listProductsByCategory(selectedCategory))
+      } else if (viewMode === 'all') {
+        dispatch(listAllProducts())
       }
     }
-  }, [successProductDelete, dispatch, selectedCategory])
+  }, [successProductDelete, dispatch, selectedCategory, viewMode])
 
-  // ✅ Cleanup: Reset success states khi unmount component
   useEffect(() => {
     return () => {
       dispatch({ type: ADMIN_CATEGORY_CREATE_RESET })
@@ -222,7 +239,7 @@ const ProductsManagementScreen = () => {
     setProductDesc(product.description || '')
     setProductPrice(product.price)
     setProductStock(product.stock_quantity)
-    setProductType(product.type)
+    setProductType(product.type || 'product')
     setProductImages(product.images ? product.images.join(', ') : '')
     setShowProductModal(true)
   }
@@ -273,10 +290,7 @@ const ProductsManagementScreen = () => {
           <div className='category-pills'>
             {categories && categories.length > 0 ? (
               categories.map((cat) => (
-                <div
-                  key={cat._id}
-                  className='category-pill-container'
-                >
+                <div key={cat._id} className='category-pill-container'>
                   <button
                     className={`category-pill ${selectedCategory === cat._id ? 'active' : ''}`}
                     onClick={() => setSelectedCategory(cat._id)}
@@ -329,46 +343,48 @@ const ProductsManagementScreen = () => {
             <div className='error-message'>{errorProducts}</div>
           ) : products && products.length > 0 ? (
             <div className='products-grid'>
-              {products.map((product) => (
-                <div key={product._id} className='product-card-admin'>
-                  {product.images && product.images.length > 0 && (
-                    <img
-                      src={product.images[0]}
-                      alt={product.product_name}
-                      className='product-image'
-                    />
-                  )}
-                  <div className='product-info'>
-                    <h4>{product.product_name}</h4>
-                    {viewMode === 'all' && product.category_id && (
-                      <span className='product-category-tag'>
-                        📂 {product.category_id.category_name}
-                      </span>
+              {products.map((product) => {
+                const typeInfo = getProductTypeInfo(product.type)
+                return (
+                  <div key={product._id} className='product-card-admin'>
+                    {product.images && product.images.length > 0 && (
+                      <img
+                        src={product.images[0]}
+                        alt={product.product_name}
+                        className='product-image'
+                      />
                     )}
-                    <p className='product-desc'>{product.description}</p>
-                    <div className='product-details'>
-                      <span className='product-price'>{formatPrice(product.price)}đ</span>
-                      <span className='product-stock'>
-                        Tồn kho: {product.stock_quantity}
-                      </span>
-                      <span className={`product-type ${product.type}`}>
-                        {product.type === 'product' ? 'Sản phẩm' : 'Dịch vụ'}
-                      </span>
+                    <div className='product-info'>
+                      <h4>{product.product_name}</h4>
+                      {viewMode === 'all' && product.category_id && (
+                        <span className='product-category-tag'>
+                          📂 {product.category_id.category_name}
+                        </span>
+                      )}
+                      <p className='product-desc'>{product.description}</p>
+                      <div className='product-details'>
+                        <span className='product-price'>{formatPrice(product.price)}đ</span>
+                        <span className='product-stock'>Tồn kho: {product.stock_quantity}</span>
+                        {/* ✅ Hiển thị loại sản phẩm với icon */}
+                        <span className={`product-type ${typeInfo.class}`}>
+                          {typeInfo.icon} {typeInfo.label}
+                        </span>
+                      </div>
+                    </div>
+                    <div className='product-actions'>
+                      <button className='btn-edit' onClick={() => handleEditProduct(product)}>
+                        ✏️ Sửa
+                      </button>
+                      <button
+                        className='btn-delete'
+                        onClick={() => handleDeleteProduct(product._id)}
+                      >
+                        🗑️ Xóa
+                      </button>
                     </div>
                   </div>
-                  <div className='product-actions'>
-                    <button className='btn-edit' onClick={() => handleEditProduct(product)}>
-                      ✏️ Sửa
-                    </button>
-                    <button
-                      className='btn-delete'
-                      onClick={() => handleDeleteProduct(product._id)}
-                    >
-                      🗑️ Xóa
-                    </button>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           ) : (
             <div className='empty-state'>
@@ -463,12 +479,13 @@ const ProductsManagementScreen = () => {
                   />
                 </div>
                 <div className='form-group'>
-                  <label>Giá: *</label>
+                  <label>Giá (VNĐ): *</label>
                   <input
                     type='number'
                     value={productPrice}
                     onChange={(e) => setProductPrice(e.target.value)}
                     required
+                    min='0'
                   />
                 </div>
                 <div className='form-group'>
@@ -478,14 +495,29 @@ const ProductsManagementScreen = () => {
                     value={productStock}
                     onChange={(e) => setProductStock(e.target.value)}
                     required
+                    min='0'
                   />
                 </div>
+                {/* ✅ Dropdown chọn loại sản phẩm - ĐÃ SỬA */}
                 <div className='form-group'>
-                  <label>Loại:</label>
-                  <select value={productType} onChange={(e) => setProductType(e.target.value)}>
-                    <option value='product'>Sản phẩm</option>
-                    <option value='service'>Dịch vụ</option>
+                  <label>Loại sản phẩm: *</label>
+                  <select 
+                    value={productType} 
+                    onChange={(e) => setProductType(e.target.value)}
+                    className='product-type-select'
+                  >
+                    <option value='vehicle'>Xe ô tô</option>
+                    <option value='accessory'>Phụ kiện</option>
+                    <option value='part'>Linh kiện</option>
+                    <option value='product'>Sản phẩm khác</option>
                   </select>
+                  {/* ✅ Gợi ý cho admin */}
+                  <small className='form-hint'>
+                    {productType === 'vehicle' && '💡 Xe ô tô: Khách hàng sẽ đặt cọc 20% khi mua'}
+                    {productType === 'accessory' && '💡 Phụ kiện: Thanh toán đầy đủ (COD hoặc VNPay)'}
+                    {productType === 'part' && '💡 Linh kiện: Thanh toán đầy đủ (COD hoặc VNPay)'}
+                    {productType === 'product' && '💡 Sản phẩm khác: Thanh toán đầy đủ (COD hoặc VNPay)'}
+                  </small>
                 </div>
               </div>
               <div className='form-group'>
@@ -494,6 +526,7 @@ const ProductsManagementScreen = () => {
                   value={productDesc}
                   onChange={(e) => setProductDesc(e.target.value)}
                   rows='3'
+                  placeholder='Nhập mô tả chi tiết sản phẩm...'
                 />
               </div>
               <div className='form-group'>
@@ -502,8 +535,11 @@ const ProductsManagementScreen = () => {
                   value={productImages}
                   onChange={(e) => setProductImages(e.target.value)}
                   rows='2'
-                  placeholder='https://image1.jpg, https://image2.jpg'
+                  placeholder='https://image1.jpg, https://image2.jpg, https://image3.jpg'
                 />
+                <small className='form-hint'>
+                  💡 Có thể thêm nhiều ảnh, phân cách bằng dấu phẩy. Ảnh đầu tiên sẽ là ảnh chính.
+                </small>
               </div>
               <div className='modal-buttons'>
                 <button

@@ -22,7 +22,9 @@ import ServicesScreen from './screens/ServicesScreen'
 import BookingScreen from './screens/BookingScreen'
 import MyBookingsScreen from './screens/MyBookingsScreen'
 import BookingDetailScreen from './screens/BookingDetailScreen'
-import AIChatScreen from './screens/AIChatScreen'
+import AIChat from './components/AIChat'
+import SupportButton from './components/SupportButton'
+
 const App = () => {
   return (
     <Router>
@@ -49,8 +51,9 @@ const App = () => {
         <Route path='/booking/:id' component={BookingScreen} />
         <Route path='/my-bookings' component={MyBookingsScreen} />
         <Route path='/booking-detail/:id' component={BookingDetailScreen} />
-        <Route path='/ai-chat' component={AIChatScreen} />
       </Switch>
+      <AIChat />
+      <SupportButton />
       <Footer />
     </Router>
   )

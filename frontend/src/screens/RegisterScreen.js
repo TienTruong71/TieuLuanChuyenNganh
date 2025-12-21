@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 import { register } from '../actions/userActions'
+import '../styles/auth.css'
 
 const RegisterScreen = () => {
   const history = useHistory()

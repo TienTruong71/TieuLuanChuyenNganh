@@ -3,6 +3,10 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useParams, useHistory } from 'react-router-dom'
 import { getProductDetails } from '../actions/productActions'
 import { addToCart } from '../actions/cartActions'
+import FeedbackForm from '../components/FeedbackForm'
+import FeedbackList from '../components/FeedbackList'
+import '../styles/productDetail.css'
+import '../styles/feedback.css'
 
 const ProductDetailScreen = () => {
   const { id } = useParams()
@@ -13,6 +17,9 @@ const ProductDetailScreen = () => {
 
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
+  const [averageRating, setAverageRating] = useState(5)
+  const [feedbackCount, setFeedbackCount] = useState(0)
+  const [refreshFeedback, setRefreshFeedback] = useState(false)
 
   const productDetails = useSelector((state) => state.productDetails)
   const { loading, error, product } = productDetails
@@ -24,15 +31,12 @@ const ProductDetailScreen = () => {
   const convertBrokenObjectToString = (obj) => {
     if (typeof obj !== 'object' || obj === null) return null
     
-    // Kiểm tra xem có phải object chứa từng ký tự không
     if (!obj.hasOwnProperty('0') || !obj.hasOwnProperty('1')) return null
     
-    // Lọc bỏ các key không phải số (như 'is_primary')
     const charKeys = Object.keys(obj)
       .filter(key => !isNaN(parseInt(key)))
       .sort((a, b) => parseInt(a) - parseInt(b))
     
-    // Ghép lại thành string
     const reconstructedUrl = charKeys.map(key => obj[key]).join('')
     
     if (reconstructedUrl.startsWith('http')) {
@@ -47,36 +51,29 @@ const ProductDetailScreen = () => {
 
     const images = []
 
-    // Check images array
     if (Array.isArray(product.images) && product.images.length > 0) {
       product.images.forEach((img) => {
         let url = null
 
-        // Case 1: String bình thường
         if (typeof img === 'string' && img.trim()) {
           url = img
         }
-        // Case 2: Object
         else if (typeof img === 'object' && img !== null) {
-          // Có image_url hoặc url
           if (img.image_url) {
             url = img.image_url
           } else if (img.url) {
             url = img.url
           } else {
-            // 🔥 FIX: Data bị lưu sai dạng {0: 'h', 1: 't', ...}
             url = convertBrokenObjectToString(img)
           }
         }
 
-        // Thêm vào array nếu có URL hợp lệ
         if (url) {
           images.push(url)
         }
       })
     }
 
-    // Fallback: single image field
     if (images.length === 0 && product.image) {
       if (typeof product.image === 'string') {
         images.push(product.image)
@@ -88,13 +85,27 @@ const ProductDetailScreen = () => {
       }
     }
 
-    console.log('🎯 All images:', images)
     return images
   }
 
   const images = getProductImages()
 
-  // Xử lý thêm vào giỏ hàng
+  // ✅ Kiểm tra xem sản phẩm có phải xe không
+  const isVehicle = product?.type === 'vehicle'
+
+  // Xử lý đặt lịch trải nghiệm (chỉ cho xe)
+  const bookTestDriveHandler = () => {
+    if (!userInfo) {
+      alert('Vui lòng đăng nhập để đặt lịch trải nghiệm')
+      history.push('/login')
+      return
+    }
+
+    // Chuyển đến trang booking với type=vehicle
+    history.push(`/booking/${id}?type=vehicle`)
+  }
+
+  // Xử lý thêm vào giỏ hàng (chỉ cho phụ kiện/linh kiện)
   const addToCartHandler = async () => {
     if (!userInfo) {
       alert('Vui lòng đăng nhập để thêm vào giỏ hàng')
@@ -110,7 +121,7 @@ const ProductDetailScreen = () => {
     }
   }
 
-  // Xử lý mua ngay
+  // Xử lý mua ngay (chỉ cho phụ kiện/linh kiện)
   const buyNowHandler = async () => {
     if (!userInfo) {
       alert('Vui lòng đăng nhập để mua hàng')
@@ -137,7 +148,7 @@ const ProductDetailScreen = () => {
     product?.category_id?.title || 
     'Chưa phân loại'
   
-  const brand = product?.brand || 'Chưa rõ'
+  const brand = product?.brand || ''
   const description = product?.description || 'Chưa có mô tả'
   const stock = product?.stock_quantity || 0
   const inStock = stock > 0
@@ -176,7 +187,6 @@ const ProductDetailScreen = () => {
           <div className='product-detail-content'>
             {/* Left: Images Gallery */}
             <div className='product-images'>
-              {/* Main Image */}
               <div className='main-image'>
                 {mainImage ? (
                   <>
@@ -200,7 +210,6 @@ const ProductDetailScreen = () => {
                       <span role='img' aria-label='product'>🚗</span>
                     </div>
 
-                    {/* Navigation Arrows - Only if multiple images */}
                     {images.length > 1 && (
                       <>
                         <button 
@@ -216,7 +225,6 @@ const ProductDetailScreen = () => {
                           ›
                         </button>
 
-                        {/* Image Counter */}
                         <div className='image-counter'>
                           {selectedImage + 1} / {images.length}
                         </div>
@@ -242,7 +250,6 @@ const ProductDetailScreen = () => {
                 )}
               </div>
 
-              {/* Thumbnail Images - Only if multiple images */}
               {images.length > 1 && (
                 <div className='thumbnail-images'>
                   {images.map((img, index) => (
@@ -267,41 +274,46 @@ const ProductDetailScreen = () => {
 
             {/* Right: Product Info */}
             <div className='product-info'>
-              {/* Category & Brand */}
               <div className='product-meta'>
                 <span className='category-badge'>{categoryName}</span>
                 {brand && <span className='brand-badge'>{brand}</span>}
+                {/* {isVehicle && <span className='vehicle-badge'>🚗 Xe ô tô</span>} */}
               </div>
 
-              {/* Product Name */}
               <h1 className='product-name'>{productName}</h1>
 
-              {/* Rating */}
               <div className='product-rating'>
                 <div className='stars'>
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <span key={star} className='star'>★</span>
+                    <span key={star} className={`star ${star <= Math.round(averageRating) ? 'filled' : ''}`}>★</span>
                   ))}
                 </div>
-                <span className='rating-text'>(0 đánh giá)</span>
+                <span className='rating-text'>({averageRating.toFixed(1)} sao - {feedbackCount} đánh giá)</span>
               </div>
 
-              {/* Price */}
               <div className='product-price'>
                 <span className='current-price'>
                   {productPrice.toLocaleString('vi-VN')} ₫
                 </span>
               </div>
 
-              {/* Stock Status */}
+              {isVehicle && (
+                <div className='vehicle-notice'>
+                  <div className='notice-icon'></div>
+                  <div className='notice-content'>
+                    <h4>Đặt lịch trải nghiệm lái thử</h4>
+                    <p>Vui lòng đặt lịch để trải nghiệm và tư vấn mua xe.</p>
+                  </div>
+                </div>
+              )}
+
               <div className='stock-status'>
                 <span className={`status ${inStock ? 'in-stock' : 'out-of-stock'}`}>
                   {inStock ? `✓ Còn hàng (${stock} sản phẩm)` : '✗ Hết hàng'}
                 </span>
               </div>
 
-              {/* Quantity Selector */}
-              {inStock && (
+              {!isVehicle && inStock && (
                 <div className='quantity-section'>
                   <label>Số lượng:</label>
                   <div className='quantity-control'>
@@ -331,48 +343,91 @@ const ProductDetailScreen = () => {
                 </div>
               )}
 
-              {/* Action Buttons */}
               <div className='action-buttons'>
-                {inStock ? (
-                  <>
-                    <button className='btn-add-cart' onClick={addToCartHandler}>
-                      <span className='icon' role='img' aria-label='cart'>🛒</span>
-                      Thêm vào giỏ hàng
+                {isVehicle ? (
+                  inStock ? (
+                    <button className='btn-book-testdrive' onClick={bookTestDriveHandler}>
+                      <span className='icon' role='img' aria-label='calendar'></span>
+                      Đặt lịch trải nghiệm
                     </button>
-                    <button className='btn-buy-now' onClick={buyNowHandler}>
-                      Mua ngay
+                  ) : (
+                    <button className='btn-notify' disabled>
+                      Thông báo khi có xe
                     </button>
-                  </>
+                  )
                 ) : (
-                  <button className='btn-notify' disabled>
-                    Thông báo khi có hàng
-                  </button>
+                  // Nút thêm giỏ hàng cho phụ kiện/linh kiện
+                  inStock ? (
+                    <>
+                      <button className='btn-add-cart' onClick={addToCartHandler}>
+                        {/* <span className='icon' role='img' aria-label='cart'>🛒</span> */}
+                        Thêm vào giỏ hàng
+                      </button>
+                      <button className='btn-buy-now' onClick={buyNowHandler}>
+                        Mua ngay
+                      </button>
+                    </>
+                  ) : (
+                    <button className='btn-notify' disabled>
+                      Thông báo khi có hàng
+                    </button>
+                  )
                 )}
               </div>
 
               {/* Product Features */}
               <div className='product-features'>
-                <div className='feature-item'>
-                  <span className='icon' role='img' aria-label='shipping'>🚚</span>
-                  <div>
-                    <strong>Miễn phí vận chuyển</strong>
-                    <p>Cho đơn hàng từ 500.000₫</p>
-                  </div>
-                </div>
-                <div className='feature-item'>
-                  <span className='icon' role='img' aria-label='return'>↩️</span>
-                  <div>
-                    <strong>Đổi trả dễ dàng</strong>
-                    <p>Trong vòng 7 ngày</p>
-                  </div>
-                </div>
-                <div className='feature-item'>
-                  <span className='icon' role='img' aria-label='warranty'>✓</span>
-                  <div>
-                    <strong>Bảo hành chính hãng</strong>
-                    <p>Theo nhà sản xuất</p>
-                  </div>
-                </div>
+                {isVehicle ? (
+                  // Features cho xe
+                  <>
+                    <div className='feature-item'>
+                      <span className='icon' role='img' aria-label='testdrive'>🚗</span>
+                      <div>
+                        <strong>Lái thử miễn phí</strong>
+                        <p>Trải nghiệm trước khi quyết định</p>
+                      </div>
+                    </div>
+                    <div className='feature-item'>
+                      <span className='icon' role='img' aria-label='consultant'>👨‍💼</span>
+                      <div>
+                        <strong>Tư vấn chuyên nghiệp</strong>
+                        <p>Đội ngũ chuyên viên giàu kinh nghiệm</p>
+                      </div>
+                    </div>
+                    <div className='feature-item'>
+                      <span className='icon' role='img' aria-label='warranty'>✓</span>
+                      <div>
+                        <strong>Bảo hành chính hãng</strong>
+                        <p>Cam kết từ nhà sản xuất</p>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  // Features cho phụ kiện
+                  <>
+                    <div className='feature-item'>
+                      <span className='icon' role='img' aria-label='shipping'>🚚</span>
+                      <div>
+                        <strong>Miễn phí vận chuyển</strong>
+                        <p>Cho đơn hàng từ 500.000₫</p>
+                      </div>
+                    </div>
+                    <div className='feature-item'>
+                      <span className='icon' role='img' aria-label='return'>↩️</span>
+                      <div>
+                        <strong>Đổi trả dễ dàng</strong>
+                        <p>Trong vòng 7 ngày</p>
+                      </div>
+                    </div>
+                    <div className='feature-item'>
+                      <span className='icon' role='img' aria-label='warranty'>✓</span>
+                      <div>
+                        <strong>Bảo hành chính hãng</strong>
+                        <p>Theo nhà sản xuất</p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -390,7 +445,6 @@ const ProductDetailScreen = () => {
               )}
             </div>
 
-            {/* Specifications */}
             {product?.specifications && (
               <div className='specifications'>
                 <h3>Thông số kỹ thuật</h3>
@@ -405,6 +459,26 @@ const ProductDetailScreen = () => {
                   </tbody>
                 </table>
               </div>
+            )}
+
+            {/* Feedback Section */}
+            {product && (
+              <>
+                <div className='feedback-section-divider'></div>
+                <FeedbackList 
+                  productId={product._id} 
+                  onAverageRatingChange={(avg, count) => {
+                    setAverageRating(avg || 5)
+                    setFeedbackCount(count || 0)
+                  }}
+                />
+                <FeedbackForm 
+                  productId={product._id}
+                  onSuccess={() => {
+                    setRefreshFeedback(!refreshFeedback)
+                  }}
+                />
+              </>
             )}
           </div>
         )}

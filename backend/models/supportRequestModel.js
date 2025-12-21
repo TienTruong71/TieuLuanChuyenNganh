@@ -7,10 +7,30 @@ const supportRequestSchema = mongoose.Schema(
       required: true,
       ref: 'User',
     },
-    message: {
+    initialMessage: {
       type: String,
       required: true,
     },
+    messages: [
+      {
+        sender: {
+          type: mongoose.Schema.Types.ObjectId,
+          required: true,
+          ref: 'User',
+        },
+        senderName: String,
+        senderRole: {
+          type: String,
+          enum: ['customer', 'admin', 'staff'],
+          default: 'customer',
+        },
+        text: String,
+        timestamp: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
     status: {
       type: String,
       enum: ['pending', 'in_progress', 'resolved'],
@@ -23,3 +43,4 @@ const supportRequestSchema = mongoose.Schema(
 const SupportRequest = mongoose.model('SupportRequest', supportRequestSchema);
 
 export default SupportRequest;
+

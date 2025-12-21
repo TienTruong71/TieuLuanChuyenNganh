@@ -40,6 +40,7 @@ import cartRoutes from './routes/client/cart.route.js'
 import feedbackRoutes from './routes/client/feedback.route.js'
 import orderRoutes from './routes/client/order.route.js'
 import supportRoutes from './routes/client/support.route.js'
+import adminSupportRoutes from './routes/admin/support.route.js'
 import notificationRoutes from './routes/client/notification.route.js'
 import paymentRoutes from './routes/client/payment.route.js'
 import productRoutes from './routes/client/product.route.js'
@@ -79,6 +80,7 @@ app.use('/api/client/cart', cartRoutes)
 app.use('/api/client/feedbacks', feedbackRoutes)
 app.use('/api/client/orders', orderRoutes)
 app.use('/api/client/support', supportRoutes)
+app.use('/api/admin/support', adminSupportRoutes)
 app.use('/api/client/notifications', notificationRoutes)
 app.use('/api/client/payments', paymentRoutes)
 app.use('/api/client/products', productRoutes)
