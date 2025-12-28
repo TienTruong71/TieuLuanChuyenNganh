@@ -100,7 +100,7 @@ export const adminOrStaff = (req, res, next) => {
     roleId: req.user?.role_id,
     roleName: roleName,
   }
-  console.log('🔍 adminOrStaff check:', userDebug)
+  console.log('adminOrStaff check:', userDebug)
   
   if (req.user && (
     req.user.isAdmin || 

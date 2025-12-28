@@ -5,7 +5,7 @@ import {
   approveFeedback,
   deleteFeedback,
 } from '../../../controllers/staff/sale/feedback.controller.js';
-import { protect, admin, saleStaff } from '../../../middleware/authMiddleware.js';
+import { protect, saleStaff, admin } from '../../../middleware/authMiddleware.js';
 
 const router = express.Router();
 
