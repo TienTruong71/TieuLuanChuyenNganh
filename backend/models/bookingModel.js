@@ -40,6 +40,11 @@ const bookingSchema = mongoose.Schema(
       type: String,
       required: false,
     },
+    price: {
+      type: Number,
+      required: true,
+      default: 0
+    },
   },
   {
     timestamps: true,

@@ -37,10 +37,6 @@ export const addInventory = asyncHandler(async (req, res) => {
     last_updated: Date.now(),
   });
 
-  // Đồng bộ Product stock
-  product.stock_quantity = quantity_available;
-  await product.save();
-
   res.status(201).json({
     message: "Thêm sản phẩm vào kho thành công",
     inventory: newInventory,
@@ -55,6 +51,11 @@ export const addInventory = asyncHandler(async (req, res) => {
 export const addInventoryByName = asyncHandler(async (req, res) => {
   const { product_name, category_name, price, images, quantity_available } = req.body;
 
+  if (price < 0 || quantity_available < 0) {
+    res.status(400)
+    throw new Error('Giá bán và Số lượng nhập kho phải lớn hơn hoặc bằng 0')
+  }
+
   if (!product_name || !category_name) {
     return res.status(400).json({ message: "Tên sản phẩm và tên danh mục là bắt buộc" });
   }
@@ -63,27 +64,24 @@ export const addInventoryByName = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Số lượng không hợp lệ" });
   }
 
-  /** Kiểm tra Category tồn tại */
   const category = await Category.findOne({ category_name });
   if (!category) {
     return res.status(404).json({ message: "Danh mục không tồn tại. Hãy tạo danh mục trước." });
   }
 
-  //Kiểm tra sản phẩm 
   let product = await Product.findOne({ product_name });
 
-  // Nếu chưa tồn tại thì tạo mới
   if (!product) {
     product = await Product.create({
       product_name,
       price: price || 0,
       images: images || [],
       category_id: category._id,
-      type: "normal",
-      stock_quantity: quantity_available
+      type: "product",
+      type: "product",
+      stock_quantity: 0
     });
   } else {
-    // Nếu đã có trong kho thì chặn
     const existedInventory = await Inventory.findOne({ product_id: product._id });
     if (existedInventory) {
       return res.status(400).json({ message: "Sản phẩm đã có trong kho" });
@@ -96,8 +94,6 @@ export const addInventoryByName = asyncHandler(async (req, res) => {
     last_updated: Date.now(),
   });
 
-  product.stock_quantity = quantity_available;
-  await product.save();
 
   res.status(201).json({
     message: "Thêm sản phẩm vào kho thành công (theo tên)",
@@ -122,10 +118,6 @@ export const updateInventory = asyncHandler(async (req, res) => {
   inventory.last_updated = new Date();
   await inventory.save();
 
-  // Đồng bộ product stock
-  await Product.findByIdAndUpdate(inventory.product_id, {
-    stock_quantity: quantity_available,
-  });
 
   res.status(200).json({
     message: "Cập nhật số lượng sản phẩm kho thành công",

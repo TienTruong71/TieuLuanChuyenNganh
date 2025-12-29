@@ -4,7 +4,7 @@ import axios from 'axios'
 export const getFeedbacks = (page = 1, limit = 10, productId = '', serviceId = '') => async (dispatch, getState) => {
     try {
         dispatch({ type: 'GET_FEEDBACKS_REQUEST' })
-        
+
         const {
             userLogin: { userInfo },
         } = getState()
@@ -18,8 +18,13 @@ export const getFeedbacks = (page = 1, limit = 10, productId = '', serviceId = '
         if (userInfo) {
             config.headers.Authorization = `Bearer ${userInfo.token}`
         }
-        
-        const { data } = await axios.get('/api/client/feedbacks', {
+
+        let url = '/api/client/feedbacks';
+        if (productId || serviceId) {
+            url = '/api/client/feedbacks/public';
+        }
+
+        const { data } = await axios.get(url, {
             params: {
                 page,
                 limit,
@@ -28,7 +33,7 @@ export const getFeedbacks = (page = 1, limit = 10, productId = '', serviceId = '
             },
             ...config,
         })
-        
+
         dispatch({
             type: 'GET_FEEDBACKS_SUCCESS',
             payload: data,
@@ -45,7 +50,7 @@ export const getFeedbacks = (page = 1, limit = 10, productId = '', serviceId = '
 export const getFeedbackById = (id) => async (dispatch, getState) => {
     try {
         dispatch({ type: 'GET_FEEDBACK_DETAIL_REQUEST' })
-        
+
         const {
             userLogin: { userInfo },
         } = getState()
@@ -59,9 +64,9 @@ export const getFeedbackById = (id) => async (dispatch, getState) => {
         if (userInfo) {
             config.headers.Authorization = `Bearer ${userInfo.token}`
         }
-        
+
         const { data } = await axios.get(`/api/client/feedbacks/${id}`, config)
-        
+
         dispatch({
             type: 'GET_FEEDBACK_DETAIL_SUCCESS',
             payload: data,
@@ -78,7 +83,7 @@ export const getFeedbackById = (id) => async (dispatch, getState) => {
 export const createFeedback = (feedbackData) => async (dispatch, getState) => {
     try {
         dispatch({ type: 'CREATE_FEEDBACK_REQUEST' })
-        
+
         const {
             userLogin: { userInfo },
         } = getState()
@@ -93,14 +98,14 @@ export const createFeedback = (feedbackData) => async (dispatch, getState) => {
                 Authorization: `Bearer ${userInfo.token}`,
             },
         }
-        
+
         const { data } = await axios.post('/api/client/feedbacks', feedbackData, config)
-        
+
         dispatch({
             type: 'CREATE_FEEDBACK_SUCCESS',
             payload: data,
         })
-        
+
         return data
     } catch (error) {
         dispatch({
@@ -115,7 +120,7 @@ export const createFeedback = (feedbackData) => async (dispatch, getState) => {
 export const updateFeedback = (id, feedbackData) => async (dispatch, getState) => {
     try {
         dispatch({ type: 'UPDATE_FEEDBACK_REQUEST' })
-        
+
         const {
             userLogin: { userInfo },
         } = getState()
@@ -130,14 +135,14 @@ export const updateFeedback = (id, feedbackData) => async (dispatch, getState) =
                 Authorization: `Bearer ${userInfo.token}`,
             },
         }
-        
+
         const { data } = await axios.put(`/api/client/feedbacks/${id}`, feedbackData, config)
-        
+
         dispatch({
             type: 'UPDATE_FEEDBACK_SUCCESS',
             payload: data,
         })
-        
+
         return data
     } catch (error) {
         dispatch({
@@ -152,7 +157,7 @@ export const updateFeedback = (id, feedbackData) => async (dispatch, getState) =
 export const deleteFeedback = (id) => async (dispatch, getState) => {
     try {
         dispatch({ type: 'DELETE_FEEDBACK_REQUEST' })
-        
+
         const {
             userLogin: { userInfo },
         } = getState()
@@ -167,14 +172,14 @@ export const deleteFeedback = (id) => async (dispatch, getState) => {
                 Authorization: `Bearer ${userInfo.token}`,
             },
         }
-        
+
         const { data } = await axios.delete(`/api/client/feedbacks/${id}`, config)
-        
+
         dispatch({
             type: 'DELETE_FEEDBACK_SUCCESS',
             payload: data,
         })
-        
+
         return data
     } catch (error) {
         dispatch({

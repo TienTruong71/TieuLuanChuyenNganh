@@ -21,14 +21,30 @@ export const getBookings = asyncHandler(async (req, res) => {
 
     const total = await Booking.countDocuments(query)
     const bookings = await Booking.find(query)
-        .populate('service_id', 'service_name price duration description') // ✅ THÊM description
+        .populate('service_id', 'service_name price duration description')
         .populate('product_id', 'product_name price type description')
         .skip((page - 1) * limit)
         .limit(limit)
         .sort({ booking_date: -1 })
 
+    const books = bookings.map(b => {
+        const bookingObj = b.toObject();
+        const snapshotPrice = bookingObj.price; // Giá gốc lúc đặt
+
+        // Ưu tiên hiển thị giá Snapshot nếu có
+        if (snapshotPrice !== undefined && snapshotPrice !== null) {
+            if (bookingObj.service_id) {
+                bookingObj.service_id.price = snapshotPrice;
+            }
+            if (bookingObj.product_id) {
+                bookingObj.product_id.price = snapshotPrice;
+            }
+        }
+        return bookingObj;
+    });
+
     res.json({
-        bookings,
+        bookings: books,
         pagination: {
             page,
             limit,
@@ -57,7 +73,14 @@ export const getBookingById = asyncHandler(async (req, res) => {
         throw new Error('Không có quyền truy cập booking này')
     }
 
-    res.json(booking)
+    // Inject Snapshot Price vào Service/Product để Web hiển thị đúng giá cũ
+    const bookingObj = booking.toObject();
+    if (bookingObj.price !== undefined && bookingObj.price !== null) {
+        if (bookingObj.service_id) bookingObj.service_id.price = bookingObj.price;
+        if (bookingObj.product_id) bookingObj.product_id.price = bookingObj.price;
+    }
+
+    res.json(bookingObj)
 })
 
 // @desc    Tạo booking mới
@@ -144,6 +167,7 @@ export const createBooking = asyncHandler(async (req, res) => {
         booking_date: new Date(booking_date),
         time_slot,
         status: 'pending',
+        price: itemToBook.price, // SNAPSHOT PRICE: Lưu giá tại thời điểm đặt
     })
 
     // ✅ Populate lại với description đầy đủ

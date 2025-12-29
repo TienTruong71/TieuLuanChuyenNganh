@@ -1,6 +1,7 @@
 import express from 'express'
 import {
     getFeedbacks,
+    getPublicFeedbacks,
     getFeedbackById,
     createFeedback,
     updateFeedback,
@@ -10,11 +11,12 @@ import { protect, customer } from '../../middleware/authMiddleware.js'
 
 const router = express.Router()
 
-// Bảo vệ tất cả route bằng customer
+router.get('/public', getPublicFeedbacks)
+
 router.use(protect, customer)
 
 router.route('/')
-    .get(getFeedbacks)      // GET /api/client/feedbacks
+    .get(getFeedbacks)      // GET /api/client/feedbacks - Lấy feedback cá nhân
     .post(createFeedback)   // POST /api/client/feedbacks
 
 router.route('/:id')

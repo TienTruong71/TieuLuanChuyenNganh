@@ -1,8 +1,30 @@
 import Contract from "../../../models/contractmodel.js";
+import Order from "../../../models/orderModel.js";
 import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
 
+
+export const getOrdersNoContract = async (req, res) => {
+  try {
+    const contracts = await Contract.find().select('order_id');
+    const contractedOrderIds = contracts.map(c => c.order_id);
+
+    const orders = await Order.find({ _id: { $nin: contractedOrderIds } })
+      .populate('user', 'username email')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: orders
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+};
 
 export const getContracts = async (req, res) => {
   try {

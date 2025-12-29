@@ -65,6 +65,7 @@ import adminRoutes from './routes/admin/index.route.js'
 import clientCategoryRoutes from './routes/client/category.routes.js'
 import adminOrderRoute from './routes/admin/order.route.js'
 import AIroutes from './routes/AI/AI.route.js'
+import staffCategoryRoutes from './routes/staff/category.route.js'
 
 // === MOUNT ROUTES ===
 app.use('/api/admin/categories', categoryRoutes)
@@ -96,7 +97,7 @@ app.use('/api/staff/service/repair-progress', repairProgressRoutes)
 app.use('/api/staff/service/service-bays', serviceBayRoutes)
 app.use('/api/admin/revenueReports', revenueReportRoutes)
 app.use('/api/admin/promotions', promotionRoutes)
-app.use('/api/staff/sale/contracts', contractRoutes)  
+app.use('/api/staff/sale/contracts', contractRoutes)
 app.use('/api/staff/sale/support', SupportResponseRoutes)
 app.use('/api/staff/sale/feedbacks', feedbackManageRoutes)
 app.use('/api/staff/inventory', inventoryRoutes)
@@ -108,12 +109,9 @@ app.use('/api/client/bookings', bookingRoutes)
 app.use('/api/client/services', serviceRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/client/categories', clientCategoryRoutes)
+app.use('/api/staff/categories', staffCategoryRoutes)
 app.use('/api/admin/orders', adminOrderRoute)
 app.use('/api/ai', AIroutes)
-
-
-
-
 
 // Uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))

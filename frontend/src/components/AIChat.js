@@ -27,7 +27,7 @@ const AIChat = () => {
     const handleSupportOpen = () => {
       setIsOpen(false)
     }
-    
+
     window.addEventListener('support-opened', handleSupportOpen)
     return () => {
       window.removeEventListener('support-opened', handleSupportOpen)
@@ -66,7 +66,11 @@ const AIChat = () => {
       } else {
         setChat((prev) => [
           ...prev,
-          { sender: "ai", text: res.data.answer || "AI không phản hồi." },
+          {
+            sender: "ai",
+            text: res.data.answer || "AI không phản hồi.",
+            product: res.data.product
+          },
         ]);
       }
     } catch (err) {
@@ -115,7 +119,52 @@ const AIChat = () => {
                 key={i}
                 className={`chat-bubble ${msg.sender === "user" ? "user" : "ai"}`}
               >
-                {msg.text}
+                <div>{msg.text}</div>
+
+                {/* Render Product Card if available */}
+                {msg.sender === 'ai' && msg.product && (
+                  <div style={{
+                    marginTop: '12px',
+                    backgroundColor: 'white',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    border: '1px solid #f0f0f0'
+                  }}>
+                    {msg.product.image && (
+                      <img
+                        src={msg.product.image}
+                        alt={msg.product.name}
+                        style={{ width: '100%', height: '120px', objectFit: 'cover' }}
+                      />
+                    )}
+                    <div style={{ padding: '10px' }}>
+                      <h4 style={{ margin: '0 0 5px 0', fontSize: '13px', color: '#333', lineHeight: '1.4' }}>
+                        {msg.product.name}
+                      </h4>
+                      <div style={{ color: '#d32f2f', fontWeight: 'bold', fontSize: '13px', marginBottom: '8px' }}>
+                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(msg.product.price)}
+                      </div>
+                      <a
+                        href={`/product/${msg.product._id}`}
+                        style={{
+                          display: 'block',
+                          width: '100%',
+                          padding: '6px 0',
+                          backgroundColor: '#0F62FE',
+                          color: 'white',
+                          textAlign: 'center',
+                          borderRadius: '4px',
+                          textDecoration: 'none',
+                          fontSize: '12px',
+                          fontWeight: '500'
+                        }}
+                      >
+                        Xem chi tiết
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
 

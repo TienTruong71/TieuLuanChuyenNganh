@@ -12,14 +12,25 @@ export const getAppointments = asyncHandler(async (req, res) => {
     const limit = parseInt(req.query.limit) || 10
     const status = req.query.status || ''
     const search = req.query.search || ''
+
+    // Initialize query object FIRST
+    const query = {}
+    if (status) query.status = status
+
     const startDate = req.query.startDate ? new Date(req.query.startDate) : null
     const endDate = req.query.endDate ? new Date(req.query.endDate) : null
 
-    const query = {}
-    if (status) query.status = status
-    if (startDate && endDate) {
+    const dateStr = req.query.date; // YYYY-MM-DD
+    if (dateStr) {
+        const start = new Date(dateStr);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(dateStr);
+        end.setHours(23, 59, 59, 999);
+        query.booking_date = { $gte: start, $lte: end };
+    } else if (startDate && endDate) {
         query.booking_date = { $gte: startDate, $lte: endDate }
     }
+
     if (search) {
         const users = await User.find({
             $or: [
@@ -31,12 +42,21 @@ export const getAppointments = asyncHandler(async (req, res) => {
     }
 
     const total = await Booking.countDocuments(query)
-    const appointments = await Booking.find(query)
+    const appointmentsData = await Booking.find(query)
         .populate('user_id', 'full_name email phone')
         .populate('service_id', 'service_name price duration')
         .skip((page - 1) * limit)
         .limit(limit)
         .sort({ booking_date: 1 })
+
+    // Inject Snapshot Price
+    const appointments = appointmentsData.map(app => {
+        const appObj = app.toObject();
+        if (appObj.price !== undefined && appObj.price !== null) {
+            if (appObj.service_id) appObj.service_id.price = appObj.price;
+        }
+        return appObj;
+    });
 
     res.json({
         appointments,

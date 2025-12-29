@@ -1,6 +1,7 @@
 // backend/controllers/staff/service/serviceBay.controller.js
 import ServiceBay from '../../../models/serviceBayModel.js'
 import Booking from '../../../models/bookingModel.js'
+import RepairProgress from '../../../models/repairProgressModel.js'
 import asyncHandler from 'express-async-handler'
 
 // @desc    Lấy danh sách khu vực dịch vụ (cho Service Staff)
@@ -156,6 +157,16 @@ export const updateServiceBay = asyncHandler(async (req, res) => {
 
     if (status === 'occupied' && current_booking) {
         await Booking.findByIdAndUpdate(current_booking, { status: 'in_progress' });
+
+        const existingProgress = await RepairProgress.findOne({ booking_id: current_booking });
+        if (!existingProgress) {
+            await RepairProgress.create({
+                booking_id: current_booking,
+                staff_id: req.user._id,
+                status: 'in_progress',
+                notes: `Xe được đưa vào khoang ${serviceBay.bay_number}`
+            });
+        }
     }
 
     res.json({

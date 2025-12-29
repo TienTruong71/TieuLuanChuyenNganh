@@ -2,24 +2,25 @@ import Feedback from '../../../models/feedbackModel.js';
 import asyncHandler from 'express-async-handler';
 
 // @desc    Lấy tất cả feedback
-// @route   GET /api/feedbacks
-// @access  Manager, Staff
+// @route   GET /api/staff/sale/feedbacks
+// @access  Sale Staff
 export const getAllFeedbacks = asyncHandler(async (req, res) => {
   const feedbacks = await Feedback.find()
     .populate('user_id', 'username')
-    .populate('product_id', 'name')
-    .populate('service_id', 'name');
+    .populate('product_id', 'product_name')
+    .populate('service_id', 'service_name')
+    .sort({ createdAt: -1 }); // Sort mới nhất lên đầu
   res.json(feedbacks);
 });
 
 // @desc    Lấy chi tiết feedback theo ID
-// @route   GET /api/feedbacks/:id
-// @access  Manager, Staff
+// @route   GET /api/staff/sale/feedbacks/:id
+// @access  Sale Staff
 export const getFeedbackById = asyncHandler(async (req, res) => {
   const feedback = await Feedback.findById(req.params.id)
     .populate('user_id', 'username')
-    .populate('product_id', 'name')
-    .populate('service_id', 'name');
+    .populate('product_id', 'product_name')
+    .populate('service_id', 'service_name');
 
   if (!feedback) {
     res.status(404);
@@ -29,8 +30,8 @@ export const getFeedbackById = asyncHandler(async (req, res) => {
 });
 
 // @desc    Duyệt feedback
-// @route   PUT /api/feedbacks/:id/approve
-// @access  Manager, Staff
+// @route   PUT /api/staff/sale/feedbacks/:id/approve
+// @access  Sale Staff
 export const approveFeedback = asyncHandler(async (req, res) => {
   const feedback = await Feedback.findById(req.params.id);
 
@@ -45,8 +46,8 @@ export const approveFeedback = asyncHandler(async (req, res) => {
 });
 
 // @desc    Xóa feedback
-// @route   DELETE /api/feedbacks/:id
-// @access  Manager, Staff
+// @route   DELETE /api/staff/sale/feedbacks/:id
+// @access  Sale Staff
 export const deleteFeedback = asyncHandler(async (req, res) => {
   const feedback = await Feedback.findById(req.params.id);
 
@@ -55,6 +56,7 @@ export const deleteFeedback = asyncHandler(async (req, res) => {
     throw new Error('Feedback not found');
   }
 
-  await feedback.remove();
+  // Sử dụng deleteOne() thay vì remove() vì remove() đã deprecated trong Mongoose mới
+  await feedback.deleteOne();
   res.json({ message: 'Feedback removed' });
 });

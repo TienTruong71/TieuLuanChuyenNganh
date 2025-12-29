@@ -10,9 +10,9 @@ export const getAllSupportRequests = async (req, res) => {
       .sort({ createdAt: -1 });
 
     console.log(`Found ${requests.length} support requests`);
-    
+
     if (!requests.length) {
-      return res.status(200).json({ 
+      return res.status(200).json({
         supportRequests: [],
         pagination: {
           currentPage: 1,
@@ -21,7 +21,7 @@ export const getAllSupportRequests = async (req, res) => {
         }
       });
     }
-    
+
     res.json({
       supportRequests: requests,
       pagination: {
@@ -78,7 +78,11 @@ export const replyAndResolveSupportRequest = async (req, res) => {
       });
     }
 
-    request.status = status || 'resolved';
+    if (status) {
+      request.status = status;
+    } else if (request.status === 'pending') {
+      request.status = 'in_progress';
+    }
     request.updatedAt = Date.now();
 
     await request.save();
@@ -89,9 +93,9 @@ export const replyAndResolveSupportRequest = async (req, res) => {
 
     console.log('Support request updated successfully');
 
-    res.json({ 
-      message: 'Đã gửi phản hồi', 
-      supportRequest: updatedRequest 
+    res.json({
+      message: 'Đã gửi phản hồi',
+      supportRequest: updatedRequest
     });
   } catch (error) {
     console.error('Error replying to support request:', error);

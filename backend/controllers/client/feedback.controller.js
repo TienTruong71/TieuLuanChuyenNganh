@@ -1,17 +1,16 @@
-// backend/controllers/client/feedback.controller.js
 import Feedback from '../../models/feedbackModel.js'
 import Product from '../../models/productModel.js'
 import ServicePackage from '../../models/servicepackageModel.js'
 import asyncHandler from 'express-async-handler'
 
-// @desc    Lấy danh sách feedback của khách hàng
+// @desc    Lấy danh sách feedback cá nhân của khách hàng (Private)
 // @route   GET /api/client/feedbacks
 // @access  Private/Customer
 export const getFeedbacks = asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page) || 1
     const limit = parseInt(req.query.limit) || 10
-    const productId = req.query.product_id || ''
-    const serviceId = req.query.service_id || ''
+    const productId = req.query.product_id
+    const serviceId = req.query.service_id
 
     const query = { user_id: req.user._id }
     if (productId) query.product_id = productId
@@ -19,6 +18,46 @@ export const getFeedbacks = asyncHandler(async (req, res) => {
 
     const total = await Feedback.countDocuments(query)
     const feedbacks = await Feedback.find(query)
+        .populate('product_id', 'product_name')
+        .populate('service_id', 'service_name')
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+
+    res.json({
+        feedbacks,
+        pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit),
+        },
+    })
+})
+
+// @desc    Lấy feedback public (đã duyệt) cho sản phẩm/dịch vụ cụ thể
+// @route   GET /api/client/feedbacks/public
+// @access  Public
+export const getPublicFeedbacks = asyncHandler(async (req, res) => {
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 10
+    const productId = req.query.product_id
+    const serviceId = req.query.service_id
+
+    const query = { status: 'approved' }
+
+    // Filter theo sản phẩm hoặc dịch vụ cụ thể
+    if (productId) {
+        query.product_id = productId
+    }
+    if (serviceId) {
+        query.service_id = serviceId
+        console.log('🔧 Filtering by service_id:', serviceId)
+    }
+
+    const total = await Feedback.countDocuments(query)
+    const feedbacks = await Feedback.find(query)
+        .populate('user_id', 'username')
         .populate('product_id', 'product_name')
         .populate('service_id', 'service_name')
         .skip((page - 1) * limit)
@@ -63,7 +102,6 @@ export const getFeedbackById = asyncHandler(async (req, res) => {
 export const createFeedback = asyncHandler(async (req, res) => {
     const { product_id, service_id, rating, comment } = req.body
 
-    // Validate
     if (!rating || (!product_id && !service_id)) {
         res.status(400)
         throw new Error('Vui lòng cung cấp rating và product_id hoặc service_id')
@@ -74,7 +112,6 @@ export const createFeedback = asyncHandler(async (req, res) => {
         throw new Error('Rating phải từ 1 đến 5')
     }
 
-    // Kiểm tra product hoặc service tồn tại
     if (product_id) {
         const product = await Product.findById(product_id)
         if (!product) {
@@ -89,26 +126,17 @@ export const createFeedback = asyncHandler(async (req, res) => {
         }
     }
 
-    // Kiểm tra xem đã feedback chưa
-    const existingFeedback = await Feedback.findOne({
-        user_id: req.user._id,
-        $or: [{ product_id }, { service_id }],
-    })
-    if (existingFeedback) {
-        res.status(400)
-        throw new Error('Bạn đã gửi phản hồi cho sản phẩm/dịch vụ này')
-    }
-
     const feedback = await Feedback.create({
         user_id: req.user._id,
         product_id: product_id || null,
         service_id: service_id || null,
         rating,
         comment: comment || '',
+        status: 'pending'
     })
 
     res.status(201).json({
-        message: 'Gửi phản hồi thành công',
+        message: 'Gửi phản hồi thành công. Đánh giá của bạn sẽ được hiển thị sau khi được duyệt.',
         feedback: await Feedback.findById(feedback._id)
             .populate('product_id', 'product_name')
             .populate('service_id', 'service_name'),
@@ -118,7 +146,6 @@ export const createFeedback = asyncHandler(async (req, res) => {
 // @desc Cập nhật feedback
 // @route   PUT /api/client/feedbacks/:id
 // @access  Private/Customer
-
 export const updateFeedback = asyncHandler(async (req, res) => {
     const { rating, comment } = req.body
 

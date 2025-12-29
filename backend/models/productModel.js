@@ -29,7 +29,7 @@ const productSchema = mongoose.Schema(
       default: 'product',
     },
     images: {
-      type: [mongoose.Schema.Types.Mixed],
+      type: [String],
       default: [],
     },
   },

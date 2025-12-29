@@ -2,12 +2,49 @@ import asyncHandler from 'express-async-handler'
 import Product from '../../models/productModel.js'
 import mongoose from 'mongoose'
 
-// @desc    Lấy TẤT CẢ sản phẩm
+// @desc    Lấy TẤT CẢ sản phẩm (kèm tồn kho Admin + tồn kho Showroom)
 // @route   GET /api/admin/products
 // @access  Private (Manager)
 export const getAllProducts = asyncHandler(async (req, res) => {
-  const products = await Product.find({}).populate('category_id', 'category_name')
-  res.json(products)
+  const products = await Product.aggregate([
+    {
+      $lookup: {
+        from: 'inventories',       // Collection 'inventories'
+        localField: '_id',
+        foreignField: 'product_id',
+        as: 'inventory_data'
+      }
+    },
+    {
+      $lookup: {
+        from: 'categories',        // Collection 'categories'
+        localField: 'category_id',
+        foreignField: '_id',
+        as: 'category_doc'
+      }
+    },
+    {
+      $addFields: {
+        // Lấy quantity_available từ mảng inventory_data (nếu ko có thì = 0)
+        inventory_quantity: {
+          $ifNull: [{ $arrayElemAt: ["$inventory_data.quantity_available", 0] }, 0]
+        },
+        // Mô phỏng populate: thay thế category_id bằng object category
+        category_id: { $arrayElemAt: ["$category_doc", 0] }
+      }
+    },
+    {
+      $project: {
+        inventory_data: 0, // Ẩn mảng tạm
+        category_doc: 0
+      }
+    },
+    {
+      $sort: { createdAt: -1 }
+    }
+  ]);
+
+  res.json(products);
 })
 
 // @desc    Lấy danh sách sản phẩm theo category

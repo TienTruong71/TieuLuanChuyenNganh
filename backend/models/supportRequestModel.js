@@ -7,7 +7,7 @@ const supportRequestSchema = mongoose.Schema(
       required: true,
       ref: 'User',
     },
-    initialMessage: {
+    message: {
       type: String,
       required: true,
     },

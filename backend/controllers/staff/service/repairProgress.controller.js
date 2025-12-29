@@ -1,6 +1,7 @@
 // backend/controllers/staff/service/repairProgress.controller.js
 import RepairProgress from '../../../models/repairProgressModel.js'
 import Booking from '../../../models/bookingModel.js'
+import ServiceBay from '../../../models/serviceBayModel.js'
 import User from '../../../models/userModel.js'
 import ServicePackage from '../../../models/servicepackageModel.js'
 import asyncHandler from 'express-async-handler'
@@ -158,6 +159,11 @@ export const updateRepairProgress = asyncHandler(async (req, res) => {
     if (progress.staff_id.toString() !== req.user._id.toString()) {
         res.status(403)
         throw new Error('Không có quyền cập nhật tiến độ này')
+    }
+
+    if (progress.status === 'completed') {
+        res.status(400)
+        throw new Error('Tiến độ sửa chữa đã hoàn thành. Không thể cập nhật lại.')
     }
 
     if (status && !['in_progress', 'waiting_parts', 'testing', 'completed'].includes(status)) {

@@ -16,7 +16,7 @@ export const createSupportRequest = asyncHandler(async (req, res) => {
 
   const supportRequest = await SupportRequest.create({
     user: req.user._id,
-    initialMessage: message,
+    message,
     messages: [
       {
         sender: req.user._id,
@@ -46,7 +46,7 @@ export const createSupportRequest = asyncHandler(async (req, res) => {
 // @access  Private
 export const getActiveSupportRequest = asyncHandler(async (req, res) => {
   console.log('📂 Getting active support request for user:', req.user._id);
-  
+
   const activeRequest = await SupportRequest.findOne({
     user: req.user._id,
     status: { $in: ['pending', 'in_progress'] }
@@ -119,7 +119,7 @@ export const sendSupportMessage = asyncHandler(async (req, res) => {
 // @access  Private
 export const closeSupportRequest = asyncHandler(async (req, res) => {
   console.log('🔒 Closing support request:', req.params.id);
-  
+
   const supportRequest = await SupportRequest.findById(req.params.id);
 
   if (!supportRequest) {
