@@ -1,4 +1,4 @@
-import Contract from "../../../models/contractmodel.js";
+import Contract from "../../../models/contractModel.js";
 import Order from "../../../models/orderModel.js";
 import PDFDocument from "pdfkit";
 import fs from "fs";

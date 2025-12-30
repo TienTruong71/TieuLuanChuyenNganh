@@ -73,7 +73,7 @@ export const serviceStaff = (req, res, next) => {
 
 export const saleStaff = (req, res, next) => {
   if (req.user && req.user.role_id?.role_name?.toLowerCase() === 'sale') {
-    next()
+    next()  
   } else {
     res.status(403)
     throw new Error('Không có quyền Sale Staff')
