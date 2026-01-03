@@ -68,25 +68,30 @@ import {
   adminCategoryDeleteReducer,
 } from './reducers/adminReducers'
 
+import {
+  notificationListReducer,
+  notificationMarkReadReducer,
+} from './reducers/notificationReducers'
+
 const reducer = combineReducers({
   // User reducers
   userLogin: userLoginReducer,
   userRegister: userRegisterReducer,
   userDetails: userDetailsReducer,
-  
+
   // Product reducers
   productList: productListReducer,
   productDetails: productDetailsReducer,
-  
+
   // Cart reducer
   cart: cartReducer,
-  
+
   // Order reducers
   orderCreate: orderCreateReducer,
   orderListMy: orderListMyReducer,
   orderDetails: orderDetailsReducer,
   orderCancel: orderCancelReducer,
-  
+
   // Booking reducers
   serviceList: serviceListReducer,
   serviceDetails: serviceDetailsReducer,
@@ -112,17 +117,17 @@ const reducer = combineReducers({
   adminCustomerList: adminCustomerListReducer,
   adminCustomerUpdate: adminCustomerUpdateReducer,
   adminCustomerDelete: adminCustomerDeleteReducer,
-  
+
   // ✅ Admin reducers - Categories
   adminCategoryList: adminCategoryListReducer,
   adminCategoryCreate: adminCategoryCreateReducer,
-  
+
   // ✅ Admin reducers - Products
   adminProductList: adminProductListReducer,
   adminProductCreate: adminProductCreateReducer,
   adminProductUpdate: adminProductUpdateReducer,
   adminProductDelete: adminProductDeleteReducer,
-  
+
   // ✅ Admin reducers - Services
   adminServiceList: adminServiceListReducer,
   adminServiceCreate: adminServiceCreateReducer,
@@ -137,6 +142,10 @@ const reducer = combineReducers({
 
   adminCategoryUpdate: adminCategoryUpdateReducer,
   adminCategoryDelete: adminCategoryDeleteReducer,
+
+  // Notifications
+  notificationList: notificationListReducer,
+  notificationMarkRead: notificationMarkReadReducer,
 })
 
 const userInfoFromStorage = localStorage.getItem('userInfo')

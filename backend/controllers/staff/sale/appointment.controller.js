@@ -1,20 +1,20 @@
+// backend/controllers/staff/sale/appointment.controller.js
 import Booking from '../../../models/bookingModel.js'
-import ServicePackage from '../../../models/servicepackageModel.js'
 import User from '../../../models/userModel.js'
 import Notification from '../../../models/notificationModel.js'
 import asyncHandler from 'express-async-handler'
 
-// @desc    Lấy danh sách lịch hẹn (cho Service Staff)
-// @route   GET /api/staff/service/appointments
-// @access  Private/Service Staff
+// @desc    Lấy danh sách lịch lái thử (cho Sale Staff)
+// @route   GET /api/staff/sale/appointments
+// @access  Private/Sale Staff
 export const getAppointments = asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page) || 1
     const limit = parseInt(req.query.limit) || 10
     const status = req.query.status || ''
     const search = req.query.search || ''
 
-    // Initialize query object FIRST
-    const query = { booking_type: 'service' }
+    // Initialize query object: vehicle bookings only
+    const query = { booking_type: 'vehicle' }
     if (status) query.status = status
 
     const startDate = req.query.startDate ? new Date(req.query.startDate) : null
@@ -44,17 +44,16 @@ export const getAppointments = asyncHandler(async (req, res) => {
     const total = await Booking.countDocuments(query)
     const appointmentsData = await Booking.find(query)
         .populate('user_id', 'full_name email phone')
-        .populate('service_id', 'service_name price duration')
+        .populate('product_id', 'name price image') // Populate product details (adjust fields as needed)
         .skip((page - 1) * limit)
         .limit(limit)
         .sort({ booking_date: 1 })
 
-    // Inject Snapshot Price
+    // Inject Price logic if needed (similar to service)
     const appointments = appointmentsData.map(app => {
         const appObj = app.toObject();
-        if (appObj.price !== undefined && appObj.price !== null) {
-            if (appObj.service_id) appObj.service_id.price = appObj.price;
-        }
+        // If there's specific logic for car price, add it here.
+        // For now, vehicle bookings might doesn't usually carry a price for the booking itself (free test drive).
         return appObj;
     });
 
@@ -69,32 +68,32 @@ export const getAppointments = asyncHandler(async (req, res) => {
     })
 })
 
-// @desc    Lấy chi tiết lịch hẹn
-// @route   GET /api/staff/service/appointments/:id
-// @access  Private/Service Staff
+// @desc    Lấy chi tiết lịch lái thử
+// @route   GET /api/staff/sale/appointments/:id
+// @access  Private/Sale Staff
 export const getAppointmentById = asyncHandler(async (req, res) => {
     const appointment = await Booking.findById(req.params.id)
         .populate('user_id', 'full_name email phone')
-        .populate('service_id', 'service_name price duration')
+        .populate('product_id', 'name price image')
 
-    if (!appointment || appointment.booking_type !== 'service') {
+    if (!appointment || appointment.booking_type !== 'vehicle') {
         res.status(404)
-        throw new Error('Lịch hẹn không tồn tại hoặc không phải lịch dịch vụ')
+        throw new Error('Lịch lái thử không tồn tại hoặc không hợp lệ')
     }
 
     res.json(appointment)
 })
 
-// @desc    Cập nhật trạng thái lịch hẹn (xác nhận, hủy, hoàn thành)
-// @route   PUT /api/staff/service/appointments/:id
-// @access  Private/Service Staff
+// @desc    Cập nhật trạng thái lịch lái thử
+// @route   PUT /api/staff/sale/appointments/:id
+// @access  Private/Sale Staff
 export const updateAppointment = asyncHandler(async (req, res) => {
-    const { status } = req.body
+    const { status, note } = req.body
 
     const appointment = await Booking.findById(req.params.id)
-    if (!appointment || appointment.booking_type !== 'service') {
+    if (!appointment || appointment.booking_type !== 'vehicle') {
         res.status(404)
-        throw new Error('Lịch hẹn không tồn tại hoặc không phải lịch dịch vụ')
+        throw new Error('Lịch lái thử không tồn tại hoặc không hợp lệ')
     }
 
     if (!['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'].includes(status)) {
@@ -103,34 +102,51 @@ export const updateAppointment = asyncHandler(async (req, res) => {
     }
 
     appointment.status = status
-    if (req.body.note) {
-        appointment.note = req.body.note
+    // Save note if provided
+    if (note) {
+        appointment.note = note
     }
 
     const updated = await appointment.save()
 
+    // Create Notification if Cancelled
     if (status === 'cancelled') {
-        const message = `Lịch hẹn dịch vụ ngày ${new Date(appointment.booking_date).toLocaleDateString("vi-VN")} đã bị hủy.${req.body.note ? ` Lý do: ${req.body.note}` : ''}`;
+        console.log('--- CANCELLED STATUS DETECTED ---');
+        console.log('Appt ID:', appointment._id);
+        console.log('User ID:', appointment.user_id);
 
-        await Notification.create({
-            user_id: appointment.user_id,
-            message: message,
-            is_read: false,
-        })
+        const message = `Lịch lái thử xe của bạn vào ngày ${new Date(appointment.booking_date).toLocaleDateString("vi-VN")} đã bị hủy.${note ? ` Lý do: ${note}` : ''}`;
+
+        console.log('Notification Message:', message);
+
+        try {
+            await Notification.create({
+                user_id: appointment.user_id,
+                message: message,
+                is_read: false,
+            })
+            console.log('Notification created successfully');
+        } catch (error) {
+            console.error('Error creating notification:', error);
+        }
     }
+    // Create Notification if Confirmed (Optional but good UX)
     else if (status === 'confirmed') {
-        const message = `Lịch hẹn dịch vụ ngày ${new Date(appointment.booking_date).toLocaleDateString("vi-VN")} đã được tiếp nhận. Xin vui lòng đến đúng giờ.`;
+        console.log('--- CONFIRMED STATUS DETECTED ---');
+        const message = `Lịch lái thử xe của bạn vào ngày ${new Date(appointment.booking_date).toLocaleDateString("vi-VN")} đã được xác nhận. Vui lòng đến đúng giờ.`;
         await Notification.create({
             user_id: appointment.user_id,
             message: message,
             is_read: false,
         })
     }
+
+    // Notify "completed" or other statuses if needed
 
     res.json({
-        message: 'Cập nhật lịch hẹn thành công',
+        message: 'Cập nhật lịch lái thử thành công',
         appointment: await Booking.findById(updated._id)
             .populate('user_id', 'full_name email phone')
-            .populate('service_id', 'service_name price duration'),
+            .populate('product_id', 'name price image'),
     })
 })

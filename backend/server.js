@@ -57,6 +57,7 @@ import stockRoutes from './routes/staff/inventory/stock.route.js'
 import appointmentRoutes from './routes/staff/service/appointment.route.js'
 import repairProgressRoutes from './routes/staff/service/repair.route.js'
 import serviceBayRoutes from './routes/staff/service/serviceBay.route.js'
+import saleAppointmentRoutes from './routes/staff/sale/appointment.route.js'
 import SupportResponse from './routes/staff/sale/support.route.js'
 import feedbackManage from './routes/staff/sale/feedback.route.js'
 import bookingRoutes from './routes/client/booking.route.js'
@@ -105,6 +106,7 @@ app.use('/api/staff/stock', stockRoutes)
 app.use('/api/staff/sale/contracts', contractRoutes)
 app.use('/api/staff/sale/support', SupportResponse)
 app.use('/api/staff/sale/feedbacks', feedbackManage)
+app.use('/api/staff/sale/appointments', saleAppointmentRoutes)
 app.use('/api/client/bookings', bookingRoutes)
 app.use('/api/client/services', serviceRoutes)
 app.use('/api/admin', adminRoutes)

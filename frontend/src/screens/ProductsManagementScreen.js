@@ -347,13 +347,41 @@ const ProductsManagementScreen = () => {
                 const typeInfo = getProductTypeInfo(product.type)
                 return (
                   <div key={product._id} className='product-card-admin'>
-                    {product.images && product.images.length > 0 && (
-                      <img
-                        src={product.images[0]}
-                        alt={product.product_name}
-                        className='product-image'
-                      />
-                    )}
+                    {product.images && product.images.length > 0 && (() => {
+                      const rawImg = product.images[0];
+                      let displayImg = rawImg;
+
+                      // Handle Object structure if corrupted
+                      if (typeof rawImg === 'object' && rawImg !== null) {
+                        if (rawImg.image_url) displayImg = rawImg.image_url;
+                        else if (rawImg.url) displayImg = rawImg.url;
+                        else {
+                          // Try to reconstruct from array-like object
+                          const charKeys = Object.keys(rawImg).filter(k => !isNaN(parseInt(k))).sort((a, b) => a - b);
+                          displayImg = charKeys.map(k => rawImg[k]).join('');
+                        }
+                      }
+
+                      // Handle URL prefixes
+                      if (typeof displayImg === 'string') {
+                        if (displayImg.startsWith('/uploads')) {
+                          displayImg = `http://localhost:5000${displayImg}`;
+                        }
+                        // If http/https or other (frontend asset), leave as is
+                      }
+
+                      return (
+                        <img
+                          src={displayImg}
+                          alt={product.product_name}
+                          className='product-image'
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://via.placeholder.com/150?text=No+Image'; // Fallback
+                          }}
+                        />
+                      );
+                    })()}
                     <div className='product-info'>
                       <h4>{product.product_name}</h4>
                       {viewMode === 'all' && product.category_id && (
@@ -440,8 +468,8 @@ const ProductsManagementScreen = () => {
                   {loadingCategoryCreate || loadingCategoryUpdate
                     ? 'Đang xử lý...'
                     : editingCategory
-                    ? 'Cập nhật'
-                    : 'Tạo danh mục'}
+                      ? 'Cập nhật'
+                      : 'Tạo danh mục'}
                 </button>
                 <button
                   type='button'
@@ -501,8 +529,8 @@ const ProductsManagementScreen = () => {
                 {/* ✅ Dropdown chọn loại sản phẩm - ĐÃ SỬA */}
                 <div className='form-group'>
                   <label>Loại sản phẩm: *</label>
-                  <select 
-                    value={productType} 
+                  <select
+                    value={productType}
                     onChange={(e) => setProductType(e.target.value)}
                     className='product-type-select'
                   >
@@ -550,8 +578,8 @@ const ProductsManagementScreen = () => {
                   {loadingProductCreate || loadingProductUpdate
                     ? 'Đang xử lý...'
                     : editingProduct
-                    ? 'Cập nhật'
-                    : 'Tạo sản phẩm'}
+                      ? 'Cập nhật'
+                      : 'Tạo sản phẩm'}
                 </button>
                 <button
                   type='button'

@@ -11,17 +11,11 @@ export const getNotifications = asyncHandler(async (req, res) => {
   const notifications = await Notification.find({ user_id: userId })
     .sort({ createdAt: -1 });
 
-  if (!notifications || notifications.length === 0) {
-    return res.status(200).json({
-      message: 'Không có thông báo mới',
-      notifications: [],
-    });
+  if (!notifications) {
+    return res.status(200).json([]);
   }
 
-  res.status(200).json({
-    message: 'Lấy danh sách thông báo thành công',
-    notifications,
-  });
+  res.status(200).json(notifications);
 });
 
 // [GET] /api/notifications/:id
