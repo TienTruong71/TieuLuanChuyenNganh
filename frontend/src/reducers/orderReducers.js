@@ -12,6 +12,7 @@ import {
   ORDER_CANCEL_REQUEST,
   ORDER_CANCEL_SUCCESS,
   ORDER_CANCEL_FAIL,
+  ORDER_CANCEL_RESET,
 } from '../constants/cartOrderConstants'
 
 export const orderCreateReducer = (state = {}, action) => {
@@ -63,6 +64,8 @@ export const orderCancelReducer = (state = {}, action) => {
       return { loading: false, success: true }
     case ORDER_CANCEL_FAIL:
       return { loading: false, error: action.payload }
+    case ORDER_CANCEL_RESET:
+      return {}
     default:
       return state
   }
