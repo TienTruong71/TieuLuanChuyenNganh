@@ -1,12 +1,13 @@
 import { createStore, combineReducers, applyMiddleware } from 'redux'
 import thunk from 'redux-thunk'
 import { composeWithDevTools } from 'redux-devtools-extension'
-
+import { verifyOTPReducer } from './reducers/userReducers'
 // Import existing reducers
 import {
   userLoginReducer,
   userRegisterReducer,
   userDetailsReducer,
+  verifyEmailReducer
 } from './reducers/userReducers'
 
 import {
@@ -78,7 +79,8 @@ const reducer = combineReducers({
   userLogin: userLoginReducer,
   userRegister: userRegisterReducer,
   userDetails: userDetailsReducer,
-
+  verifyOTP: verifyOTPReducer,
+  verifyEmail: verifyEmailReducer,
   // Product reducers
   productList: productListReducer,
   productDetails: productDetailsReducer,

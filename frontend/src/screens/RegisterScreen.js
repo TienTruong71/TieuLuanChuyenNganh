@@ -28,16 +28,19 @@ const RegisterScreen = () => {
   const { loading, error, userInfo } = userRegister
 
   // Redirect nếu đăng ký thành công
-  useEffect(() => {
-    if (userInfo) {
-      setShowSuccess(true)
-      setTimeout(() => {
-        // Tự động redirect về trang chủ sau khi register thành công
-        // (vì đã auto-login)
-        history.push('/')
-      }, 2000)
-    }
-  }, [history, userInfo])
+ // Redirect sang màn OTP sau khi đăng ký
+useEffect(() => {
+  if (userInfo?.email) {
+    setShowSuccess(true)
+
+    setTimeout(() => {
+      history.push('/verify-otp', {
+        email: userInfo.email,
+      })
+    }, 1000)
+  }
+}, [history, userInfo])
+
 
   // Validate email
   const isValidEmail = (email) => {
@@ -142,7 +145,7 @@ const RegisterScreen = () => {
         {/* Success Message */}
         {showSuccess && (
           <div className='success-message show'>
-            Đăng ký thành công! Đang chuyển hướng...
+            Vui lòng nhập mã OTP gửi về email.
           </div>
         )}
 

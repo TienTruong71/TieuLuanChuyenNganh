@@ -24,6 +24,8 @@ import MyBookingsScreen from './screens/MyBookingsScreen'
 import BookingDetailScreen from './screens/BookingDetailScreen'
 import AIChat from './components/AIChat'
 import SupportButton from './components/SupportButton'
+import VerifyOTPScreen from './screens/VerifyOTPScreen'
+
 
 const App = () => {
   return (
@@ -41,6 +43,7 @@ const App = () => {
         <Route path='/orders/:id' component={OrderDetailScreen} />
         <Route path='/login' component={LoginScreen} />
         <Route path='/register' component={RegisterScreen} />
+        <Route path='/verify-otp' component={VerifyOTPScreen} />
         <Route path='/profile' component={ProfileScreen} />
         <Route path='/contact' component={ContactScreen} />
         <Route path='/services' component={ServicesScreen} />

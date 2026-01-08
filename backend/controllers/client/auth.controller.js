@@ -1,115 +1,171 @@
-// backend/controllers/client/auth.controller.js
 import User from '../../models/userModel.js'
 import Role from '../../models/roleModel.js'
 import asyncHandler from 'express-async-handler'
 import jwt from 'jsonwebtoken'
+import crypto from 'crypto'
+import sendEmail from '../../utils/sendEmail.js'
 
 const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' })
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' })
 }
 
-// @desc    Đăng nhập chung (Admin, Staff, Customer)
-// @route   POST /api/client/auth/login
-// @access  Public
+
 export const loginUser = asyncHandler(async (req, res) => {
-    const { email, password } = req.body
+  const { email, password } = req.body
 
-    // Tìm user + populate role
-    const user = await User.findOne({ email }).populate('role_id', 'role_name')
+  const user = await User.findOne({ email }).populate('role_id', 'role_name')
 
-    if (!user || !(await user.matchPassword(password))) {
-        res.status(401)
-        throw new Error('Email hoặc mật khẩu không đúng')
-    }
+  if (!user || !(await user.matchPassword(password))) {
+    res.status(401)
+    throw new Error('Email hoặc mật khẩu không đúng')
+  }
 
-    if (user.status !== 'active') {
-        res.status(403)
-        throw new Error('Tài khoản đã bị khóa')
-    }
+  if (!user.isEmailVerified) {
+    res.status(403)
+    throw new Error('Vui lòng xác nhận email bằng OTP')
+  }
 
-    const isAdmin = user.role_id?.role_name === 'admin' || user.role_id?.role_name === 'manager'
+  if (user.status !== 'active') {
+    res.status(403)
+    throw new Error('Tài khoản đã bị khóa')
+  }
 
-    res.json({
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        full_name: user.full_name,
-        role: user.role_id.role_name,
-        isAdmin: isAdmin,  // ✅ ĐÚNG
-        token: generateToken(user._id),
-    })
+  const isAdmin =
+    user.role_id?.role_name === 'admin' ||
+    user.role_id?.role_name === 'manager'
+
+  res.json({
+    _id: user._id,
+    username: user.username,
+    email: user.email,
+    full_name: user.full_name,
+    role: user.role_id.role_name,
+    isAdmin,
+    token: generateToken(user._id),
+  })
 })
 
-// @desc    Đăng ký tài khoản mới (Customer)
-// @route   POST /api/client/auth/register
-// @access  Public
+
 export const registerUser = asyncHandler(async (req, res) => {
-    const { email, username, password, full_name, phone } = req.body
+  const { email, username, password, full_name, phone } = req.body
 
-    // Validate input
-    if (!email || !username || !password) {
-        res.status(400)
-        throw new Error('Vui lòng điền đầy đủ thông tin')
-    }
+  if (!email || !username || !password || !phone) {
+    res.status(400)
+    throw new Error('Vui lòng điền đầy đủ thông tin')
+  }
 
-    // Kiểm tra email đã tồn tại
-    const emailExists = await User.findOne({ email })
-    if (emailExists) {
-        res.status(400)
-        throw new Error('Email đã được sử dụng')
-    }
+  if (await User.findOne({ email })) throw new Error('Email đã tồn tại')
+  if (await User.findOne({ username })) throw new Error('Username đã tồn tại')
 
-    // Kiểm tra username đã tồn tại
-    const usernameExists = await User.findOne({ username })
-    if (usernameExists) {
-        res.status(400)
-        throw new Error('Tên đăng nhập đã được sử dụng')
-    }
+  let customerRole = await Role.findOne({ role_name: 'Customer' })
+  if (!customerRole) {
+    customerRole = await Role.create({ role_name: 'Customer' })
+  }
 
-    // Tìm role Customer (hoặc tạo default role)
-    let customerRole = await Role.findOne({ role_name: 'Customer' })
-    if (!customerRole) {
-        // Nếu không có role Customer, tạo mới
-        customerRole = await Role.create({ role_name: 'Customer' })
-    }
+ 
+  const otp = Math.floor(100000 + Math.random() * 900000).toString()
+  const otpHash = crypto.createHash('sha256').update(otp).digest('hex')
 
-    // Tạo user mới
-    const user = await User.create({
-        email,
-        username,
-        password, // sẽ được hash trong pre-save hook của model
-        full_name: full_name || username,
-        phone: phone || '',
-        role_id: customerRole._id,
-        status: 'active',
-        isAdmin: false,
-    })
+  const user = await User.create({
+    email,
+    username,
+    password,
+    phone,
+    full_name,
+    role_id: customerRole._id,
 
-    if (user) {
-        // Populate role để trả về đầy đủ thông tin
-        await user.populate('role_id', 'role_name')
+    status: 'inactive',
+    isEmailVerified: false,
+    emailOTP: otpHash,
+    emailOTPExpire: Date.now() + 10 * 60 * 1000, // 10 phút
+  })
 
-        res.status(201).json({
-            _id: user._id,
-            username: user.username,
-            email: user.email,
-            full_name: user.full_name,
-            role: user.role_id.role_name,
-            isAdmin: user.isAdmin,
-            token: generateToken(user._id),
-        })
-    } else {
-        res.status(400)
-        throw new Error('Dữ liệu không hợp lệ')
-    }
+ 
+  await sendEmail({
+    to: user.email,
+    subject: 'Mã OTP xác nhận đăng ký',
+    html: `
+      <h3>Xin chào ${user.full_name}</h3>
+      <p>Mã OTP xác nhận email của bạn là:</p>
+      <h2 style="color:red">${otp}</h2>
+      <p>Mã có hiệu lực trong 10 phút</p>
+    `,
+  })
+
+  res.status(201).json({
+    message: 'Đăng ký thành công. Vui lòng nhập OTP được gửi qua email.',
+    email: user.email,
+  })
 })
 
-// @desc    Lấy thông tin user hiện tại
-// @route   GET /api/client/auth/me
-// @access  Private
+
+export const verifyEmailOTP = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body
+
+  if (!email || !otp) {
+    res.status(400)
+    throw new Error('Thiếu email hoặc OTP')
+  }
+
+  const otpHash = crypto.createHash('sha256').update(otp).digest('hex')
+
+  const user = await User.findOne({
+    email,
+    emailOTP: otpHash,
+    emailOTPExpire: { $gt: Date.now() },
+  })
+
+  if (!user) {
+    res.status(400)
+    throw new Error('OTP không hợp lệ hoặc đã hết hạn')
+  }
+
+  user.isEmailVerified = true
+  user.status = 'active'
+  user.emailOTP = undefined
+  user.emailOTPExpire = undefined
+
+  await user.save()
+
+  res.json({
+    message: 'Xác nhận email thành công. Bạn có thể đăng nhập.',
+  })
+})
+
+
+export const resendEmailOTP = asyncHandler(async (req, res) => {
+  const { email } = req.body
+
+  const user = await User.findOne({ email })
+
+  if (!user) throw new Error('Không tìm thấy tài khoản')
+  if (user.isEmailVerified) throw new Error('Email đã được xác nhận')
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString()
+  const otpHash = crypto.createHash('sha256').update(otp).digest('hex')
+
+  user.emailOTP = otpHash
+  user.emailOTPExpire = Date.now() + 10 * 60 * 1000
+  await user.save()
+
+  await sendEmail({
+    to: user.email,
+    subject: 'Mã OTP xác nhận email (gửi lại)',
+    html: `
+      <h3>Mã OTP mới của bạn</h3>
+      <h2 style="color:red">${otp}</h2>
+      <p>Có hiệu lực trong 10 phút</p>
+    `,
+  })
+
+  res.json({ message: 'OTP mới đã được gửi' })
+})
+
+
 export const getMe = asyncHandler(async (req, res) => {
-    const user = await User.findById(req.user._id)
-        .select('-password')
-        .populate('role_id', 'role_name')
-    res.json(user)
+  const user = await User.findById(req.user._id)
+    .select('-password')
+    .populate('role_id', 'role_name')
+
+  res.json(user)
 })
