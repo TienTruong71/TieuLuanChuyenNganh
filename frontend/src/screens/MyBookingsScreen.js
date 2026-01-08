@@ -126,7 +126,7 @@ const MyBookingsScreen = () => {
         <div className='bookings-header'>
           <div className='header-left'>
             <h1>Lịch hẹn của tôi</h1>
-            <p>Quản lý tất cả lịch hẹn dịch vụ và lái thử xe của bạn</p>
+            {/* <p>Quản lý tất cả lịch hẹn dịch vụ và lái thử xe của bạn</p> */}
           </div>
           <Link to='/services' className='btn-new-booking'>
             + Đặt lịch mới

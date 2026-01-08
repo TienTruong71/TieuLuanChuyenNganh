@@ -7208,9 +7208,9 @@ body::before {
 }
 
 .image-preview img {
-  max-width: 100%;
+  max-width: 100px;
   max-height: 200px;
-  object-fit: contain;
+  object-fit: cover;
   border-radius: 8px;
 }
 

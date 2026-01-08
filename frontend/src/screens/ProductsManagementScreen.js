@@ -445,11 +445,11 @@ const ProductsManagementScreen = () => {
                   onChange={(e) => setCategoryImage(e.target.value)}
                   placeholder='https://example.com/image.jpg'
                 />
-                {categoryImage && (
+                {/* {categoryImage && (
                   <div className='image-preview'>
                     <img src={categoryImage} alt='Preview' />
                   </div>
-                )}
+                )} */}
               </div>
               <div className='form-group'>
                 <label>Mô tả:</label>

@@ -312,7 +312,7 @@ const AdminScreen = () => {
                   value={customerSearch}
                   onChange={(e) => setCustomerSearch(e.target.value)}
                 />
-                <button type='submit'>🔍 Tìm</button>
+                {/* <button type='submit'>🔍 Tìm</button> */}
               </form>
 
               {loadingCustomers ? (
@@ -427,7 +427,7 @@ const AdminScreen = () => {
                     <option value='delivered'>Hoàn thành</option>
                     <option value='cancelled'>Đã hủy</option>
                   </select>
-                  <button type='submit'>🔍 Tìm</button>
+                  {/* <button type='submit'>🔍 Tìm</button> */}
                 </form>
               </div>
 

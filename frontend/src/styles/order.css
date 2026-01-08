@@ -18,7 +18,7 @@
 .order-history-header h1 {
   font-size: 32px;
   font-weight: 700;
-  color: #222;
+  color: #ffffff;
   margin: 0;
 }
 
@@ -366,13 +366,13 @@
 .order-title h1 {
   font-size: 28px;
   font-weight: 700;
-  color: #333;
+  color: #ffffff;
   margin: 0 0 4px 0;
 }
 
 .order-id {
   font-size: 14px;
-  color: #666;
+  color: #ffffff;
   margin: 0;
 }
 
