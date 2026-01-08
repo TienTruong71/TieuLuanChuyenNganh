@@ -1,9 +1,11 @@
 import React from 'react'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import { GoogleOAuthProvider } from '@react-oauth/google'
+
 import Header from './components/Header'
 import Footer from './components/Footer'
 import ProductScreen from './screens/ProductScreen'
-import ProductDetailScreen from './screens/ProductDetailScreen' 
+import ProductDetailScreen from './screens/ProductDetailScreen'
 import LoginScreen from './screens/LoginScreen'
 import RegisterScreen from './screens/RegisterScreen'
 import ProfileScreen from './screens/ProfileScreen'
@@ -26,39 +28,41 @@ import AIChat from './components/AIChat'
 import SupportButton from './components/SupportButton'
 import VerifyOTPScreen from './screens/VerifyOTPScreen'
 
-
 const App = () => {
   return (
-    <Router>
-      <Header />
-      <Switch>
-        <Route path='/' component={AboutScreen} exact />
-        <Route path='/product' component={ProductScreen} exact />
-        <Route path='/product/:id' component={ProductDetailScreen} />
-        <Route path='/cart' component={CartScreen} />
-        <Route path='/checkout' component={CheckoutScreen} />
-        <Route path='/payment/success' component={PaymentSuccessScreen} />
-        <Route path='/payment/failed' component={PaymentFailedScreen} />
-        <Route path='/orders' component={OrderHistoryScreen} exact />
-        <Route path='/orders/:id' component={OrderDetailScreen} />
-        <Route path='/login' component={LoginScreen} />
-        <Route path='/register' component={RegisterScreen} />
-        <Route path='/verify-otp' component={VerifyOTPScreen} />
-        <Route path='/profile' component={ProfileScreen} />
-        <Route path='/contact' component={ContactScreen} />
-        <Route path='/services' component={ServicesScreen} />
-        <Route path='/policy' component={PolicyScreen} />
-        <Route path='/terms' component={TermsScreen} />
-        <Route path='/admin' component={AdminScreen} />
-        <Route path='/services' component={ServicesScreen} exact />
-        <Route path='/booking/:id' component={BookingScreen} />
-        <Route path='/my-bookings' component={MyBookingsScreen} />
-        <Route path='/booking-detail/:id' component={BookingDetailScreen} />
-      </Switch>
-      <AIChat />
-      <SupportButton />
-      <Footer />
-    </Router>
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+      <Router>
+        <Header />
+
+        <Switch>
+          <Route path='/' component={AboutScreen} exact />
+          <Route path='/product' component={ProductScreen} exact />
+          <Route path='/product/:id' component={ProductDetailScreen} />
+          <Route path='/cart' component={CartScreen} />
+          <Route path='/checkout' component={CheckoutScreen} />
+          <Route path='/payment/success' component={PaymentSuccessScreen} />
+          <Route path='/payment/failed' component={PaymentFailedScreen} />
+          <Route path='/orders' component={OrderHistoryScreen} exact />
+          <Route path='/orders/:id' component={OrderDetailScreen} />
+          <Route path='/login' component={LoginScreen} />
+          <Route path='/register' component={RegisterScreen} />
+          <Route path='/verify-otp' component={VerifyOTPScreen} />
+          <Route path='/profile' component={ProfileScreen} />
+          <Route path='/contact' component={ContactScreen} />
+          <Route path='/services' component={ServicesScreen} exact />
+          <Route path='/policy' component={PolicyScreen} />
+          <Route path='/terms' component={TermsScreen} />
+          <Route path='/admin' component={AdminScreen} />
+          <Route path='/booking/:id' component={BookingScreen} />
+          <Route path='/my-bookings' component={MyBookingsScreen} />
+          <Route path='/booking-detail/:id' component={BookingDetailScreen} />
+        </Switch>
+
+        <AIChat />
+        <SupportButton />
+        <Footer />
+      </Router>
+    </GoogleOAuthProvider>
   )
 }
 

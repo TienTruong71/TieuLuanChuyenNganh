@@ -4,6 +4,9 @@ import asyncHandler from 'express-async-handler'
 import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
 import sendEmail from '../../utils/sendEmail.js'
+import { OAuth2Client } from 'google-auth-library'
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' })
@@ -168,4 +171,73 @@ export const getMe = asyncHandler(async (req, res) => {
     .populate('role_id', 'role_name')
 
   res.json(user)
+})
+
+export const loginWithGoogle = asyncHandler(async (req, res) => {
+  const { idToken } = req.body
+
+  if (!idToken) {
+    res.status(400)
+    throw new Error('Thiếu Google ID Token')
+  }
+
+  // Verify token từ Google
+  const ticket = await googleClient.verifyIdToken({
+    idToken,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  })
+
+  const payload = ticket.getPayload()
+  const {
+    sub: googleId,
+    email,
+    name,
+    picture,
+  } = payload
+
+  let user = await User.findOne({ email }).populate('role_id', 'role_name')
+
+  // Lấy role Customer
+  let customerRole = await Role.findOne({ role_name: 'Customer' })
+  if (!customerRole) {
+    customerRole = await Role.create({ role_name: 'Customer' })
+  }
+
+  // Nếu chưa có user → tạo mới
+  if (!user) {
+    user = await User.create({
+      email,
+      username: email.split('@')[0],
+      full_name: name,
+      avatar: picture,
+      googleId,
+      role_id: customerRole._id,
+      authProvider: 'google',
+      isEmailVerified: true,
+      status: 'active',
+    })
+  }
+
+  // Nếu user tồn tại nhưng trước đó đăng ký thường
+  if (user && !user.googleId) {
+    user.googleId = googleId
+    user.authProvider = 'google'
+    user.isEmailVerified = true
+    await user.save()
+  }
+
+  const isAdmin =
+    user.role_id?.role_name === 'admin' ||
+    user.role_id?.role_name === 'manager'
+
+  res.json({
+    _id: user._id,
+    username: user.username,
+    email: user.email,
+    full_name: user.full_name,
+    avatar: user.avatar,
+    role: user.role_id.role_name,
+    isAdmin,
+    token: generateToken(user._id),
+  })
 })

@@ -1,5 +1,5 @@
 import express from 'express'
-import { loginUser,registerUser,getMe,verifyEmailOTP,resendEmailOTP, } from '../../controllers/client/auth.controller.js'
+import { loginUser,registerUser,getMe,verifyEmailOTP,resendEmailOTP,loginWithGoogle } from '../../controllers/client/auth.controller.js'
 import { protect } from '../../middleware/authMiddleware.js'
 
 const router = express.Router()
@@ -12,5 +12,6 @@ router.post('/resend-email-otp', resendEmailOTP)
 
 router.get('/me', protect, getMe)
 
+router.post('/google-login', loginWithGoogle)
 
 export default router

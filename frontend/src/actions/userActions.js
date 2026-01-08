@@ -181,3 +181,34 @@ export const verifyEmailOTP = (email, otp) => async (dispatch) => {
     })
   }
 }
+
+// =====================================================
+// GOOGLE LOGIN ACTION
+// =====================================================
+export const loginWithGoogle = (idToken) => async (dispatch) => {
+  try {
+    dispatch({ type: USER_LOGIN_REQUEST })
+
+    const { data } = await axios.post(
+      '/api/client/auth/google-login',
+      { idToken },
+      {
+        headers: { 'Content-Type': 'application/json' },
+      }
+    )
+
+    dispatch({
+      type: USER_LOGIN_SUCCESS,
+      payload: data,
+    })
+
+    localStorage.setItem('userInfo', JSON.stringify(data))
+  } catch (error) {
+    dispatch({
+      type: USER_LOGIN_FAIL,
+      payload:
+        error.response?.data?.message || error.message,
+    })
+  }
+}
+

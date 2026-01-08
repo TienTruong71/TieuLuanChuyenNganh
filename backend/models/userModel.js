@@ -9,7 +9,18 @@ const userSchema = mongoose.Schema(
     phone: { type: String, required: true },
     full_name: { type: String, required: true },
     address: { type: String },
-
+    googleId: {
+        type: String,
+      },
+      authProvider: {
+        type: String,
+        enum: ['local', 'google'],
+        default: 'local',
+      },
+      avatar: {
+        type: String,
+      },
+      
     role_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Role',
@@ -33,6 +44,7 @@ const userSchema = mongoose.Schema(
     },
   },
   { timestamps: true }
+  
 )
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
