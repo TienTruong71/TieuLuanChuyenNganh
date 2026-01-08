@@ -1,0 +1,1 @@
+export const VERIFY_EMAIL_RESET = 'VERIFY_EMAIL_RESET'
