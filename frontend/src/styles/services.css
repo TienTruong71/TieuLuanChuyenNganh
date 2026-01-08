@@ -125,7 +125,7 @@
 
 .service-description {
   font-size: 15px;
-  color: #666;
+  color: #000000;
   line-height: 1.6;
   margin-bottom: 20px;
 }
@@ -157,7 +157,7 @@
   padding: 10px 0;
   margin-bottom: 15px;
   font-size: 14px;
-  color: #666;
+  color: #000000;
   border-top: 1px solid #f0f0f0;
   border-bottom: 1px solid #f0f0f0;
 }

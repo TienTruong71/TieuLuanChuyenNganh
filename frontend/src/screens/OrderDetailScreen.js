@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory, useParams, Link } from 'react-router-dom'
 import { getOrderDetails, cancelOrder } from '../actions/orderActions'
+import { ORDER_CANCEL_RESET } from '../constants/cartOrderConstants'
 import '../styles/order.css'
 
 const OrderDetailScreen = () => {
@@ -31,6 +32,7 @@ const OrderDetailScreen = () => {
   useEffect(() => {
     if (successCancel) {
       alert('Đơn hàng đã được hủy thành công')
+      dispatch({ type: ORDER_CANCEL_RESET })
       dispatch(getOrderDetails(id))
       setShowCancelConfirm(false)
     }
@@ -169,12 +171,12 @@ const OrderDetailScreen = () => {
 
                         // images là array of strings
                         const imageUrl = product.images[0];
-                        
+
                         // Nếu là full URL thì dùng trực tiếp
                         if (imageUrl.startsWith('http')) {
                           return imageUrl;
                         }
-                        
+
                         // Nếu là relative path thì thêm base URL
                         return `http://localhost:5000${imageUrl}`;
                       };

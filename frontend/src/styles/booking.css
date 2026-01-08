@@ -16,7 +16,8 @@
 }
 
 .booking-header .btn-back {
-  padding: 10px 20px;
+  padding: 10px 10px;
+  width: 100px;
   background: white;
   color: #00bfff;
   border: 2px solid #00bfff;
@@ -35,7 +36,7 @@
 .booking-header h1 {
   font-size: 32px;
   font-weight: 700;
-  color: #333;
+  color: #ffffff;
   margin: 0;
 }
 
@@ -111,7 +112,7 @@
   display: block;
   font-size: 15px;
   font-weight: 600;
-  color: #555;
+  color: #000000;
   margin-bottom: 8px;
 }
 
@@ -122,7 +123,8 @@
 .booking-form-card .form-group input[type='date'] {
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid #e0e0e0;
+  border: 2px solid #000000;
+  color: #000000;
   border-radius: 8px;
   font-size: 15px;
   transition: all 0.3s;
@@ -304,22 +306,24 @@
 
 .bookings-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+}
+
+.btn-new-booking {
+  margin-left: 500px;
 }
 
 .bookings-header .header-left h1 {
   font-size: 32px;
   font-weight: 700;
-  color: #333;
+  color: #ffffff;
   margin: 0 0 8px 0;
 }
 
 .bookings-header .header-left p {
   font-size: 16px;
   color: #666;
-  margin: 0;
+  margin-left: 0;
 }
 
 .btn-new-booking {
@@ -353,7 +357,7 @@
 .filter-tab {
   padding: 10px 20px;
   background: white;
-  color: #666;
+  color: #ffffff;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 14px;
@@ -386,13 +390,13 @@
 
 .empty-bookings h2 {
   font-size: 28px;
-  color: #333;
+  color: #ffffff;
   margin-bottom: 10px;
 }
 
 .empty-bookings p {
   font-size: 16px;
-  color: #666;
+  color: #ffffff;
   margin-bottom: 30px;
 }
 
@@ -694,13 +698,13 @@
 .booking-title h1 {
   font-size: 28px;
   font-weight: 700;
-  color: #333;
+  color: #ffffff;
   margin: 0 0 4px 0;
 }
 
 .booking-title .booking-id {
   font-size: 14px;
-  color: #666;
+  color: #ffffff;
   margin: 0;
 }
 

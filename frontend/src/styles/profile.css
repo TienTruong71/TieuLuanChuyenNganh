@@ -139,10 +139,10 @@
   width: fit-content;
 }
 
-.page-main .status-badge::before {
-  content: '✓';
+/* .page-main .status-badge::before {
+  content: '';
   font-size: 14px;
-}
+} */
 
 /* Coming Soon */
 .page-main .coming-soon {

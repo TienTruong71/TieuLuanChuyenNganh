@@ -145,7 +145,7 @@ const ServicesManagementScreen = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <button type='submit'>🔍 Tìm</button>
+        {/* <button type='submit'>🔍 Tìm</button> */}
       </form>
 
       {/* Services Grid */}

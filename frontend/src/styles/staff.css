@@ -112,7 +112,7 @@
 }
 
 .admin-modal-content {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #8a8a8a 100%);
   border-radius: 12px;
   padding: 30px;
   max-width: 600px;
@@ -124,7 +124,7 @@
 
 .admin-modal-content h3 {
   margin: 0 0 20px 0;
-  color: white;
+  color: rgb(0, 0, 0);
   font-size: 20px;
   font-weight: 600;
   text-transform: uppercase;
@@ -156,7 +156,7 @@
 
 .admin-form-group label {
   margin-bottom: 8px;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(0, 0, 0, 0.9);
   font-size: 13px;
   font-weight: 600;
   text-transform: uppercase;
@@ -166,10 +166,10 @@
 .admin-form-group input,
 .admin-form-group select {
   padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgb(255, 255, 255);
+  border: 1px solid rgb(0, 0, 0);
   border-radius: 6px;
-  color: white;
+  color: rgb(0, 0, 0);
   font-size: 13px;
   font-family: inherit;
   transition: all 0.3s ease;
@@ -177,7 +177,7 @@
 
 .admin-form-group input::placeholder,
 .admin-form-group select {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(0, 0, 0, 0.5);
 }
 
 .admin-form-group input:disabled {
@@ -196,7 +196,7 @@
 
 .admin-form-group select option {
   background: #2d2d2d;
-  color: white;
+  color: rgb(255, 255, 255);
 }
 
 /* Modal Buttons */
@@ -205,7 +205,7 @@
   gap: 10px;
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .btn-confirm,
@@ -224,7 +224,7 @@
 
 .btn-confirm {
   background: linear-gradient(135deg, #3a86ff, #2563eb);
-  color: white;
+  color: rgb(0, 0, 0);
 }
 
 .btn-confirm:hover:not(:disabled) {
@@ -239,7 +239,7 @@
 
 .btn-cancel {
   background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(0, 0, 0, 0.8);
 }
 
 .btn-cancel:hover {
@@ -267,7 +267,7 @@
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  color: white;
+  color: rgb(0, 0, 0);
 }
 
 .admin-table thead {
