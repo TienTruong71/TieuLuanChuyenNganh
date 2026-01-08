@@ -14,8 +14,14 @@ const CheckoutScreen = () => {
   const userLogin = useSelector((state) => state.userLogin)
   const { userInfo } = userLogin
 
+  const { location } = history
+  const directBuyItem = location.state?.directBuyItem
+
   const cart = useSelector((state) => state.cart)
-  const { cartItems, total } = cart
+  const { cartItems: itemsFromCart, total: totalFromCart } = cart
+
+  const cartItems = directBuyItem ? [directBuyItem] : itemsFromCart
+  const total = directBuyItem ? (directBuyItem.price * directBuyItem.quantity) : totalFromCart
 
   const orderCreate = useSelector((state) => state.orderCreate)
   const { loading, success, error, order } = orderCreate
@@ -87,12 +93,12 @@ const CheckoutScreen = () => {
 
     if (!userInfo) {
       history.push('/login')
-    } else if (cartItems.length === 0) {
+    } else if (!directBuyItem && (!itemsFromCart || itemsFromCart.length === 0)) {
       history.push('/cart')
-    } else {
+    } else if (!directBuyItem) {
       dispatch(getCart())
     }
-  }, [dispatch, history, userInfo, cartItems.length, success])
+  }, [dispatch, history, userInfo, success, directBuyItem, itemsFromCart])
 
   const payAttempted = useRef(false)
   const paymentAmountRef = useRef(0)

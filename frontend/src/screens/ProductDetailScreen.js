@@ -30,19 +30,19 @@ const ProductDetailScreen = () => {
 
   const convertBrokenObjectToString = (obj) => {
     if (typeof obj !== 'object' || obj === null) return null
-    
+
     if (!obj.hasOwnProperty('0') || !obj.hasOwnProperty('1')) return null
-    
+
     const charKeys = Object.keys(obj)
       .filter(key => !isNaN(parseInt(key)))
       .sort((a, b) => parseInt(a) - parseInt(b))
-    
+
     const reconstructedUrl = charKeys.map(key => obj[key]).join('')
-    
+
     if (reconstructedUrl.startsWith('http')) {
       return reconstructedUrl
     }
-    
+
     return null
   }
 
@@ -122,32 +122,41 @@ const ProductDetailScreen = () => {
   }
 
   // Xử lý mua ngay (chỉ cho phụ kiện/linh kiện)
-  const buyNowHandler = async () => {
+  const buyNowHandler = () => {
     if (!userInfo) {
       alert('Vui lòng đăng nhập để mua hàng')
       history.push('/login')
       return
     }
 
-    try {
-      await dispatch(addToCart(id, quantity))
-      history.push('/cart')
-    } catch (error) {
-      alert(error.response?.data?.message || 'Không thể mua hàng')
+    const directBuyItem = {
+      product_id: product._id,
+      product_name: product.product_name || product.title,
+      price: productPrice,
+      quantity: quantity,
+      type: product.type || 'product',
+      category: categoryName,
+      images: product.images, // Pass images for display in checkout
+      image: product.image,
     }
+
+    history.push({
+      pathname: '/checkout',
+      state: { directBuyItem }
+    })
   }
 
   // Get product data
   const productName = product?.product_name || product?.title || 'Đang tải...'
-  const productPrice = typeof product?.price === 'object' 
+  const productPrice = typeof product?.price === 'object'
     ? product?.price?.value || product?.price?.$numberDecimal || 0
     : product?.price || 0
-  
-  const categoryName = product?.category_id?.category_name || 
-    product?.category_id?.name || 
-    product?.category_id?.title || 
+
+  const categoryName = product?.category_id?.category_name ||
+    product?.category_id?.name ||
+    product?.category_id?.title ||
     'Chưa phân loại'
-  
+
   const brand = product?.brand || ''
   const description = product?.description || 'Chưa có mô tả'
   const stock = product?.stock_quantity || 0
@@ -190,8 +199,8 @@ const ProductDetailScreen = () => {
               <div className='main-image'>
                 {mainImage ? (
                   <>
-                    <img 
-                      src={mainImage} 
+                    <img
+                      src={mainImage}
                       alt={productName}
                       onError={(e) => {
                         e.target.style.display = 'none'
@@ -212,14 +221,14 @@ const ProductDetailScreen = () => {
 
                     {images.length > 1 && (
                       <>
-                        <button 
-                          className='gallery-nav prev' 
+                        <button
+                          className='gallery-nav prev'
                           onClick={() => setSelectedImage(selectedImage === 0 ? images.length - 1 : selectedImage - 1)}
                         >
                           ‹
                         </button>
-                        <button 
-                          className='gallery-nav next' 
+                        <button
+                          className='gallery-nav next'
                           onClick={() => setSelectedImage(selectedImage === images.length - 1 ? 0 : selectedImage + 1)}
                         >
                           ›
@@ -258,8 +267,8 @@ const ProductDetailScreen = () => {
                       className={`thumbnail ${selectedImage === index ? 'active' : ''}`}
                       onClick={() => setSelectedImage(index)}
                     >
-                      <img 
-                        src={img} 
+                      <img
+                        src={img}
                         alt={`${productName} ${index + 1}`}
                         onError={(e) => {
                           e.target.style.display = 'none'
@@ -317,15 +326,15 @@ const ProductDetailScreen = () => {
                 <div className='quantity-section'>
                   <label>Số lượng:</label>
                   <div className='quantity-control'>
-                    <button 
+                    <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
                       disabled={quantity <= 1}
                     >
                       −
                     </button>
-                    <input 
-                      type='number' 
-                      value={quantity} 
+                    <input
+                      type='number'
+                      value={quantity}
                       onChange={(e) => {
                         const val = parseInt(e.target.value) || 1
                         setQuantity(Math.min(Math.max(1, val), stock))
@@ -333,7 +342,7 @@ const ProductDetailScreen = () => {
                       min='1'
                       max={stock}
                     />
-                    <button 
+                    <button
                       onClick={() => setQuantity(Math.min(stock, quantity + 1))}
                       disabled={quantity >= stock}
                     >
@@ -465,14 +474,14 @@ const ProductDetailScreen = () => {
             {product && (
               <>
                 <div className='feedback-section-divider'></div>
-                <FeedbackList 
-                  productId={product._id} 
+                <FeedbackList
+                  productId={product._id}
                   onAverageRatingChange={(avg, count) => {
                     setAverageRating(avg || 5)
                     setFeedbackCount(count || 0)
                   }}
                 />
-                <FeedbackForm 
+                <FeedbackForm
                   productId={product._id}
                   onSuccess={() => {
                     setRefreshFeedback(!refreshFeedback)
