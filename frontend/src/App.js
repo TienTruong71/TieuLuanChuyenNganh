@@ -30,7 +30,7 @@ import VerifyOTPScreen from './screens/VerifyOTPScreen'
 
 const App = () => {
   return (
-    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+    <GoogleOAuthProvider clientId="939950020568-7su5pq39r781kgglsbm8lr7gm55l52gm.apps.googleusercontent.com">
       <Router>
         <Header />
 
