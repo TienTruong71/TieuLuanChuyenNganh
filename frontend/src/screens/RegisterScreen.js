@@ -15,7 +15,7 @@ const RegisterScreen = () => {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [full_name, setFullName] = useState('')
   const [phone, setPhone] = useState('')
-  
+
   // State cho validation errors
   const [emailError, setEmailError] = useState('')
   const [usernameError, setUsernameError] = useState('')
@@ -28,18 +28,18 @@ const RegisterScreen = () => {
   const { loading, error, userInfo } = userRegister
 
   // Redirect nếu đăng ký thành công
- // Redirect sang màn OTP sau khi đăng ký
-useEffect(() => {
-  if (userInfo?.email) {
-    setShowSuccess(true)
+  // Redirect sang màn OTP sau khi đăng ký
+  useEffect(() => {
+    if (userInfo?.email) {
+      setShowSuccess(true)
 
-    setTimeout(() => {
-      history.push('/verify-otp', {
-        email: userInfo.email,
-      })
-    }, 1000)
-  }
-}, [history, userInfo])
+      setTimeout(() => {
+        history.push('/verify-otp', {
+          email: userInfo.email,
+        })
+      }, 1000)
+    }
+  }, [history, userInfo])
 
 
   // Validate email
@@ -62,7 +62,7 @@ useEffect(() => {
     if (password.match(/[A-Z]+/)) strength++
     if (password.match(/[0-9]+/)) strength++
     if (password.match(/[$@#&!]+/)) strength++
-    
+
     if (strength <= 2) return 'Yếu'
     if (strength <= 4) return 'Trung bình'
     return 'Mạnh'
@@ -121,13 +121,13 @@ useEffect(() => {
   // Submit handler
   const submitHandler = (e) => {
     e.preventDefault()
-    
+
     if (validateForm()) {
       // Dispatch register action với email, username, password, full_name, phone
       dispatch(register(
-        email, 
-        username, 
-        password, 
+        email,
+        username,
+        password,
         full_name || username, // Nếu không có full_name thì dùng username
         phone
       ))

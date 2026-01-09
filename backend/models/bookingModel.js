@@ -51,11 +51,10 @@ const bookingSchema = mongoose.Schema(
   }
 )
 
-bookingSchema.pre('save', function (next) {
+bookingSchema.pre('save', async function () {
   if (!this.service_id && !this.product_id) {
-    next(new Error('Booking phải có service_id hoặc product_id'))
+    throw new Error('Booking phải có service_id hoặc product_id')
   }
-  next()
 })
 
 const Booking = mongoose.model('Booking', bookingSchema)

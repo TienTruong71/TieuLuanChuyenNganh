@@ -23,14 +23,17 @@ export const loginUser = asyncHandler(async (req, res) => {
     throw new Error('Email hoặc mật khẩu không đúng')
   }
 
-  if (!user.isEmailVerified) {
+
+
+  // Chỉ bắt OTP nếu user đang ở trạng thái 'inactive' (vừa đăng ký xong)
+  if (!user.isEmailVerified && user.status === 'inactive') {
     res.status(403)
     throw new Error('Vui lòng xác nhận email bằng OTP')
   }
 
   if (user.status !== 'active') {
     res.status(403)
-    throw new Error('Tài khoản đã bị khóa')
+    throw new Error('Tài khoản đã bị khóa hoặc chưa kích hoạt')
   }
 
   const isAdmin =
@@ -65,7 +68,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     customerRole = await Role.create({ role_name: 'Customer' })
   }
 
- 
+
   const otp = Math.floor(100000 + Math.random() * 900000).toString()
   const otpHash = crypto.createHash('sha256').update(otp).digest('hex')
 
@@ -83,17 +86,24 @@ export const registerUser = asyncHandler(async (req, res) => {
     emailOTPExpire: Date.now() + 10 * 60 * 1000, // 10 phút
   })
 
- 
-  await sendEmail({
-    to: user.email,
-    subject: 'Mã OTP xác nhận đăng ký',
-    html: `
-      <h3>Xin chào ${user.full_name}</h3>
-      <p>Mã OTP xác nhận email của bạn là:</p>
-      <h2 style="color:red">${otp}</h2>
-      <p>Mã có hiệu lực trong 10 phút</p>
-    `,
-  })
+
+  try {
+    await sendEmail({
+      to: user.email,
+      subject: 'Mã OTP xác nhận đăng ký',
+      html: `
+        <h3>Xin chào ${user.full_name}</h3>
+        <p>Mã OTP xác nhận email của bạn là:</p>
+        <h2 style="color:red">${otp}</h2>
+        <p>Mã có hiệu lực trong 10 phút</p>
+      `,
+    })
+  } catch (error) {
+    console.log('Error sending email:', error.message)
+    // Nếu gửi mail lỗi, có thể xóa user vừa tạo để tránh rác
+    // await User.findByIdAndDelete(user._id)
+    // throw new Error('Không thể gửi email OTP. Vui lòng thử lại sau.')
+  }
 
   res.status(201).json({
     message: 'Đăng ký thành công. Vui lòng nhập OTP được gửi qua email.',
