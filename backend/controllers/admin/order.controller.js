@@ -188,6 +188,11 @@ export const updateOrder = asyncHandler(async (req, res) => {
     }
 
     if (status) {
+        if (order.status === 'delivered' || order.status === 'cancelled') {
+            res.status(400)
+            throw new Error('Không thể cập nhật đơn hàng đã hoàn thành hoặc đã hủy')
+        }
+
         if (!['pending', 'processing', 'shipped', 'delivered', 'cancelled'].includes(status)) {
             res.status(400)
             throw new Error('Trạng thái không hợp lệ')
@@ -228,6 +233,11 @@ export const deleteOrder = asyncHandler(async (req, res) => {
     if (!order) {
         res.status(404)
         throw new Error('Đơn hàng không tồn tại')
+    }
+
+    if (order.status !== 'cancelled') {
+        res.status(400)
+        throw new Error('Chỉ có thể xóa đơn hàng đã hủy')
     }
 
     // Xóa OrderItem

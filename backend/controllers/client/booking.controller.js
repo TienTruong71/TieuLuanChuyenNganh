@@ -80,6 +80,22 @@ export const getBookingById = asyncHandler(async (req, res) => {
         if (bookingObj.product_id) bookingObj.product_id.price = bookingObj.price;
     }
 
+    // Inject Repair Progress for detailed tracking
+    // Note: RepairProgress model should be imported at top level or accessed via mongoose.models to avoid overwrites
+    // However, since we fixed the model definition, we can arguably just use the model if imported.
+    // For safety in this specific context where imports might be tricky, we can use mongoose.model('RepairProgress') directly if we know it's registered,
+    // OR just use the fix we did in the model file.
+    // Let's stick to the dynamic import for now BUT we rely on the model file fix (mongoose.models.RepairProgress || ...)
+
+    // Better yet, let's just use the imported reference if we were to add it to the top.
+    // But since I cannot easily add top-level imports without reading the whole file again or risking context loss, 
+    // I will trust the fix in `repairprogressModel.js` which allows re-import.
+
+    const repairProgress = await import('../../models/repairprogressModel.js').then(m => m.default.findOne({ booking_id: booking._id }));
+    if (repairProgress) {
+        bookingObj.repair_progress = repairProgress;
+    }
+
     res.json(bookingObj)
 })
 

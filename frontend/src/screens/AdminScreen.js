@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { LockOutlined, UnlockOutlined } from '@ant-design/icons'
 import { useHistory } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import {
@@ -12,7 +13,7 @@ import {
 } from '../actions/adminActions'
 import { logout } from '../actions/userActions'
 import '../styles/admin.css'
-import { ADMIN_ORDER_UPDATE_RESET, ADMIN_CUSTOMER_UPDATE_RESET } from '../constants/adminConstants'
+import { ADMIN_ORDER_UPDATE_RESET, ADMIN_CUSTOMER_UPDATE_RESET, ADMIN_ORDER_DELETE_RESET, ADMIN_CUSTOMER_DELETE_RESET } from '../constants/adminConstants'
 import ProductsManagementScreen from './ProductsManagementScreen'
 import ServicesManagementScreen from './ServicesManagementScreen'
 import StaffManagementScreen from './StaffManagementScreen'
@@ -22,19 +23,19 @@ const AdminScreen = () => {
   const history = useHistory()
   const dispatch = useDispatch()
   const [activeTab, setActiveTab] = useState('dashboard')
-  
+
   // Pagination states
   const [orderPage, setOrderPage] = useState(1)
   const [orderSearch, setOrderSearch] = useState('')
   const [orderStatus, setOrderStatus] = useState('')
   const [customerPage, setCustomerPage] = useState(1)
   const [customerSearch, setCustomerSearch] = useState('')
-  
+
   // Modal states
   const [showOrderModal, setShowOrderModal] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [orderNewStatus, setOrderNewStatus] = useState('')
-  
+
   const userLogin = useSelector((state) => state.userLogin)
   const { userInfo } = userLogin || {}
 
@@ -45,21 +46,24 @@ const AdminScreen = () => {
   const { loading: loadingOrders, orders, pagination: orderPagination, error: errorOrders } = orderList
 
   const orderUpdate = useSelector((state) => state.adminOrderUpdate)
-  const { loading: loadingOrderUpdate, success: successOrderUpdate } = orderUpdate
+  const { loading: loadingOrderUpdate, success: successOrderUpdate, error: errorUpdateOrder } = orderUpdate
 
   const orderDelete = useSelector((state) => state.adminOrderDelete)
-  const { loading: loadingOrderDelete, success: successOrderDelete } = orderDelete
+  const { loading: loadingOrderDelete, success: successOrderDelete, error: errorDeleteOrder } = orderDelete
 
   const customerList = useSelector((state) => state.adminCustomerList)
   const { loading: loadingCustomers, customers, pagination: customerPagination, error: errorCustomers } = customerList
 
   const customerDelete = useSelector((state) => state.adminCustomerDelete)
-  const { loading: loadingCustomerDelete, success: successCustomerDelete } = customerDelete
+  const { loading: loadingCustomerDelete, success: successCustomerDelete, error: errorCustomerDelete } = customerDelete
+
+  const customerUpdate = useSelector((state) => state.adminCustomerUpdate)
+  const { success: successCustomerUpdate, error: errorCustomerUpdate } = customerUpdate
 
   // Check if user is admin
   const isAdmin = userInfo && (
-    userInfo.isAdmin || 
-    userInfo.role?.role_name === 'admin' || 
+    userInfo.isAdmin ||
+    userInfo.role?.role_name === 'admin' ||
     userInfo.role_id?.role_name === 'admin' ||
     userInfo.role_name === 'admin'
   )
@@ -103,16 +107,54 @@ const AdminScreen = () => {
   useEffect(() => {
     if (successOrderDelete) {
       alert('Xóa đơn hàng thành công!')
+      dispatch({ type: ADMIN_ORDER_DELETE_RESET })
       dispatch(listOrders(orderPage, 10, orderSearch, orderStatus))
     }
   }, [successOrderDelete, dispatch, orderPage, orderSearch, orderStatus])
 
   useEffect(() => {
+    if (errorUpdateOrder) {
+      alert(errorUpdateOrder)
+      dispatch({ type: ADMIN_ORDER_UPDATE_RESET })
+    }
+  }, [errorUpdateOrder, dispatch])
+
+  useEffect(() => {
+    if (errorDeleteOrder) {
+      alert(errorDeleteOrder)
+      dispatch({ type: ADMIN_ORDER_DELETE_RESET })
+    }
+  }, [errorDeleteOrder, dispatch])
+
+  useEffect(() => {
     if (successCustomerDelete) {
       alert('Vô hiệu hóa khách hàng thành công!')
+      dispatch({ type: ADMIN_CUSTOMER_DELETE_RESET })
       dispatch(listCustomers(customerPage, 10, customerSearch))
     }
   }, [successCustomerDelete, dispatch, customerPage, customerSearch])
+
+  useEffect(() => {
+    if (errorCustomerDelete) {
+      alert(errorCustomerDelete)
+      dispatch({ type: ADMIN_CUSTOMER_DELETE_RESET })
+    }
+  }, [errorCustomerDelete, dispatch])
+
+  useEffect(() => {
+    if (successCustomerUpdate) {
+      alert('Cập nhật trạng thái khách hàng thành công!')
+      dispatch({ type: ADMIN_CUSTOMER_UPDATE_RESET })
+      dispatch(listCustomers(customerPage, 10, customerSearch))
+    }
+  }, [successCustomerUpdate, dispatch, customerPage, customerSearch])
+
+  useEffect(() => {
+    if (errorCustomerUpdate) {
+      alert(errorCustomerUpdate)
+      dispatch({ type: ADMIN_CUSTOMER_UPDATE_RESET })
+    }
+  }, [errorCustomerUpdate, dispatch])
 
   if (!isAdmin) {
     return null
@@ -183,8 +225,8 @@ const AdminScreen = () => {
             <h1>🛠️ Bảng điều khiển Admin</h1>
             <p>Chào mừng trở lại, {userInfo.full_name || userInfo.name}!</p>
           </div>
-          <button 
-            onClick={logoutHandler} 
+          <button
+            onClick={logoutHandler}
             className='admin-logout-btn'
             title='Đăng xuất'
           >
@@ -194,43 +236,43 @@ const AdminScreen = () => {
 
         {/* Tab Navigation */}
         <div className='admin-tabs'>
-          <button 
+          <button
             className={`admin-tab-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
             onClick={() => setActiveTab('dashboard')}
           >
             📊 Dashboard
           </button>
-          <button 
+          <button
             className={`admin-tab-btn ${activeTab === 'users' ? 'active' : ''}`}
             onClick={() => setActiveTab('users')}
           >
             👥 Khách hàng
           </button>
-          <button 
+          <button
             className={`admin-tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
             onClick={() => setActiveTab('orders')}
           >
             📦 Đơn hàng
           </button>
-          <button 
+          <button
             className={`admin-tab-btn ${activeTab === 'products' ? 'active' : ''}`}
             onClick={() => setActiveTab('products')}
           >
             🚗 Sản phẩm
           </button>
-          <button 
+          <button
             className={`admin-tab-btn ${activeTab === 'services' ? 'active' : ''}`}
             onClick={() => setActiveTab('services')}
           >
             🔧 Dịch vụ
           </button>
-          <button 
+          <button
             className={`admin-tab-btn ${activeTab === 'support' ? 'active' : ''}`}
             onClick={() => setActiveTab('support')}
           >
             💬 Hỗ trợ
           </button>
-          <button 
+          <button
             className={`admin-tab-btn ${activeTab === 'staff' ? 'active' : ''}`}
             onClick={() => setActiveTab('staff')}
           >
@@ -325,8 +367,8 @@ const AdminScreen = () => {
                 <h2>Quản lý khách hàng</h2>
               </div>
               <form className='admin-search-bar' onSubmit={handleCustomerSearch}>
-                <input 
-                  type='text' 
+                <input
+                  type='text'
                   placeholder='Tìm kiếm theo tên, email, số điện thoại...'
                   value={customerSearch}
                   onChange={(e) => setCustomerSearch(e.target.value)}
@@ -349,7 +391,8 @@ const AdminScreen = () => {
                           <th>Tên</th>
                           <th>Email</th>
                           <th>Số điện thoại</th>
-                          <th>Địa chỉ</th>
+                          {/* <th>Địa chỉ</th> */}
+                          <th>Trạng thái</th>
                           <th>Ngày tạo</th>
                           <th>Hành động</th>
                         </tr>
@@ -362,16 +405,38 @@ const AdminScreen = () => {
                               <td>{customer.full_name}</td>
                               <td>{customer.email}</td>
                               <td>{customer.phone}</td>
-                              <td>{customer.address || 'N/A'}</td>
+                              {/* <td>{customer.address || 'N/A'}</td> */}
+                              <td>
+                                <span className={`admin-status admin-status-${customer.status}`}>
+                                  {customer.status === 'active' ? 'Hoạt động' :
+                                    customer.status === 'suspended' ? 'Đã khóa' :
+                                      customer.status === 'inactive' ? 'Không hoạt động' : customer.status}
+                                </span>
+                              </td>
                               <td>{formatDate(customer.createdAt)}</td>
                               <td>
                                 <div className='admin-action-buttons'>
-                                  <button 
-                                    className='admin-btn-action delete'
-                                    onClick={() => handleCustomerDelete(customer._id)}
-                                  >
-                                    🗑️
-                                  </button>
+                                  {customer.status === 'suspended' ? (
+                                    <button
+                                      className='admin-btn-action success'
+                                      onClick={() => {
+                                        if (window.confirm('Bạn có chắc muốn mở khóa khách hàng này?')) {
+                                          dispatch(updateCustomer(customer._id, { status: 'active' }))
+                                        }
+                                      }}
+                                      title='Mở khóa'
+                                    >
+                                      <UnlockOutlined />
+                                    </button>
+                                  ) : (
+                                    <button
+                                      className='admin-btn-action delete'
+                                      onClick={() => handleCustomerDelete(customer._id)}
+                                      title='Khóa tài khoản'
+                                    >
+                                      <LockOutlined />
+                                    </button>
+                                  )}
                                 </div>
                               </td>
                             </tr>
@@ -424,8 +489,8 @@ const AdminScreen = () => {
               {/* Filters */}
               <div className='admin-filters-bar'>
                 <form className='admin-search-bar' onSubmit={handleOrderSearch}>
-                  <input 
-                    type='text' 
+                  <input
+                    type='text'
                     placeholder='Tìm kiếm theo tên khách hàng, email...'
                     value={orderSearch}
                     onChange={(e) => setOrderSearch(e.target.value)}
@@ -490,13 +555,13 @@ const AdminScreen = () => {
                               <td>{formatDate(order.createdAt)}</td>
                               <td>
                                 <div className='action-buttons'>
-                                  <button 
+                                  <button
                                     className='btn-action edit'
                                     onClick={() => handleOrderUpdate(order)}
                                   >
                                     ✏️
                                   </button>
-                                  <button 
+                                  <button
                                     className='btn-action delete'
                                     onClick={() => handleOrderDelete(order._id)}
                                   >

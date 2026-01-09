@@ -48,7 +48,7 @@ export const feedbackReducer = (state = initialState, action) => {
             return {
                 ...state,
                 loading: false,
-                feedbacks: [action.payload.feedback, ...state.feedbacks],
+                // feedbacks: [action.payload.feedback, ...state.feedbacks], 
                 message: action.payload.message,
                 success: true,
                 error: null,

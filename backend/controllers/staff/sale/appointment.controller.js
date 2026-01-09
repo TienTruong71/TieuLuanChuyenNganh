@@ -44,7 +44,7 @@ export const getAppointments = asyncHandler(async (req, res) => {
     const total = await Booking.countDocuments(query)
     const appointmentsData = await Booking.find(query)
         .populate('user_id', 'full_name email phone')
-        .populate('product_id', 'name price image') // Populate product details (adjust fields as needed)
+        .populate('product_id', 'product_name price images') // Populate product details (adjust fields as needed)
         .skip((page - 1) * limit)
         .limit(limit)
         .sort({ booking_date: 1 })
@@ -54,6 +54,17 @@ export const getAppointments = asyncHandler(async (req, res) => {
         const appObj = app.toObject();
         // If there's specific logic for car price, add it here.
         // For now, vehicle bookings might doesn't usually carry a price for the booking itself (free test drive).
+
+        // Helper to map fields for Mobile App which expects 'name' and 'image'
+        if (appObj.product_id) {
+            appObj.product_id.name = appObj.product_id.product_name || 'Unknown Car';
+            // If images is an array, take the first one
+            if (Array.isArray(appObj.product_id.images) && appObj.product_id.images.length > 0) {
+                appObj.product_id.image = appObj.product_id.images[0];
+            } else {
+                appObj.product_id.image = '';
+            }
+        }
         return appObj;
     });
 
@@ -74,14 +85,25 @@ export const getAppointments = asyncHandler(async (req, res) => {
 export const getAppointmentById = asyncHandler(async (req, res) => {
     const appointment = await Booking.findById(req.params.id)
         .populate('user_id', 'full_name email phone')
-        .populate('product_id', 'name price image')
+        .populate('product_id', 'product_name price images')
 
     if (!appointment || appointment.booking_type !== 'vehicle') {
         res.status(404)
         throw new Error('Lịch lái thử không tồn tại hoặc không hợp lệ')
     }
 
-    res.json(appointment)
+    const appObj = appointment.toObject();
+
+    if (appObj.product_id) {
+        appObj.product_id.name = appObj.product_id.product_name || 'Unknown Car';
+        if (Array.isArray(appObj.product_id.images) && appObj.product_id.images.length > 0) {
+            appObj.product_id.image = appObj.product_id.images[0];
+        } else {
+            appObj.product_id.image = '';
+        }
+    }
+
+    res.json(appObj)
 })
 
 // @desc    Cập nhật trạng thái lịch lái thử
@@ -143,10 +165,22 @@ export const updateAppointment = asyncHandler(async (req, res) => {
 
     // Notify "completed" or other statuses if needed
 
+    const finalAppointment = await Booking.findById(updated._id)
+        .populate('user_id', 'full_name email phone')
+        .populate('product_id', 'product_name price images');
+
+    const appObj = finalAppointment.toObject();
+    if (appObj.product_id) {
+        appObj.product_id.name = appObj.product_id.product_name || 'Unknown Car';
+        if (Array.isArray(appObj.product_id.images) && appObj.product_id.images.length > 0) {
+            appObj.product_id.image = appObj.product_id.images[0];
+        } else {
+            appObj.product_id.image = '';
+        }
+    }
+
     res.json({
         message: 'Cập nhật lịch lái thử thành công',
-        appointment: await Booking.findById(updated._id)
-            .populate('user_id', 'full_name email phone')
-            .populate('product_id', 'name price image'),
+        appointment: appObj,
     })
 })

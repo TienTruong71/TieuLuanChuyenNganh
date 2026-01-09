@@ -20,9 +20,6 @@ const ProfileScreen = () => {
   const userChangePassword = useSelector((state) => state.userChangePassword)
   const { loading, success, error } = userChangePassword || {}
 
-  // ✅ Kiểm tra xem user có phải Google account không
-  // const isGoogleUser = userInfo?.authProvider === 'google'
-
   useEffect(() => {
     // Redirect to login if not logged in
     if (!userInfo) {

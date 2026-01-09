@@ -1,7 +1,6 @@
 import React from 'react'
 import { BrowserRouter as Router, Route, Switch, useLocation } from 'react-router-dom'
 import { GoogleOAuthProvider } from '@react-oauth/google'
-
 import Header from './components/Header'
 import Footer from './components/Footer'
 import ProductScreen from './screens/ProductScreen'
@@ -29,16 +28,15 @@ import SupportButton from './components/SupportButton'
 import VerifyOTPScreen from './screens/VerifyOTPScreen'
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen'
 import ResetPasswordScreen from './screens/ResetPasswordScreen'
-
 const AppContent = () => {
   const location = useLocation()
-  
+
   const isAdminRoute = location.pathname === '/admin'
-  
+
   return (
     <>
       {!isAdminRoute && <Header />}
-      
+
       <Switch>
         <Route path='/' component={AboutScreen} exact />
         <Route path='/product' component={ProductScreen} exact />
@@ -64,7 +62,7 @@ const AppContent = () => {
         <Route path='/forgot-password' component={ForgotPasswordScreen} />
         <Route path='/reset-password' component={ResetPasswordScreen} />
       </Switch>
-      
+
       {!isAdminRoute && (
         <>
           <AIChat />

@@ -31,6 +31,6 @@ const repairProgressSchema = mongoose.Schema(
   }
 )
 
-const RepairProgress = mongoose.model('RepairProgress', repairProgressSchema)
+const RepairProgress = mongoose.models.RepairProgress || mongoose.model('RepairProgress', repairProgressSchema)
 
 export default RepairProgress

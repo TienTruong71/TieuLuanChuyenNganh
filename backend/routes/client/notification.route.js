@@ -3,6 +3,7 @@ import {
   getNotifications,
   getNotificationById,
   markAsRead,
+  markAllAsRead,
 } from '../../controllers/client/notification.controller.js';
 import { protect } from '../../middleware/authMiddleware.js';
 
@@ -15,6 +16,7 @@ router.get('/', protect, getNotifications);
 router.get('/:id', protect, getNotificationById);
 
 // Đánh dấu đã đọc
+router.put('/read-all', protect, markAllAsRead);
 router.put('/:id/read', protect, markAsRead);
 
 export default router;

@@ -59,7 +59,7 @@ export const login = (email, password) => async (dispatch) => {
       type: USER_LOGIN_SUCCESS,
       payload: data,
     })
-    
+
     localStorage.setItem('userInfo', JSON.stringify(data))
 
   } catch (error) {
@@ -89,9 +89,9 @@ export const register = (email, username, password, full_name, phone) => async (
     // Gọi API register
     const { data } = await axios.post(
       '/api/client/auth/register',
-      { 
-        email, 
-        username, 
+      {
+        email,
+        username,
         password,
         full_name: full_name || username,
         phone: phone || ''
@@ -105,14 +105,8 @@ export const register = (email, username, password, full_name, phone) => async (
       payload: data,
     })
 
-    // Auto login sau khi register thành công
-    dispatch({
-      type: USER_LOGIN_SUCCESS,
-      payload: data,
-    })
-
-    // Lưu vào localStorage
-    localStorage.setItem('userInfo', JSON.stringify(data))
+    // UPDATE: Không auto login và không lưu localStorage 
+    // vì tài khoản chưa active (cần verify OTP)
   } catch (error) {
     dispatch({
       type: USER_REGISTER_FAIL,
@@ -131,7 +125,7 @@ export const logout = () => (dispatch) => {
   localStorage.removeItem('userInfo')
   dispatch({ type: USER_LOGOUT })
   dispatch({ type: USER_DETAILS_RESET })
-  
+
   // Redirect về trang login
   window.location.href = '/login'
 }
@@ -146,6 +140,10 @@ export const getUserDetails = () => async (dispatch, getState) => {
     const {
       userLogin: { userInfo },
     } = getState()
+
+    if (!userInfo || !userInfo.token) {
+      throw new Error('Not authorized, no token')
+    }
 
     const config = {
       headers: {
@@ -165,11 +163,11 @@ export const getUserDetails = () => async (dispatch, getState) => {
       error.response && error.response.data.message
         ? error.response.data.message
         : error.message
-    
+
     if (message === 'Not authorized, token failed') {
       dispatch(logout())
     }
-    
+
     dispatch({
       type: USER_DETAILS_FAIL,
       payload: message,
