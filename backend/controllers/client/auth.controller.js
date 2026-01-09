@@ -236,6 +236,12 @@ export const loginWithGoogle = asyncHandler(async (req, res) => {
     await user.save()
   }
 
+  // Check status for Google login users
+  if (user.status !== 'active') {
+    res.status(403)
+    throw new Error('Tài khoản đã bị khóa hoặc chưa kích hoạt')
+  }
+
   const isAdmin =
     user.role_id?.role_name === 'admin' ||
     user.role_id?.role_name === 'manager'

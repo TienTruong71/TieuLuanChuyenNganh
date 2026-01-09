@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import moment from 'moment'
 import { logout } from '../actions/userActions'
-import { listNotifications, markNotificationAsRead } from '../actions/notificationActions'
+import { listNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '../actions/notificationActions'
 import logo from '../assets/logo.png'
 import '../styles/shared.css'
 import { BellOutlined, CheckCircleOutlined, UserOutlined, ShoppingCartOutlined, LogoutOutlined } from '@ant-design/icons'
@@ -76,7 +76,7 @@ const Header = () => {
                   }
                   title={
                     <div className='flex justify-between items-start'>
-                      <Text strong={!item.is_read} className='text-sm text-gray-800 line-clamp-2'>{item.message}</Text>
+                      <Text strong={!item.is_read} className='text-sm text-gray-800' style={{ whiteSpace: 'pre-wrap' }}>{item.message}</Text>
                       {!item.is_read && <div className='w-2 h-2 rounded-full bg-blue-500 mt-1.5 ml-2 shrink-0'></div>}
                     </div>
                   }
@@ -93,8 +93,17 @@ const Header = () => {
       </div>
 
       <div className='p-2 bg-gray-50 border-t border-gray-100 text-center'>
-        <Button type="link" size="small" className='text-gray-500 hover:text-blue-600 font-medium'>
-          Xem tất cả
+        <Button
+          type="link"
+          size="small"
+          className='text-gray-500 hover:text-blue-600 font-medium'
+          onClick={() => {
+            dispatch(markAllNotificationsAsRead());
+            // Optimistic update: force re-render or re-fetch after small delay just in case
+            setTimeout(() => dispatch(listNotifications()), 500);
+          }}
+        >
+          Đánh dấu đã đọc tất cả
         </Button>
       </div>
     </div>

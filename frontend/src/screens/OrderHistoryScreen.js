@@ -50,6 +50,37 @@ const OrderHistoryScreen = () => {
     }
   }
 
+  const handleReorder = (order) => {
+    try {
+      // Chuyển trực tiếp sang trang Checkout với danh sách items.
+      const directItems = order.items.map(item => {
+        // Map từ structure của Order Item sang structure Cart Item mà CheckoutScreen cần
+        const product = item.product_id || {}
+        // Sử dụng giá hiện tại từ sản phẩm (nếu có populate) thay vì giá cũ trong order
+        const currentPrice = product.price || item.price
+
+        return {
+          product_id: product._id || product.id || item.product_id,
+          product_name: product.product_name || product.name || 'Sản phẩm',
+          price: currentPrice,
+          image: product.image || (product.images && product.images[0]),
+          images: product.images,
+          quantity: item.quantity,
+          type: item.type || product.type || 'product',
+          category: product.category || (product.category_id?.category_name || ''),
+          stock_quantity: product.stock_quantity
+        }
+      })
+
+      history.push({
+        pathname: '/checkout',
+        state: { directBuyItems: directItems }
+      })
+    } catch (error) {
+      alert('Có lỗi khi xử lý mua lại: ' + (error.message || error))
+    }
+  }
+
   const getStatusBadge = (status) => {
     const statusConfig = {
       pending: { label: 'Chờ xử lý', class: 'status-pending' },
@@ -212,7 +243,12 @@ const OrderHistoryScreen = () => {
                     </button>
                   )}
                   {order.status === 'delivered' && (
-                    <button className='btn-reorder'>Mua lại</button>
+                    <button
+                      className='btn-reorder'
+                      onClick={() => handleReorder(order)}
+                    >
+                      Mua lại
+                    </button>
                   )}
                 </div>
               </div>

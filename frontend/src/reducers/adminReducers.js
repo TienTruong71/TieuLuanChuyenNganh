@@ -13,6 +13,7 @@ import {
   ADMIN_ORDER_DELETE_REQUEST,
   ADMIN_ORDER_DELETE_SUCCESS,
   ADMIN_ORDER_DELETE_FAIL,
+  ADMIN_ORDER_DELETE_RESET,
   ADMIN_CUSTOMER_LIST_REQUEST,
   ADMIN_CUSTOMER_LIST_SUCCESS,
   ADMIN_CUSTOMER_LIST_FAIL,
@@ -23,6 +24,7 @@ import {
   ADMIN_CUSTOMER_DELETE_REQUEST,
   ADMIN_CUSTOMER_DELETE_SUCCESS,
   ADMIN_CUSTOMER_DELETE_FAIL,
+  ADMIN_CUSTOMER_DELETE_RESET,
   ADMIN_PRODUCT_LIST_REQUEST,
   ADMIN_PRODUCT_LIST_SUCCESS,
   ADMIN_PRODUCT_LIST_FAIL,
@@ -127,6 +129,8 @@ export const adminOrderDeleteReducer = (state = {}, action) => {
       return { loading: false, success: true }
     case ADMIN_ORDER_DELETE_FAIL:
       return { loading: false, error: action.payload }
+    case ADMIN_ORDER_DELETE_RESET:
+      return {}
     default:
       return state
   }
@@ -175,6 +179,8 @@ export const adminCustomerDeleteReducer = (state = {}, action) => {
       return { loading: false, success: true }
     case ADMIN_CUSTOMER_DELETE_FAIL:
       return { loading: false, error: action.payload }
+    case ADMIN_CUSTOMER_DELETE_RESET:
+      return {}
     default:
       return state
   }
@@ -331,7 +337,7 @@ export const adminServiceDeleteReducer = (state = {}, action) => {
       return { loading: false, success: true }
     case ADMIN_SERVICE_DELETE_FAIL:
       return { loading: false, error: action.payload }
-    case ADMIN_SERVICE_DELETE_RESET: 
+    case ADMIN_SERVICE_DELETE_RESET:
       return {}
     default:
       return state

@@ -1,5 +1,7 @@
 // backend/controllers/admin/customer.controller.js
 import User from '../../models/userModel.js'
+import Order from '../../models/orderModel.js'
+import Booking from '../../models/bookingModel.js'
 import asyncHandler from 'express-async-handler'
 
 // @desc    Lấy danh sách khách hàng (chỉ role "customer")
@@ -114,6 +116,26 @@ export const deleteCustomer = asyncHandler(async (req, res) => {
     if (!customerRoleIds.includes(customer.role_id.toString())) {
         res.status(400)
         throw new Error('Không thể xóa: không phải khách hàng')
+    }
+
+    // Kiểm tra đơn hàng active
+    const activeOrder = await Order.findOne({
+        user_id: customer._id,
+        status: { $in: ['pending', 'processing', 'shipped'] }
+    })
+    if (activeOrder) {
+        res.status(400)
+        throw new Error('Không thể khóa: Khách hàng đang có đơn hàng chưa hoàn thành')
+    }
+
+    // Kiểm tra booking active
+    const activeBooking = await Booking.findOne({
+        user_id: customer._id,
+        status: { $in: ['pending', 'confirmed', 'in_progress'] }
+    })
+    if (activeBooking) {
+        res.status(400)
+        throw new Error('Không thể khóa: Khách hàng đang có lịch hẹn/dịch vụ chưa hoàn thành')
     }
 
     // Thay vì xóa thật → đổi status

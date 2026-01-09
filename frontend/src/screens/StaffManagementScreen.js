@@ -6,7 +6,7 @@ import '../styles/staff.css'
 
 const StaffManagementScreen = () => {
   const dispatch = useDispatch()
-  
+
   // ✅ Mapping role tiếng Anh <-> tiếng Việt
   const ROLE_MAPPING = {
     'admin': 'Quản trị viên',
@@ -28,7 +28,7 @@ const StaffManagementScreen = () => {
     { value: 'service', label: 'Nhân viên dịch vụ' },
     { value: 'sale', label: 'Nhân viên bán hàng' }
   ]
-  
+
   // State
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
@@ -81,7 +81,7 @@ const StaffManagementScreen = () => {
         status: 'active'
       })
       dispatch(listStaff(page, 10, search))
-      
+
       if (successCreate) {
         dispatch({ type: ADMIN_STAFF_CREATE_RESET })
       }
@@ -101,7 +101,7 @@ const StaffManagementScreen = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    
+
     if (editingId) {
       // Update - không cần password
       const updateData = { ...formData }
@@ -170,7 +170,7 @@ const StaffManagementScreen = () => {
       {/* Header */}
       <div className='admin-staff-header'>
         <h2>👥 Quản Lý Nhân Viên</h2>
-        <button 
+        <button
           className='admin-btn-add'
           onClick={() => {
             setEditingId(null)
@@ -216,7 +216,7 @@ const StaffManagementScreen = () => {
         <div className='admin-modal' onClick={() => handleCancel()}>
           <div className='admin-modal-content' onClick={e => e.stopPropagation()}>
             <h3>{editingId ? 'Cập Nhật Nhân Viên' : 'Thêm Nhân Viên Mới'}</h3>
-            
+
             <form onSubmit={handleSubmit} className='admin-form'>
               <div className='admin-form-row'>
                 <div className='admin-form-group'>
@@ -339,7 +339,7 @@ const StaffManagementScreen = () => {
               </div>
 
               <div className='admin-modal-buttons'>
-                <button 
+                <button
                   type='submit'
                   className='btn-confirm'
                   disabled={loadingCreate || loadingUpdate}
@@ -381,7 +381,6 @@ const StaffManagementScreen = () => {
                 <tr key={member._id}>
                   <td className='admin-cell-name'>{member.full_name}</td>
                   <td>{member.email}</td>
-                  {/* ✅ ĐÃ SỬA: Hiển thị tiếng Việt trong bảng */}
                   <td>
                     <span className={`role-badge role-${member.position}`}>
                       {getRoleDisplayName(member.position)}
@@ -391,9 +390,9 @@ const StaffManagementScreen = () => {
                   <td>{formatDate(member.hired_date)}</td>
                   <td>
                     <span className={`admin-status admin-status-${member.status}`}>
-                      {member.status === 'active' ? 'Hoạt Động' : 
-                       member.status === 'inactive' ? 'Không Hoạt Động' : 
-                       'Tạm Khóa'}
+                      {member.status === 'active' ? 'Hoạt Động' :
+                        member.status === 'inactive' ? 'Không Hoạt Động' :
+                          'Tạm Khóa'}
                     </span>
                   </td>
                   <td className='admin-cell-actions'>
@@ -403,14 +402,6 @@ const StaffManagementScreen = () => {
                       title='Chỉnh sửa'
                     >
                       ✏️
-                    </button>
-                    <button
-                      className='btn-delete'
-                      onClick={() => handleDelete(member._id)}
-                      disabled={loadingDelete}
-                      title='Xóa'
-                    >
-                      🗑️
                     </button>
                   </td>
                 </tr>

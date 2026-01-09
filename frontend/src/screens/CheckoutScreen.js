@@ -16,12 +16,23 @@ const CheckoutScreen = () => {
 
   const { location } = history
   const directBuyItem = location.state?.directBuyItem
+  const directBuyItems = location.state?.directBuyItems // Support multiple items (e.g. from Order History)
 
   const cart = useSelector((state) => state.cart)
   const { cartItems: itemsFromCart, total: totalFromCart } = cart
 
-  const cartItems = directBuyItem ? [directBuyItem] : itemsFromCart
-  const total = directBuyItem ? (directBuyItem.price * directBuyItem.quantity) : totalFromCart
+  // Ưu tiên direct items
+  const cartItems = directBuyItems || (directBuyItem ? [directBuyItem] : itemsFromCart)
+
+  const total = useMemo(() => {
+    if (directBuyItems) {
+      return directBuyItems.reduce((acc, item) => acc + item.quantity * item.price, 0)
+    }
+    if (directBuyItem) {
+      return directBuyItem.price * directBuyItem.quantity
+    }
+    return totalFromCart
+  }, [directBuyItems, directBuyItem, totalFromCart])
 
   const orderCreate = useSelector((state) => state.orderCreate)
   const { loading, success, error, order } = orderCreate
@@ -93,12 +104,12 @@ const CheckoutScreen = () => {
 
     if (!userInfo) {
       history.push('/login')
-    } else if (!directBuyItem && (!itemsFromCart || itemsFromCart.length === 0)) {
+    } else if (!directBuyItem && !directBuyItems && (!itemsFromCart || itemsFromCart.length === 0)) {
       history.push('/cart')
-    } else if (!directBuyItem) {
+    } else if (!directBuyItem && !directBuyItems) {
       dispatch(getCart())
     }
-  }, [dispatch, history, userInfo, success, directBuyItem, itemsFromCart])
+  }, [dispatch, history, userInfo, success, directBuyItem, directBuyItems, itemsFromCart])
 
   const payAttempted = useRef(false)
   const paymentAmountRef = useRef(0)

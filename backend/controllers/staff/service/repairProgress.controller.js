@@ -4,6 +4,7 @@ import Booking from '../../../models/bookingModel.js'
 import ServiceBay from '../../../models/serviceBayModel.js'
 import User from '../../../models/userModel.js'
 import ServicePackage from '../../../models/servicepackageModel.js'
+import Notification from '../../../models/notificationModel.js'
 import asyncHandler from 'express-async-handler'
 import mongoose from 'mongoose'
 
@@ -190,6 +191,42 @@ export const updateRepairProgress = asyncHandler(async (req, res) => {
     }
 
     const updated = await progress.save()
+
+    try {
+        const booking = await Booking.findById(progress.booking_id);
+        if (booking) {
+            let message = '';
+            const statusLabels = {
+                'in_progress': 'đang được thực hiện',
+                'waiting_parts': 'đang chờ linh kiện',
+                'testing': 'đang được kiểm tra',
+                'completed': 'đã hoàn thành'
+            };
+
+            const statusText = statusLabels[status] || 'đang được cập nhật';
+
+            if (status && status !== 'completed') {
+                message = `Tiến độ sửa chữa xe của bạn: ${statusText}.`;
+            } else if (status === 'completed') {
+                message = `Dịch vụ sửa chữa xe của bạn đã hoàn thành.`;
+            }
+
+            if (status !== 'completed' && estimated_completion) {
+                const dateStr = new Date(estimated_completion).toLocaleString('vi-VN');
+                message += ` Dự kiến hoàn thành vào: ${dateStr}.`;
+            }
+
+            if (message) {
+                await Notification.create({
+                    user_id: booking.user_id,
+                    message: message,
+                    is_read: false,
+                });
+            }
+        }
+    } catch (notifError) {
+        console.error('Failed to send notification:', notifError);
+    }
 
     res.json({
         message: 'Cập nhật tiến độ sửa chữa thành công',

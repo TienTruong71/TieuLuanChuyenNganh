@@ -57,7 +57,7 @@ export const getPublicFeedbacks = asyncHandler(async (req, res) => {
 
     const total = await Feedback.countDocuments(query)
     const feedbacks = await Feedback.find(query)
-        .populate('user_id', 'username')
+        .populate('user_id', 'username full_name avatar')
         .populate('product_id', 'product_name')
         .populate('service_id', 'service_name')
         .skip((page - 1) * limit)

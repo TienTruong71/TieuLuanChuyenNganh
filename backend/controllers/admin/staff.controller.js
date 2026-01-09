@@ -12,15 +12,17 @@ export const getStaff = asyncHandler(async (req, res) => {
     const limit = parseInt(req.query.limit) || 10
     const search = req.query.search || ''
 
-    // Tìm staff role
-    const staffRole = await Role.findOne({ role_name: 'staff' })
-    if (!staffRole) {
+    // Tìm các role nhân viên: inventory, service, sale
+    const staffRoles = await Role.find({ role_name: { $in: ['inventory', 'service', 'sale'] } })
+    const staffRoleIds = staffRoles.map(role => role._id)
+
+    if (!staffRoles.length) {
         res.status(404)
-        throw new Error('Vai trò staff không tồn tại')
+        throw new Error('Chưa có role nhân viên (inventory, service, sale) nào trong hệ thống')
     }
 
     const query = {
-        role_id: staffRole._id,
+        role_id: { $in: staffRoleIds },
         $or: [
             { full_name: { $regex: search, $options: 'i' } },
             { email: { $regex: search, $options: 'i' } },
@@ -73,8 +75,10 @@ export const getStaffById = asyncHandler(async (req, res) => {
         throw new Error('Nhân viên không tồn tại')
     }
 
-    const staffRole = await Role.findOne({ role_name: 'staff' })
-    if (user.role_id._id.toString() !== staffRole._id.toString()) {
+    const staffRoles = await Role.find({ role_name: { $in: ['inventory', 'service', 'sale'] } })
+    const staffRoleIds = staffRoles.map(role => role._id.toString())
+
+    if (!staffRoleIds.includes(user.role_id._id.toString())) {
         res.status(400)
         throw new Error('Người dùng này không phải là nhân viên')
     }
@@ -109,11 +113,14 @@ export const createStaff = asyncHandler(async (req, res) => {
         throw new Error('Email, tên đăng nhập hoặc số điện thoại đã được sử dụng')
     }
 
-    // Tìm staff role
-    const staffRole = await Role.findOne({ role_name: 'staff' })
-    if (!staffRole) {
+    // Tìm role tương ứng với position (inventory / service / sale)
+    // Lưu ý: Position ở frontend gửi lên: 'inventory' | 'service' | 'sale'
+    const targetRoleName = position;
+    const targetRole = await Role.findOne({ role_name: targetRoleName })
+
+    if (!targetRole) {
         res.status(404)
-        throw new Error('Vai trò staff không tồn tại')
+        throw new Error(`Vai trò ${targetRoleName} không tồn tại trong hệ thống`)
     }
 
     // Tạo user
@@ -123,7 +130,8 @@ export const createStaff = asyncHandler(async (req, res) => {
         email,
         phone,
         full_name,
-        role_id: staffRole._id,
+        full_name,
+        role_id: targetRole._id,
         status: 'active',
     })
 
@@ -162,10 +170,20 @@ export const updateStaff = asyncHandler(async (req, res) => {
         throw new Error('Nhân viên không tồn tại')
     }
 
-    const staffRole = await Role.findOne({ role_name: 'staff' })
-    if (user.role_id.toString() !== staffRole._id.toString()) {
+    const staffRoles = await Role.find({ role_name: { $in: ['inventory', 'service', 'sale'] } })
+    const staffRoleIds = staffRoles.map(role => role._id.toString())
+
+    if (!staffRoleIds.includes(user.role_id.toString())) {
         res.status(400)
         throw new Error('Không thể cập nhật: không phải nhân viên')
+    }
+
+    // Nếu thay đổi position -> Cần update role_id tương ứng
+    if (position && position !== (await Employee.findOne({ user_id: user._id }))?.position) {
+        const newRole = await Role.findOne({ role_name: position })
+        if (newRole) {
+            user.role_id = newRole._id
+        }
     }
 
     // Cập nhật user
@@ -211,8 +229,10 @@ export const deleteStaff = asyncHandler(async (req, res) => {
         throw new Error('Nhân viên không tồn tại')
     }
 
-    const staffRole = await Role.findOne({ role_name: 'staff' })
-    if (user.role_id.toString() !== staffRole._id.toString()) {
+    const staffRoles = await Role.find({ role_name: { $in: ['inventory', 'service', 'sale'] } })
+    const staffRoleIds = staffRoles.map(role => role._id.toString())
+
+    if (!staffRoleIds.includes(user.role_id.toString())) {
         res.status(400)
         throw new Error('Không thể xóa: không phải nhân viên')
     }

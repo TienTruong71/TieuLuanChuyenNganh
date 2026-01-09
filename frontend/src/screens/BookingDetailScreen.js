@@ -77,6 +77,9 @@ const BookingDetailScreen = () => {
       in_progress: { label: 'Đang thực hiện', class: 'status-progress', icon: '🔧' },
       completed: { label: 'Hoàn thành', class: 'status-completed', icon: '✅' },
       cancelled: { label: 'Đã hủy', class: 'status-cancelled', icon: '❌' },
+      // Repair Progress Statuses
+      waiting_parts: { label: 'Chờ linh kiện', class: 'status-warning', icon: '🔩' },
+      testing: { label: 'Đang kiểm tra', class: 'status-info', icon: '🔍' },
     }
     const config = statusConfig[status] || { label: status, class: 'status-default', icon: '📋' }
     return (
@@ -148,7 +151,7 @@ const BookingDetailScreen = () => {
                 </div>
               </div>
               <div className='header-right'>
-                {getStatusBadge(booking.status)}
+                {getStatusBadge(booking.repair_progress?.status || booking.status)}
               </div>
             </div>
 
@@ -172,7 +175,20 @@ const BookingDetailScreen = () => {
                 <div className='step-icon'>{isVehicleBooking ? '🚗' : '🔧'}</div>
                 <div className='step-content'>
                   <h4>{isVehicleBooking ? 'Đang lái thử' : 'Đang thực hiện'}</h4>
-                  <p>{['in_progress', 'completed'].includes(booking.status) ? (isVehicleBooking ? 'Đang lái thử' : 'Đang làm') : 'Chưa bắt đầu'}</p>
+                  <p>
+                    {['in_progress', 'completed'].includes(booking.status)
+                      ? (
+                        booking.repair_progress
+                          ? getStatusBadge(booking.repair_progress.status).props.children[1] // Extract text from badge
+                          : (isVehicleBooking ? 'Đang lái thử' : 'Đang làm')
+                      )
+                      : 'Chưa bắt đầu'}
+                  </p>
+                  {booking.repair_progress?.estimated_completion && (
+                    <p className='estimated-time'>
+                      Dự kiến xong: {formatDateTime(booking.repair_progress.estimated_completion)}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className={`timeline-step ${booking.status === 'completed' ? 'completed' : ''}`}>

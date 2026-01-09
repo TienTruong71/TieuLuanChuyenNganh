@@ -61,3 +61,18 @@ export const markAsRead = asyncHandler(async (req, res) => {
     notification,
   });
 });
+
+// [PUT] /api/notifications/read-all
+// Đánh dấu TẤT CẢ thông báo là đã đọc
+export const markAllAsRead = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+
+  await Notification.updateMany(
+    { user_id: userId, is_read: false },
+    { $set: { is_read: true } }
+  );
+
+  res.status(200).json({
+    message: 'Đã đánh dấu tất cả thông báo là đã đọc',
+  });
+});
