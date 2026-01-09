@@ -79,6 +79,14 @@ const ProductsManagementScreen = () => {
     return typeMap[type] || typeMap['product']
   }
 
+  // ✅ Helper: Lấy class màu cho tồn kho
+  const getStockClass = (stock) => {
+    if (stock === 0) return 'stock-out'
+    if (stock < 5) return 'stock-low'
+    if (stock < 20) return 'stock-medium'
+    return 'stock-good'
+  }
+
   useEffect(() => {
     dispatch(listCategories())
   }, [dispatch])
@@ -345,6 +353,9 @@ const ProductsManagementScreen = () => {
             <div className='products-grid'>
               {products.map((product) => {
                 const typeInfo = getProductTypeInfo(product.type)
+                const stockClass = getStockClass(product.stock_quantity)
+                const inventoryClass = getStockClass(product.inventory_quantity || 0)
+                
                 return (
                   <div key={product._id} className='product-card-admin'>
                     {product.images && product.images.length > 0 && (() => {
@@ -367,7 +378,6 @@ const ProductsManagementScreen = () => {
                         if (displayImg.startsWith('/uploads')) {
                           displayImg = `http://localhost:5000${displayImg}`;
                         }
-                        // If http/https or other (frontend asset), leave as is
                       }
 
                       return (
@@ -377,7 +387,7 @@ const ProductsManagementScreen = () => {
                           className='product-image'
                           onError={(e) => {
                             e.target.onerror = null;
-                            e.target.src = 'https://via.placeholder.com/150?text=No+Image'; // Fallback
+                            e.target.src = 'https://via.placeholder.com/150?text=No+Image';
                           }}
                         />
                       );
@@ -392,7 +402,17 @@ const ProductsManagementScreen = () => {
                       <p className='product-desc'>{product.description}</p>
                       <div className='product-details'>
                         <span className='product-price'>{formatPrice(product.price)}đ</span>
-                        <span className='product-stock'>Tồn kho: {product.stock_quantity}</span>
+                        
+                        {/* ✅ HIỂN THỊ CẢ 2 GIÁ TRỊ TỒN KHO */}
+                        <div className='product-stock-info'>
+                          <span className={`product-stock ${stockClass}`}>
+                            🏪 Hiện Có: {product.stock_quantity}
+                          </span>
+                          <span className={`product-stock ${inventoryClass}`}>
+                            📦 Tổng Kho: {product.inventory_quantity || 0}
+                          </span>
+                        </div>
+                        
                         {/* ✅ Hiển thị loại sản phẩm với icon */}
                         <span className={`product-type ${typeInfo.class}`}>
                           {typeInfo.icon} {typeInfo.label}
@@ -445,11 +465,6 @@ const ProductsManagementScreen = () => {
                   onChange={(e) => setCategoryImage(e.target.value)}
                   placeholder='https://example.com/image.jpg'
                 />
-                {/* {categoryImage && (
-                  <div className='image-preview'>
-                    <img src={categoryImage} alt='Preview' />
-                  </div>
-                )} */}
               </div>
               <div className='form-group'>
                 <label>Mô tả:</label>
@@ -517,7 +532,7 @@ const ProductsManagementScreen = () => {
                   />
                 </div>
                 <div className='form-group'>
-                  <label>Tồn kho: *</label>
+                  <label>Tồn kho (DB): *</label>
                   <input
                     type='number'
                     value={productStock}
@@ -525,8 +540,10 @@ const ProductsManagementScreen = () => {
                     required
                     min='0'
                   />
+                  <small className='form-hint'>
+                    💡 Số lượng trong database. Showroom được tính tự động từ bảng inventories.
+                  </small>
                 </div>
-                {/* ✅ Dropdown chọn loại sản phẩm - ĐÃ SỬA */}
                 <div className='form-group'>
                   <label>Loại sản phẩm: *</label>
                   <select
@@ -539,7 +556,6 @@ const ProductsManagementScreen = () => {
                     <option value='part'>Linh kiện</option>
                     <option value='product'>Sản phẩm khác</option>
                   </select>
-                  {/* ✅ Gợi ý cho admin */}
                   <small className='form-hint'>
                     {productType === 'vehicle' && '💡 Xe ô tô: Khách hàng sẽ đặt cọc 20% khi mua'}
                     {productType === 'accessory' && '💡 Phụ kiện: Thanh toán đầy đủ (COD hoặc VNPay)'}

@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Switch, useLocation } from 'react-router-dom'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import ProductScreen from './screens/ProductScreen'
@@ -25,10 +25,15 @@ import BookingDetailScreen from './screens/BookingDetailScreen'
 import AIChat from './components/AIChat'
 import SupportButton from './components/SupportButton'
 
-const App = () => {
+const AppContent = () => {
+  const location = useLocation()
+  
+  const isAdminRoute = location.pathname === '/admin'
+
   return (
-    <Router>
-      <Header />
+    <>
+      {!isAdminRoute && <Header />}
+      
       <Switch>
         <Route path='/' component={AboutScreen} exact />
         <Route path='/product' component={ProductScreen} exact />
@@ -47,14 +52,26 @@ const App = () => {
         <Route path='/policy' component={PolicyScreen} />
         <Route path='/terms' component={TermsScreen} />
         <Route path='/admin' component={AdminScreen} />
-        <Route path='/services' component={ServicesScreen} exact />
         <Route path='/booking/:id' component={BookingScreen} />
         <Route path='/my-bookings' component={MyBookingsScreen} />
         <Route path='/booking-detail/:id' component={BookingDetailScreen} />
       </Switch>
-      <AIChat />
-      <SupportButton />
-      <Footer />
+      
+      {!isAdminRoute && (
+        <>
+          <AIChat />
+          <SupportButton />
+          <Footer />
+        </>
+      )}
+    </>
+  )
+}
+
+const App = () => {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   )
 }

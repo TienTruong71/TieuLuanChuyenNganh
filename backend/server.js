@@ -8,18 +8,25 @@ import colors from 'colors'
 import connectDB from './config/db.js'
 import './models/index.js'
 import { notFound, errorHandler } from './middleware/errorMiddleware.js'
-import cors from "cors";
+import cors from "cors"
+import seedRoles from './seeders/roleSeed.js'
+
 // Fix __dirname cho ESM
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 dotenv.config({ path: path.join(__dirname, '.env') })
 
-// Connect DB
-connectDB()
+// Connect DB và seed roles
+const initializeDatabase = async () => {
+  await connectDB()
+  await seedRoles() // Tự động seed roles sau khi connect DB
+}
+
+initializeDatabase()
 
 const app = express()
-app.use(cors());
+app.use(cors())
 
 // Middleware
 if (process.env.NODE_ENV === 'development') {
