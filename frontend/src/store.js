@@ -7,7 +7,10 @@ import {
   userLoginReducer,
   userRegisterReducer,
   userDetailsReducer,
-  verifyEmailReducer
+  verifyEmailReducer,
+  userChangePasswordReducer,
+  forgotPasswordReducer,
+  resetPasswordReducer,
 } from './reducers/userReducers'
 
 import {
@@ -76,11 +79,14 @@ import {
 
 const reducer = combineReducers({
   // User reducers
+  forgotPassword: forgotPasswordReducer,
+  resetPassword: resetPasswordReducer,
   userLogin: userLoginReducer,
   userRegister: userRegisterReducer,
   userDetails: userDetailsReducer,
   verifyOTP: verifyOTPReducer,
   verifyEmail: verifyEmailReducer,
+  userChangePassword: userChangePasswordReducer,
   // Product reducers
   productList: productListReducer,
   productDetails: productDetailsReducer,

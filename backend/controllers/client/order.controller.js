@@ -4,15 +4,16 @@ import Order from '../../models/orderModel.js';
 import OrderItem from '../../models/orderItemModel.js';
 import Payment from '../../models/paymentModel.js';
 import Product from '../../models/productModel.js'; // nếu cần populate tên sản phẩm
+import Cart from '../../models/cartModel.js'
 
 // [POST] Tạo đơn hàng mới + chi tiết sản phẩm
 // Route: POST /api/client/orders
 // Access: Private (Registered Customer)
 export const createOrder = asyncHandler(async (req, res) => {
-  const { items, total_amount, payment_method } = req.body;
+  const { items, total_amount, payment_method } = req.body
 
   if (!items || items.length === 0 || !total_amount || !payment_method) {
-    return res.status(400).json({ message: 'Vui lòng cung cấp đầy đủ thông tin đơn hàng và sản phẩm' });
+    return res.status(400).json({ message: 'Vui lòng cung cấp đầy đủ thông tin đơn hàng và sản phẩm' })
   }
 
   // Tạo Order
@@ -20,9 +21,9 @@ export const createOrder = asyncHandler(async (req, res) => {
     user_id: req.user._id,
     total_amount,
     payment_method,
-  });
+  })
 
-  const createdOrder = await order.save();
+  const createdOrder = await order.save()
 
   // Tạo từng OrderItem
   const orderItems = await Promise.all(
@@ -32,16 +33,25 @@ export const createOrder = asyncHandler(async (req, res) => {
         product_id: item.product_id,
         quantity: item.quantity,
         price: item.price,
-      });
+      })
     })
-  );
+  )
+
+  // ✅ TỰ ĐỘNG XÓA GIỎ HÀNG SAU KHI ĐẶT HÀNG THÀNH CÔNG
+  try {
+    await Cart.deleteOne({ user_id: req.user._id })
+    console.log('✅ Đã xóa giỏ hàng của user:', req.user._id)
+  } catch (err) {
+    console.error('❌ Lỗi khi xóa giỏ hàng:', err)
+    // Không throw error, vẫn trả về success
+  }
 
   res.status(201).json({
     message: 'Tạo đơn hàng thành công',
     order: createdOrder,
     items: orderItems,
-  });
-});
+  })
+})
 
 // [GET] Lấy chi tiết 1 đơn hàng (kèm chi tiết sản phẩm)
 // Route: GET /api/client/orders/:id

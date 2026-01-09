@@ -86,7 +86,7 @@ const LoginScreen = () => {
   // Forgot password handler
   const handleForgotPassword = (e) => {
     e.preventDefault()
-    alert('Chức năng "Quên mật khẩu" sẽ được triển khai sau!')
+    history.push('/forgot-password')
   }
 
   return (
