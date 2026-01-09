@@ -1,7 +1,6 @@
 import React from 'react'
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Switch, useLocation } from 'react-router-dom'
 import { GoogleOAuthProvider } from '@react-oauth/google'
-
 import Header from './components/Header'
 import Footer from './components/Footer'
 import ProductScreen from './screens/ProductScreen'
@@ -28,8 +27,13 @@ import AIChat from './components/AIChat'
 import SupportButton from './components/SupportButton'
 import VerifyOTPScreen from './screens/VerifyOTPScreen'
 
-const App = () => {
+const AppContent = () => {
+  const location = useLocation()
+
+  const isAdminRoute = location.pathname === '/admin'
+
   return (
+<<<<<<< HEAD
     <GoogleOAuthProvider clientId="939950020568-7su5pq39r781kgglsbm8lr7gm55l52gm.apps.googleusercontent.com">
       <Router>
         <Header />
@@ -61,9 +65,54 @@ const App = () => {
         <AIChat />
         <SupportButton />
         <Footer />
-      </Router>
-    </GoogleOAuthProvider>
-  )
+=======
+    <>
+          {!isAdminRoute && <Header />}
+
+          <Switch>
+            <Route path='/' component={AboutScreen} exact />
+            <Route path='/product' component={ProductScreen} exact />
+            <Route path='/product/:id' component={ProductDetailScreen} />
+            <Route path='/cart' component={CartScreen} />
+            <Route path='/checkout' component={CheckoutScreen} />
+            <Route path='/payment/success' component={PaymentSuccessScreen} />
+            <Route path='/payment/failed' component={PaymentFailedScreen} />
+            <Route path='/orders' component={OrderHistoryScreen} exact />
+            <Route path='/orders/:id' component={OrderDetailScreen} />
+            <Route path='/login' component={LoginScreen} />
+            <Route path='/register' component={RegisterScreen} />
+            <Route path='/verify-otp' component={VerifyOTPScreen} />
+            <Route path='/profile' component={ProfileScreen} />
+            <Route path='/contact' component={ContactScreen} />
+            <Route path='/services' component={ServicesScreen} exact />
+            <Route path='/policy' component={PolicyScreen} />
+            <Route path='/terms' component={TermsScreen} />
+            <Route path='/admin' component={AdminScreen} />
+            <Route path='/booking/:id' component={BookingScreen} />
+            <Route path='/my-bookings' component={MyBookingsScreen} />
+            <Route path='/booking-detail/:id' component={BookingDetailScreen} />
+          </Switch>
+
+          {!isAdminRoute && (
+            <>
+              <AIChat />
+              <SupportButton />
+              <Footer />
+            </>
+          )}
+        </>
+        )
 }
 
-export default App
+const App = () => {
+  return (
+        <GoogleOAuthProvider clientId="939950020568-7su5pq39r781kgglsbm8lr7gm55l52gm.apps.googleusercontent.com">
+          <Router>
+            <AppContent />
+>>>>>>> 8cfda8902387334037b85b86f77b06b46976a9a4
+          </Router>
+        </GoogleOAuthProvider>
+        )
+}
+
+        export default App

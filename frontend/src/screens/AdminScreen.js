@@ -10,6 +10,7 @@ import {
   updateCustomer,
   deleteCustomer,
 } from '../actions/adminActions'
+import { logout } from '../actions/userActions'
 import '../styles/admin.css'
 import { ADMIN_ORDER_UPDATE_RESET, ADMIN_CUSTOMER_UPDATE_RESET } from '../constants/adminConstants'
 import ProductsManagementScreen from './ProductsManagementScreen'
@@ -62,6 +63,14 @@ const AdminScreen = () => {
     userInfo.role_id?.role_name === 'admin' ||
     userInfo.role_name === 'admin'
   )
+
+  // Logout handler
+  const logoutHandler = () => {
+    if (window.confirm('Bạn có chắc muốn đăng xuất?')) {
+      dispatch(logout())
+      history.push('/login')
+    }
+  }
 
   useEffect(() => {
     // Redirect if not admin
@@ -168,9 +177,19 @@ const AdminScreen = () => {
   return (
     <main className='page-main'>
       <div className='admin-container'>
+        {/* Admin Header with Logout Button */}
         <div className='admin-header'>
-          <h1>🛠️ Bảng điều khiển Admin</h1>
-          <p>Chào mừng trở lại, {userInfo.full_name || userInfo.name}!</p>
+          <div>
+            <h1>🛠️ Bảng điều khiển Admin</h1>
+            <p>Chào mừng trở lại, {userInfo.full_name || userInfo.name}!</p>
+          </div>
+          <button 
+            onClick={logoutHandler} 
+            className='admin-logout-btn'
+            title='Đăng xuất'
+          >
+            🚪 Đăng xuất
+          </button>
         </div>
 
         {/* Tab Navigation */}
@@ -312,7 +331,6 @@ const AdminScreen = () => {
                   value={customerSearch}
                   onChange={(e) => setCustomerSearch(e.target.value)}
                 />
-                {/* <button type='submit'>🔍 Tìm</button> */}
               </form>
 
               {loadingCustomers ? (
@@ -427,7 +445,6 @@ const AdminScreen = () => {
                     <option value='delivered'>Hoàn thành</option>
                     <option value='cancelled'>Đã hủy</option>
                   </select>
-                  {/* <button type='submit'>🔍 Tìm</button> */}
                 </form>
               </div>
 
@@ -457,7 +474,6 @@ const AdminScreen = () => {
                             <tr key={order._id}>
                               <td>#{order._id.slice(-8)}</td>
                               <td>
-                                {/* ✅ Kiểm tra user_id trước khi hiển thị */}
                                 {order.user_id ? (
                                   <>
                                     {order.user_id.full_name || 'N/A'}<br />

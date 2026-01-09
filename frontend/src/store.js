@@ -150,9 +150,23 @@ const reducer = combineReducers({
   notificationMarkRead: notificationMarkReadReducer,
 })
 
-const userInfoFromStorage = localStorage.getItem('userInfo')
-  ? JSON.parse(localStorage.getItem('userInfo'))
-  : null
+const getUserInfoFromStorage = () => {
+  try {
+    const userInfo = localStorage.getItem('userInfo')
+      ? JSON.parse(localStorage.getItem('userInfo'))
+      : null
+
+    if (userInfo && !userInfo.token) {
+      localStorage.removeItem('userInfo')
+      return null
+    }
+    return userInfo
+  } catch (error) {
+    return null
+  }
+}
+
+const userInfoFromStorage = getUserInfoFromStorage()
 
 const cartItemsFromStorage = localStorage.getItem('cartItems')
   ? JSON.parse(localStorage.getItem('cartItems'))

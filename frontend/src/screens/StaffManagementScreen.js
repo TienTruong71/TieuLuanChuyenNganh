@@ -7,6 +7,28 @@ import '../styles/staff.css'
 const StaffManagementScreen = () => {
   const dispatch = useDispatch()
   
+  // ✅ Mapping role tiếng Anh <-> tiếng Việt
+  const ROLE_MAPPING = {
+    'admin': 'Quản trị viên',
+    'customer': 'Khách hàng',
+    'inventory': 'Nhân viên kho',
+    'service': 'Nhân viên dịch vụ',
+    'sale': 'Nhân viên bán hàng'
+  }
+
+  // ✅ Helper: Lấy tên tiếng Việt từ role tiếng Anh
+  const getRoleDisplayName = (roleEnglish) => {
+    return ROLE_MAPPING[roleEnglish] || roleEnglish
+  }
+
+  // ✅ Danh sách roles cho dropdown (loại bỏ customer vì không phải staff)
+  const STAFF_ROLES = [
+    { value: 'admin', label: 'Quản trị viên' },
+    { value: 'inventory', label: 'Nhân viên kho' },
+    { value: 'service', label: 'Nhân viên dịch vụ' },
+    { value: 'sale', label: 'Nhân viên bán hàng' }
+  ]
+  
   // State
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
@@ -18,7 +40,7 @@ const StaffManagementScreen = () => {
     email: '',
     phone: '',
     full_name: '',
-    position: '',
+    position: 'sale', // ✅ Mặc định là sale (tiếng Anh)
     salary: '',
     hired_date: '',
     status: 'active'
@@ -53,7 +75,7 @@ const StaffManagementScreen = () => {
         email: '',
         phone: '',
         full_name: '',
-        position: '',
+        position: 'sale',
         salary: '',
         hired_date: '',
         status: 'active'
@@ -99,7 +121,7 @@ const StaffManagementScreen = () => {
       email: staffMember.email || '',
       phone: staffMember.phone || '',
       full_name: staffMember.full_name || '',
-      position: staffMember.position || '',
+      position: staffMember.position || 'sale', // ✅ Giữ nguyên giá trị tiếng Anh
       salary: staffMember.salary || '',
       hired_date: staffMember.hired_date ? staffMember.hired_date.split('T')[0] : '',
       status: staffMember.status || 'active',
@@ -123,7 +145,7 @@ const StaffManagementScreen = () => {
       email: '',
       phone: '',
       full_name: '',
-      position: '',
+      position: 'sale',
       salary: '',
       hired_date: '',
       status: 'active'
@@ -158,7 +180,7 @@ const StaffManagementScreen = () => {
               email: '',
               phone: '',
               full_name: '',
-              position: '',
+              position: 'sale',
               salary: '',
               hired_date: '',
               status: 'active'
@@ -231,16 +253,26 @@ const StaffManagementScreen = () => {
                     required
                   />
                 </div>
+                {/* ✅ ĐÃ SỬA: Đổi input thành select dropdown */}
                 <div className='admin-form-group'>
                   <label>Chức Vụ *</label>
-                  <input
-                    type='text'
+                  <select
                     name='position'
                     value={formData.position}
                     onChange={handleInputChange}
-                    placeholder='Ví dụ: Nhân viên bán hàng'
                     required
-                  />
+                    className='role-select'
+                  >
+                    <option value=''>-- Chọn chức vụ --</option>
+                    {STAFF_ROLES.map(role => (
+                      <option key={role.value} value={role.value}>
+                        {role.label}
+                      </option>
+                    ))}
+                  </select>
+                  <small className='form-hint'>
+                    💡 Chức vụ xác định quyền truy cập của nhân viên vào hệ thống
+                  </small>
                 </div>
               </div>
 
@@ -349,7 +381,12 @@ const StaffManagementScreen = () => {
                 <tr key={member._id}>
                   <td className='admin-cell-name'>{member.full_name}</td>
                   <td>{member.email}</td>
-                  <td>{member.position}</td>
+                  {/* ✅ ĐÃ SỬA: Hiển thị tiếng Việt trong bảng */}
+                  <td>
+                    <span className={`role-badge role-${member.position}`}>
+                      {getRoleDisplayName(member.position)}
+                    </span>
+                  </td>
                   <td>{formatSalary(member.salary)}</td>
                   <td>{formatDate(member.hired_date)}</td>
                   <td>

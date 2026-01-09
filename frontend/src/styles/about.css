@@ -68,18 +68,18 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
-/* Service Panels */
+/* Service Panels - Xếp dọc full width */
 .service-panels {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px;
+  grid-template-columns: 1fr;
+  gap: 0;
   margin-bottom: 50px;
 }
 
 .service-panel {
   position: relative;
-  height: 280px;
-  border-radius: 16px;
+  height: 350px;
+  border-radius: 5px;
   overflow: hidden;
   background-size: cover;
   background-position: center;
@@ -88,10 +88,11 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
-.service-panel:hover {
+/* .service-panel:hover {
   transform: translateY(-8px);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
-}
+  z-index: 10;
+} */
 
 .panel-overlay {
   position: absolute;
@@ -104,13 +105,13 @@
   transition: background 0.3s ease;
 }
 
-.service-panel:hover .panel-overlay {
+/* .service-panel:hover .panel-overlay {
   background: linear-gradient(
     180deg,
     rgba(0, 0, 0, 0.4) 0%,
     rgba(0, 0, 0, 0.8) 100%
   );
-}
+} */
 
 .panel-content {
   position: relative;
@@ -127,7 +128,8 @@
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 10px;
-  text-shadow: 0 0px 5px rgb(255, 255, 255);
+  text-shadow: 0 0px 2px rgb(8, 6, 6);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .panel-content p {
@@ -224,9 +226,8 @@
     font-size: 36px;
   }
 
-  .service-panels {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
+  .service-panel {
+    height: 300px;
   }
 
   .creator-grid {
@@ -261,12 +262,6 @@
 
   .about-content h2 {
     font-size: 24px;
-  }
-
-  .service-panels {
-    grid-template-columns: 1fr;
-    gap: 16px;
-    margin-bottom: 30px;
   }
 
   .service-panel {
@@ -331,11 +326,6 @@
 
   .about-content p {
     font-size: 14px;
-  }
-
-  .service-panels {
-    gap: 12px;
-    margin-bottom: 20px;
   }
 
   .service-panel {
