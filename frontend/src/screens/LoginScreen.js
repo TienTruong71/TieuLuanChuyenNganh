@@ -3,10 +3,18 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 import { login } from '../actions/userActions'
 import '../styles/auth.css'
+import { GoogleLogin } from '@react-oauth/google'
+import { loginWithGoogle } from '../actions/userActions'
+
 
 const LoginScreen = () => {
   const history = useHistory()
   const dispatch = useDispatch()
+  const handleGoogleLoginSuccess = (credentialResponse) => {
+  if (credentialResponse?.credential) {
+    dispatch(loginWithGoogle(credentialResponse.credential))
+  }
+}
 
   // State cho form
   const [email, setEmail] = useState('')
@@ -159,6 +167,25 @@ const LoginScreen = () => {
           <button type='submit' className='btn-login' disabled={loading}>
             {loading ? 'Đang đăng nhập...' : 'Đăng Nhập'}
           </button>
+          {/* Divider */}
+          <div className='login-divider'>
+            <span>HOẶC</span>
+          </div>
+
+          {/* Google Login Button */}
+          <div className='google-login-wrapper'>
+            <GoogleLogin
+              onSuccess={handleGoogleLoginSuccess}
+              onError={() => {
+                console.log('Google Login Failed')
+              }}
+              width='100%'
+              theme='outline'
+              size='large'
+              text='signin_with'
+              shape='rectangular'
+            />
+          </div>
         </form>
 
         {/* Register Link */}

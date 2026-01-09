@@ -1,4 +1,3 @@
-// backend/server.js
 import path from 'path'
 import { fileURLToPath } from 'url'
 import express from 'express'
@@ -11,16 +10,14 @@ import { notFound, errorHandler } from './middleware/errorMiddleware.js'
 import cors from "cors"
 import seedRoles from './seeders/roleSeed.js'
 
-// Fix __dirname cho ESM
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 dotenv.config({ path: path.join(__dirname, '.env') })
 
-// Connect DB và seed roles
 const initializeDatabase = async () => {
   await connectDB()
-  await seedRoles() // Tự động seed roles sau khi connect DB
+  await seedRoles() 
 }
 
 initializeDatabase()
@@ -28,13 +25,11 @@ initializeDatabase()
 const app = express()
 app.use(cors())
 
-// Middleware
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'))
 }
 app.use(express.json())
 
-// === IMPORT ROUTES ===
 import categoryRoutes from './routes/admin/category.route.js'
 import productAdminRoutes from './routes/admin/product.route.js'
 import clientProductRoutes from './routes/client/product.route.js'
@@ -75,7 +70,6 @@ import adminOrderRoute from './routes/admin/order.route.js'
 import AIroutes from './routes/AI/AI.route.js'
 import staffCategoryRoutes from './routes/staff/category.route.js'
 
-// === MOUNT ROUTES ===
 app.use('/api/admin/categories', categoryRoutes)
 app.use('/api/admin/products', productAdminRoutes)
 app.use('/api/admin/customers', customerRoutes)
@@ -122,15 +116,12 @@ app.use('/api/staff/categories', staffCategoryRoutes)
 app.use('/api/admin/orders', adminOrderRoute)
 app.use('/api/ai', AIroutes)
 
-// Uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
-// PayPal
 app.get('/api/config/paypal', (req, res) =>
   res.send(process.env.PAYPAL_CLIENT_ID || '')
 )
 
-// Production
 if (process.env.NODE_ENV === 'production') {
   const frontendBuild = path.join(__dirname, '../frontend/build')
   app.use(express.static(frontendBuild))
@@ -141,11 +132,9 @@ if (process.env.NODE_ENV === 'production') {
   app.get('/', (req, res) => res.send('API is running...'))
 }
 
-// Error Handler
 app.use(notFound)
 app.use(errorHandler)
 
-// Start server
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () =>
   console.log(`Server running on port ${PORT}`.yellow.bold)

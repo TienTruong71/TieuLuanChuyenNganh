@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory } from 'react-router-dom'
 import { createOrder } from '../actions/orderActions'
 import { getCart } from '../actions/cartActions'
 import axios from 'axios'
+import { ORDER_CREATE_RESET } from '../constants/cartOrderConstants'
 import '../styles/checkout.css'
 
 const CheckoutScreen = () => {
@@ -13,8 +14,14 @@ const CheckoutScreen = () => {
   const userLogin = useSelector((state) => state.userLogin)
   const { userInfo } = userLogin
 
+  const { location } = history
+  const directBuyItem = location.state?.directBuyItem
+
   const cart = useSelector((state) => state.cart)
-  const { cartItems, total } = cart
+  const { cartItems: itemsFromCart, total: totalFromCart } = cart
+
+  const cartItems = directBuyItem ? [directBuyItem] : itemsFromCart
+  const total = directBuyItem ? (directBuyItem.price * directBuyItem.quantity) : totalFromCart
 
   const orderCreate = useSelector((state) => state.orderCreate)
   const { loading, success, error, order } = orderCreate
@@ -28,16 +35,16 @@ const CheckoutScreen = () => {
 
   // ✅ Phân loại sản phẩm trong giỏ hàng
   const cartAnalysis = useMemo(() => {
-    const vehicles = cartItems.filter(item => 
-      item.type === 'vehicle' || 
+    const vehicles = cartItems.filter(item =>
+      item.type === 'vehicle' ||
       item.category?.toLowerCase().includes('xe') ||
       item.category?.toLowerCase().includes('ô tô') ||
       item.category?.toLowerCase().includes('sedan') ||
       item.category?.toLowerCase().includes('suv')
     )
-    
-    const accessories = cartItems.filter(item => 
-      item.type !== 'vehicle' && 
+
+    const accessories = cartItems.filter(item =>
+      item.type !== 'vehicle' &&
       !item.category?.toLowerCase().includes('xe') &&
       !item.category?.toLowerCase().includes('ô tô')
     )
@@ -51,7 +58,7 @@ const CheckoutScreen = () => {
     // Tính tiền
     const vehicleTotal = vehicles.reduce((sum, item) => sum + (item.price * item.quantity), 0)
     const accessoryTotal = accessories.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-    
+
     // Tiền cọc xe (20%)
     const depositRate = 0.2
     const vehicleDeposit = Math.round(vehicleTotal * depositRate)
@@ -69,34 +76,46 @@ const CheckoutScreen = () => {
       vehicleDeposit,
       depositRate,
       // Tổng tiền cần thanh toán
-      totalPayable: isMixed 
-        ? vehicleDeposit + accessoryTotal 
-        : isOnlyVehicles 
-          ? vehicleDeposit 
+      totalPayable: isMixed
+        ? vehicleDeposit + accessoryTotal
+        : isOnlyVehicles
+          ? vehicleDeposit
           : accessoryTotal
     }
   }, [cartItems])
 
   useEffect(() => {
+    dispatch({ type: ORDER_CREATE_RESET })
+  }, [dispatch])
+
+  useEffect(() => {
+    if (success) return
+
     if (!userInfo) {
       history.push('/login')
-    } else if (cartItems.length === 0) {
+    } else if (!directBuyItem && (!itemsFromCart || itemsFromCart.length === 0)) {
       history.push('/cart')
-    } else {
+    } else if (!directBuyItem) {
       dispatch(getCart())
     }
-  }, [dispatch, history, userInfo, cartItems.length])
+  }, [dispatch, history, userInfo, success, directBuyItem, itemsFromCart])
+
+  const payAttempted = useRef(false)
+  const paymentAmountRef = useRef(0)
 
   useEffect(() => {
     if (success && order) {
-      if (paymentMethod === 'e_wallet') {
-        handleVNPayPayment(order.order._id, cartAnalysis.totalPayable)
-      } else {
-        alert('Đặt hàng thành công!')
-        history.push(`/orders/${order.order._id}`)
+      if (!payAttempted.current) {
+        payAttempted.current = true
+        if (paymentMethod === 'e_wallet') {
+          handleVNPayPayment(order.order._id, paymentAmountRef.current)
+        } else {
+          alert('Đặt hàng thành công!')
+          history.push(`/orders/${order.order._id}`)
+        }
       }
     }
-  }, [success, order, history, paymentMethod, cartAnalysis.totalPayable])
+  }, [success, order, history, paymentMethod])
 
   // Xử lý thanh toán VNPay
   const handleVNPayPayment = async (orderId, amount) => {
@@ -108,6 +127,10 @@ const CheckoutScreen = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${userInfo.token}`,
         },
+      }
+
+      if (!amount || amount < 5000) {
+        console.warn('Invalid amount:', amount, 'Using fallback logic or alerting.')
       }
 
       const { data } = await axios.post(
@@ -140,6 +163,9 @@ const CheckoutScreen = () => {
       alert('Vui lòng nhập số điện thoại')
       return
     }
+
+    // Save payment amount to Ref before dispatching (persists even if cart clears)
+    paymentAmountRef.current = cartAnalysis.totalPayable
 
     // Chuẩn bị data order
     const orderData = {
@@ -285,7 +311,7 @@ const CheckoutScreen = () => {
                         <div>
                           <strong>Thanh toán khi nhận hàng (COD)</strong>
                           <p>
-                            {cartAnalysis.isMixed 
+                            {cartAnalysis.isMixed
                               ? 'Áp dụng cho phụ kiện/linh kiện. Xe cần đặt cọc trước.'
                               : 'Thanh toán bằng tiền mặt khi nhận hàng'}
                           </p>
@@ -305,8 +331,8 @@ const CheckoutScreen = () => {
                     />
                     <div className='option-content'>
                       <span className='option-icon vnpay-logo'>
-                        <img 
-                          src='https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1.png' 
+                        <img
+                          src='https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1.png'
                           alt='VNPay'
                           style={{ width: '40px', height: '40px', objectFit: 'contain' }}
                         />
@@ -314,7 +340,7 @@ const CheckoutScreen = () => {
                       <div>
                         <strong>Thanh toán VNPay</strong>
                         <p>
-                          {cartAnalysis.hasVehicles 
+                          {cartAnalysis.hasVehicles
                             ? `Đặt cọc ${cartAnalysis.depositRate * 100}% qua VNPay`
                             : 'Quét mã QR hoặc thanh toán qua ứng dụng ngân hàng'}
                         </p>

@@ -11,6 +11,10 @@ import {
   USER_DETAILS_SUCCESS,
   USER_DETAILS_FAIL,
   USER_DETAILS_RESET,
+  VERIFY_EMAIL_OTP_REQUEST,
+  VERIFY_EMAIL_OTP_SUCCESS,
+  VERIFY_EMAIL_OTP_FAIL,
+
 } from '../actions/userActions'
 
 // =====================================================
@@ -62,6 +66,39 @@ export const userDetailsReducer = (state = { user: {} }, action) => {
       return { loading: false, error: action.payload }
     case USER_DETAILS_RESET:
       return { user: {} }
+    default:
+      return state
+  }
+}
+export const verifyEmailReducer = (
+  state = {},
+  action
+) => {
+  switch (action.type) {
+    case VERIFY_EMAIL_OTP_REQUEST:
+      return { loading: true }
+    case VERIFY_EMAIL_OTP_SUCCESS:
+      return { loading: false, success: true, message: action.payload }
+    case VERIFY_EMAIL_OTP_FAIL:
+      return { loading: false, error: action.payload }
+    default:
+      return state
+  }
+}
+export const verifyOTPReducer = (
+  state = { loading: false, success: false },
+  action
+) => {
+  switch (action.type) {
+    case 'VERIFY_OTP_REQUEST':
+      return { loading: true }
+
+    case 'VERIFY_OTP_SUCCESS':
+      return { loading: false, success: true }
+
+    case 'VERIFY_OTP_FAIL':
+      return { loading: false, error: action.payload }
+
     default:
       return state
   }

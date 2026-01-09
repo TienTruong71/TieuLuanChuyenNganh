@@ -1,18 +1,25 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useHistory, Link } from 'react-router-dom'
-import { listMyOrders } from '../actions/orderActions'
+import { listMyOrders, cancelOrder } from '../actions/orderActions'
+import { ORDER_CANCEL_RESET } from '../constants/cartOrderConstants'
 import '../styles/order.css'
 
 const OrderHistoryScreen = () => {
   const history = useHistory()
   const dispatch = useDispatch()
 
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [selectedOrderId, setSelectedOrderId] = useState(null)
+
   const userLogin = useSelector((state) => state.userLogin)
   const { userInfo } = userLogin
 
   const orderListMy = useSelector((state) => state.orderListMy)
   const { loading, error, orders } = orderListMy
+
+  const orderCancel = useSelector((state) => state.orderCancel)
+  const { loading: loadingCancel, success: successCancel } = orderCancel
 
   useEffect(() => {
     if (!userInfo) {
@@ -21,6 +28,27 @@ const OrderHistoryScreen = () => {
       dispatch(listMyOrders())
     }
   }, [dispatch, history, userInfo])
+
+  useEffect(() => {
+    if (successCancel) {
+      alert('Đơn hàng đã được hủy thành công')
+      dispatch({ type: ORDER_CANCEL_RESET })
+      dispatch(listMyOrders())
+      setShowCancelConfirm(false)
+      setSelectedOrderId(null)
+    }
+  }, [successCancel, dispatch])
+
+  const openCancelModal = (orderId) => {
+    setSelectedOrderId(orderId)
+    setShowCancelConfirm(true)
+  }
+
+  const handleCancelOrder = () => {
+    if (selectedOrderId) {
+      dispatch(cancelOrder(selectedOrderId))
+    }
+  }
 
   const getStatusBadge = (status) => {
     const statusConfig = {
@@ -176,7 +204,12 @@ const OrderHistoryScreen = () => {
                     Xem chi tiết
                   </Link>
                   {order.status === 'pending' && (
-                    <button className='btn-cancel-order'>Hủy đơn</button>
+                    <button
+                      className='btn-cancel-order'
+                      onClick={() => openCancelModal(order._id)}
+                    >
+                      Hủy đơn
+                    </button>
                   )}
                   {order.status === 'delivered' && (
                     <button className='btn-reorder'>Mua lại</button>
@@ -184,6 +217,32 @@ const OrderHistoryScreen = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Cancel Confirmation Modal */}
+        {showCancelConfirm && (
+          <div className='modal-overlay' onClick={() => setShowCancelConfirm(false)}>
+            <div className='modal-content' onClick={(e) => e.stopPropagation()}>
+              <h3>Xác nhận hủy đơn hàng</h3>
+              <p>Bạn có chắc chắn muốn hủy đơn hàng này?</p>
+              <div className='modal-buttons'>
+                <button
+                  className='btn-confirm-cancel'
+                  onClick={handleCancelOrder}
+                  disabled={loadingCancel}
+                >
+                  {loadingCancel ? 'Đang hủy...' : 'Xác nhận hủy'}
+                </button>
+                <button
+                  className='btn-close-modal'
+                  onClick={() => setShowCancelConfirm(false)}
+                  disabled={loadingCancel}
+                >
+                  Đóng
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

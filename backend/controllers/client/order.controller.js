@@ -57,7 +57,7 @@ export const getOrderById = asyncHandler(async (req, res) => {
     return res.status(403).json({ message: 'Bạn không có quyền xem đơn hàng này' });
   }
 
-  // ✅ FIX: Populate đầy đủ thông tin product
+  // FIX: Populate đầy đủ thông tin product
   const items = await OrderItem.find({ order_id: order._id })
     .populate({
       path: 'product_id',
