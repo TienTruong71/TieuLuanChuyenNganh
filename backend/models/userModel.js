@@ -42,6 +42,12 @@ const userSchema = mongoose.Schema(
     emailOTPExpire: {
       type: Date,
     },
+    passwordResetToken: {
+      type: String,
+    },
+    passwordResetExpire: {
+      type: Date,
+    },
   },
   { timestamps: true }
   

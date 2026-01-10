@@ -5,31 +5,37 @@ import User from '../models/userModel.js'
 const protect = asyncHandler(async (req, res, next) => {
   let token
 
+  console.log('🔍 Protect middleware called')
+  console.log('🔍 Authorization header:', req.headers.authorization)
+
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
     try {
       token = req.headers.authorization.split(' ')[1]
+      console.log('🔍 Token extracted:', token.substring(0, 20) + '...')
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET)
+      console.log('🔍 Token decoded successfully, user ID:', decoded.id)
 
       req.user = await User.findById(decoded.id).select('-password').populate('role_id')
       
       if (!req.user) {
+        console.error('❌ User not found in database')
         res.status(401)
         throw new Error('User not found')
       }
       
+      console.log('✅ User authenticated:', req.user.email)
       next()
     } catch (error) {
-      console.error('❌ Auth error:', error)
+      console.error('❌ Auth error:', error.message)
       res.status(401)
       throw new Error('Not authorized, token failed')
     }
-  }
-
-  if (!token) {
+  } else {
+    console.error('❌ No Authorization header or wrong format')
     res.status(401)
     throw new Error('Not authorized, no token')
   }

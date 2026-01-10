@@ -19,6 +19,23 @@ export const USER_DETAILS_RESET = 'USER_DETAILS_RESET'
 export const VERIFY_EMAIL_OTP_REQUEST = 'VERIFY_EMAIL_OTP_REQUEST'
 export const VERIFY_EMAIL_OTP_SUCCESS = 'VERIFY_EMAIL_OTP_SUCCESS'
 export const VERIFY_EMAIL_OTP_FAIL = 'VERIFY_EMAIL_OTP_FAIL'
+
+// ✅ NEW: Change Password Action Types
+export const USER_CHANGE_PASSWORD_REQUEST = 'USER_CHANGE_PASSWORD_REQUEST'
+export const USER_CHANGE_PASSWORD_SUCCESS = 'USER_CHANGE_PASSWORD_SUCCESS'
+export const USER_CHANGE_PASSWORD_FAIL = 'USER_CHANGE_PASSWORD_FAIL'
+export const USER_CHANGE_PASSWORD_RESET = 'USER_CHANGE_PASSWORD_RESET'
+
+export const FORGOT_PASSWORD_REQUEST = 'FORGOT_PASSWORD_REQUEST'
+export const FORGOT_PASSWORD_SUCCESS = 'FORGOT_PASSWORD_SUCCESS'
+export const FORGOT_PASSWORD_FAIL = 'FORGOT_PASSWORD_FAIL'
+export const FORGOT_PASSWORD_RESET = 'FORGOT_PASSWORD_RESET'
+
+export const RESET_PASSWORD_REQUEST = 'RESET_PASSWORD_REQUEST'
+export const RESET_PASSWORD_SUCCESS = 'RESET_PASSWORD_SUCCESS'
+export const RESET_PASSWORD_FAIL = 'RESET_PASSWORD_FAIL'
+export const RESET_PASSWORD_RESET = 'RESET_PASSWORD_RESET'
+
 // =====================================================
 // LOGIN ACTION
 // =====================================================
@@ -43,6 +60,7 @@ export const login = (email, password) => async (dispatch) => {
       payload: data,
     })
 
+    localStorage.setItem('userInfo', JSON.stringify(data))
 
   } catch (error) {
     dispatch({
@@ -210,3 +228,86 @@ export const loginWithGoogle = (idToken) => async (dispatch) => {
   }
 }
 
+// =====================================================
+// ✅ NEW: CHANGE PASSWORD ACTION
+// =====================================================
+export const changePassword = (currentPassword, newPassword) => async (dispatch, getState) => {
+  try {
+    dispatch({ type: USER_CHANGE_PASSWORD_REQUEST })
+
+    const {
+      userLogin: { userInfo },
+    } = getState()
+
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${userInfo.token}`,
+      },
+    }
+
+    const { data } = await axios.put(
+      '/api/client/auth/change-password',
+      { currentPassword, newPassword },
+      config
+    )
+
+    dispatch({
+      type: USER_CHANGE_PASSWORD_SUCCESS,
+      payload: data.message,
+    })
+  } catch (error) {
+    dispatch({
+      type: USER_CHANGE_PASSWORD_FAIL,
+      payload:
+        error.response?.data?.message || error.message,
+    })
+  }
+}
+
+
+export const forgotPassword = (email) => async (dispatch) => {
+  try {
+    dispatch({ type: FORGOT_PASSWORD_REQUEST })
+
+    const { data } = await axios.post(
+      '/api/client/auth/forgot-password',
+      { email },
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+
+    dispatch({
+      type: FORGOT_PASSWORD_SUCCESS,
+      payload: data.message,
+    })
+  } catch (error) {
+    dispatch({
+      type: FORGOT_PASSWORD_FAIL,
+      payload:
+        error.response?.data?.message || error.message,
+    })
+  }
+}
+
+export const resetPassword = (token, newPassword) => async (dispatch) => {
+  try {
+    dispatch({ type: RESET_PASSWORD_REQUEST })
+
+    const { data } = await axios.post(
+      '/api/client/auth/reset-password',
+      { token, newPassword },
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+
+    dispatch({
+      type: RESET_PASSWORD_SUCCESS,
+      payload: data.message,
+    })
+  } catch (error) {
+    dispatch({
+      type: RESET_PASSWORD_FAIL,
+      payload:
+        error.response?.data?.message || error.message,
+    })
+  }
+}

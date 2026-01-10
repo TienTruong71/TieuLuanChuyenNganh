@@ -26,6 +26,8 @@ import BookingDetailScreen from './screens/BookingDetailScreen'
 import AIChat from './components/AIChat'
 import SupportButton from './components/SupportButton'
 import VerifyOTPScreen from './screens/VerifyOTPScreen'
+import ForgotPasswordScreen from './screens/ForgotPasswordScreen'
+import ResetPasswordScreen from './screens/ResetPasswordScreen'
 const AppContent = () => {
   const location = useLocation()
 
@@ -57,6 +59,8 @@ const AppContent = () => {
         <Route path='/booking/:id' component={BookingScreen} />
         <Route path='/my-bookings' component={MyBookingsScreen} />
         <Route path='/booking-detail/:id' component={BookingDetailScreen} />
+        <Route path='/forgot-password' component={ForgotPasswordScreen} />
+        <Route path='/reset-password' component={ResetPasswordScreen} />
       </Switch>
 
       {!isAdminRoute && (
