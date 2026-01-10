@@ -5,7 +5,7 @@ const sendEmail = async ({ to, subject, html }) => {
     throw new Error('sendEmail: missing recipient (to)')
   }
 
-  console.log('📧 Sending email to:', to)
+  console.log('Sending email to:', to)
 
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,

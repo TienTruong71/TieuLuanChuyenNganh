@@ -58,7 +58,7 @@ export const replyAndResolveSupportRequest = async (req, res) => {
   try {
     const { text, status } = req.body;
 
-    console.log('💬 Staff replying:', req.params.id, text);
+    console.log('Staff replying:', req.params.id, text);
 
     const request = await SupportRequest.findById(req.params.id);
 

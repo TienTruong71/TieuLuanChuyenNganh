@@ -194,17 +194,6 @@ const OrderDetailScreen = () => {
                       const itemPrice = calculatePrice(item.price);
                       const subtotal = itemPrice * item.quantity;
 
-                      // ✅ LOG để debug
-                      console.log('📦 Item:', {
-                        name: item.product_id?.product_name,
-                        price: item.price,
-                        parsedPrice: itemPrice,
-                        quantity: item.quantity,
-                        subtotal: subtotal,
-                        imageUrl: imageUrl,
-                        rawImages: item.product_id?.images
-                      });
-
                       return (
                         <div key={index} className='order-item-detail'>
                           {/* IMAGE */}

@@ -26,13 +26,13 @@ const CartScreen = () => {
   const convertBrokenObjectToString = (obj) => {
     if (typeof obj !== 'object' || obj === null) return null
     if (!obj.hasOwnProperty('0') || !obj.hasOwnProperty('1')) return null
-    
+
     const charKeys = Object.keys(obj)
       .filter(key => !isNaN(parseInt(key)))
       .sort((a, b) => parseInt(a) - parseInt(b))
-    
+
     const reconstructedUrl = charKeys.map(key => obj[key]).join('')
-    
+
     if (reconstructedUrl.startsWith('http')) {
       return reconstructedUrl
     }
@@ -44,46 +44,46 @@ const CartScreen = () => {
     // Check images array first
     if (item.images && Array.isArray(item.images) && item.images.length > 0) {
       const firstImage = item.images[0]
-      
+
       if (typeof firstImage === 'string' && firstImage.trim()) {
         return firstImage
       }
-      
+
       if (typeof firstImage === 'object' && firstImage !== null) {
         if (firstImage.image_url) return firstImage.image_url
         if (firstImage.url) return firstImage.url
-        
+
         // Fix broken object
         const reconstructed = convertBrokenObjectToString(firstImage)
         if (reconstructed) return reconstructed
       }
     }
-    
+
     // Check single image field
     if (item.image) {
       if (typeof item.image === 'string' && item.image.trim()) {
         return item.image
       }
-      
+
       if (typeof item.image === 'object') {
         const reconstructed = convertBrokenObjectToString(item.image)
         if (reconstructed) return reconstructed
       }
     }
-    
+
     return null
   }
 
   // ✅ Helper: Get final image URL with localhost prefix if needed
   const getImageUrl = (item) => {
     const rawImage = getItemImage(item)
-    
+
     if (!rawImage) return null
-    
+
     if (rawImage.startsWith('http://') || rawImage.startsWith('https://')) {
       return rawImage
     }
-    
+
     return `http://localhost:5000${rawImage}`
   }
 
@@ -144,14 +144,9 @@ const CartScreen = () => {
             {/* Cart Items */}
             <div className='cart-items'>
               {cartItems.map((item) => {
-                // 🔍 DEBUG
-                console.log('🛒 Cart item:', item)
-                console.log('🛒 item.image:', item.image)
-                console.log('🛒 item.images:', item.images)
-                
+
                 const imageUrl = getImageUrl(item)
-                console.log('🛒 Final imageUrl:', imageUrl)
-                
+
                 return (
                   <div key={item.product_id} className='cart-item'>
                     <div className='item-image'>

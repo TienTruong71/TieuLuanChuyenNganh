@@ -201,7 +201,7 @@ export const loginWithGoogle = asyncHandler(async (req, res) => {
   if (!user) {
     // ✅ TẠO MẬT KHẨU RANDOM CHO USER MỚI
     const randomPassword = crypto.randomBytes(16).toString('hex') // Tạo password random 32 ký tự
-    
+
     user = await User.create({
       email,
       username: email.split('@')[0],
@@ -214,22 +214,18 @@ export const loginWithGoogle = asyncHandler(async (req, res) => {
       isEmailVerified: true,
       status: 'active',
     })
-    
-    console.log('✅ Created new Google user with random password')
+
   }
 
-  // ✅ NẾU USER ĐÃ TỒN TẠI NHƯNG CHƯA CÓ GOOGLE ID
   if (user && !user.googleId) {
     user.googleId = googleId
     user.authProvider = 'google'
     user.isEmailVerified = true
-    
-    // ✅ NẾU USER CHƯA CÓ PASSWORD (trường hợp cũ) → TẠO RANDOM
+
     if (!user.password) {
       user.password = crypto.randomBytes(16).toString('hex')
-      console.log('✅ Added random password to existing user')
     }
-    
+
     await user.save()
   }
 
@@ -257,10 +253,9 @@ export const loginWithGoogle = asyncHandler(async (req, res) => {
 })
 
 // =====================================================
-// ✅ NEW: CHANGE PASSWORD
 // =====================================================
 export const changePassword = asyncHandler(async (req, res) => {
-  console.log('🔥 changePassword function called')
+  console.log('changePassword function called')
   const { currentPassword, newPassword } = req.body
 
   if (!currentPassword || !newPassword) {
@@ -280,7 +275,6 @@ export const changePassword = asyncHandler(async (req, res) => {
     throw new Error('Không tìm thấy người dùng')
   }
 
-  // ❌ BỎ ĐOẠN NÀY - Không check authProvider nữa
   // if (user.authProvider === 'google') {
   //   res.status(400)
   //   throw new Error('Tài khoản đăng nhập bằng Google không thể đổi mật khẩu...')
@@ -310,7 +304,7 @@ export const changePassword = asyncHandler(async (req, res) => {
 })
 
 // =====================================================
-// ✅ QUÊN MẬT KHẨU - GỬI EMAIL RESET
+// QUÊN MẬT KHẨU - GỬI EMAIL RESET
 // =====================================================
 export const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body
@@ -327,23 +321,23 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     throw new Error('Không tìm thấy tài khoản với email này')
   }
 
-  // ✅ Tạo reset token (JWT với expire 5 phút)
+  // Tạo reset token (JWT với expire 5 phút)
   const resetToken = jwt.sign(
-    { 
+    {
       userId: user._id,
       email: user.email,
       purpose: 'reset_password' // Để bảo mật hơn
-    }, 
-    process.env.JWT_SECRET, 
+    },
+    process.env.JWT_SECRET,
     { expiresIn: '5m' }
   )
 
-  // ✅ Lưu token vào DB (để có thể revoke nếu cần)
+  // Lưu token vào DB (để có thể revoke nếu cần)
   user.passwordResetToken = resetToken
   user.passwordResetExpire = Date.now() + 5 * 60 * 1000 // 5 phút
   await user.save()
 
-  // ✅ Tạo link reset
+  // Tạo link reset
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`
 
   try {
@@ -392,7 +386,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 })
 
 // =====================================================
-// ✅ ĐẶT LẠI MẬT KHẨU - VERIFY TOKEN VÀ ĐỔI MẬT KHẨU
+// ĐẶT LẠI MẬT KHẨU - VERIFY TOKEN VÀ ĐỔI MẬT KHẨU
 // =====================================================
 export const resetPassword = asyncHandler(async (req, res) => {
   const { token, newPassword } = req.body
@@ -408,7 +402,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
   }
 
   try {
-    // ✅ Verify JWT token
+    // Verify JWT token
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
     if (decoded.purpose !== 'reset_password') {
@@ -416,7 +410,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
       throw new Error('Token không hợp lệ')
     }
 
-    // ✅ Tìm user và kiểm tra token trong DB
+    // Tìm user và kiểm tra token trong DB
     const user = await User.findOne({
       _id: decoded.userId,
       passwordResetToken: token,
@@ -428,14 +422,14 @@ export const resetPassword = asyncHandler(async (req, res) => {
       throw new Error('Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn')
     }
 
-    // ✅ Kiểm tra mật khẩu mới không trùng cũ
+    // Kiểm tra mật khẩu mới không trùng cũ
     const isSamePassword = await user.matchPassword(newPassword)
     if (isSamePassword) {
       res.status(400)
       throw new Error('Mật khẩu mới không được trùng với mật khẩu cũ')
     }
 
-    // ✅ Cập nhật mật khẩu mới
+    // Cập nhật mật khẩu mới
     user.password = newPassword
     user.passwordResetToken = undefined
     user.passwordResetExpire = undefined
@@ -458,7 +452,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
 })
 
 // =====================================================
-// ✅ VERIFY RESET TOKEN - Để frontend check token hợp lệ
+// VERIFY RESET TOKEN - Để frontend check token hợp lệ
 // =====================================================
 export const verifyResetToken = asyncHandler(async (req, res) => {
   const { token } = req.body

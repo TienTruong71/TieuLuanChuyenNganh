@@ -52,7 +52,7 @@ export const getPublicFeedbacks = asyncHandler(async (req, res) => {
     }
     if (serviceId) {
         query.service_id = serviceId
-        console.log('🔧 Filtering by service_id:', serviceId)
+        console.log('Filtering by service_id:', serviceId)
     }
 
     const total = await Feedback.countDocuments(query)

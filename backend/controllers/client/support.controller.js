@@ -7,8 +7,6 @@ import SupportRequest from '../../models/supportRequestModel.js';
 export const createSupportRequest = asyncHandler(async (req, res) => {
   const { message } = req.body;
 
-  console.log('📝 Creating support request:', { userId: req.user._id, message });
-
   if (!message || message.trim() === '') {
     res.status(400);
     throw new Error('Vui lòng nhập nội dung yêu cầu hỗ trợ');
@@ -33,8 +31,6 @@ export const createSupportRequest = asyncHandler(async (req, res) => {
     .populate('user', 'username email')
     .populate('messages.sender', 'username email');
 
-  console.log('✅ Support request created:', populatedRequest);
-
   res.status(201).json({
     message: 'Yêu cầu hỗ trợ đã được tạo',
     supportRequest: populatedRequest,
@@ -45,7 +41,6 @@ export const createSupportRequest = asyncHandler(async (req, res) => {
 // @route   GET /api/client/support/active
 // @access  Private
 export const getActiveSupportRequest = asyncHandler(async (req, res) => {
-  console.log('📂 Getting active support request for user:', req.user._id);
 
   const activeRequest = await SupportRequest.findOne({
     user: req.user._id,
@@ -53,8 +48,6 @@ export const getActiveSupportRequest = asyncHandler(async (req, res) => {
   })
     .populate('user', 'username email')
     .populate('messages.sender', 'username email');
-
-  console.log('✅ Active request:', activeRequest);
 
   res.json({
     activeRequest: activeRequest || null,
@@ -66,8 +59,6 @@ export const getActiveSupportRequest = asyncHandler(async (req, res) => {
 // @access  Private
 export const sendSupportMessage = asyncHandler(async (req, res) => {
   const { text } = req.body;
-
-  console.log('💬 Sending support message:', { requestId: req.params.id, text });
 
   if (!text || text.trim() === '') {
     res.status(400);
@@ -106,8 +97,6 @@ export const sendSupportMessage = asyncHandler(async (req, res) => {
     .populate('user', 'username email')
     .populate('messages.sender', 'username email');
 
-  console.log('✅ Message sent:', updatedRequest);
-
   res.json({
     message: 'Tin nhắn đã được gửi',
     supportRequest: updatedRequest,
@@ -118,7 +107,6 @@ export const sendSupportMessage = asyncHandler(async (req, res) => {
 // @route   PUT /api/client/support/:id/close
 // @access  Private
 export const closeSupportRequest = asyncHandler(async (req, res) => {
-  console.log('🔒 Closing support request:', req.params.id);
 
   const supportRequest = await SupportRequest.findById(req.params.id);
 
@@ -139,8 +127,6 @@ export const closeSupportRequest = asyncHandler(async (req, res) => {
   const updatedRequest = await SupportRequest.findById(supportRequest._id)
     .populate('user', 'username email')
     .populate('messages.sender', 'username email');
-
-  console.log('✅ Support request closed:', updatedRequest);
 
   res.json({
     message: 'Đã đóng yêu cầu hỗ trợ',

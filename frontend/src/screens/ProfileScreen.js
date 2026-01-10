@@ -7,13 +7,13 @@ import '../styles/profile.css'
 const ProfileScreen = () => {
   const history = useHistory()
   const dispatch = useDispatch()
-  
+
   const [showPasswordForm, setShowPasswordForm] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
-  
+
   const userLogin = useSelector((state) => state.userLogin)
   const { userInfo } = userLogin || {}
 
@@ -36,7 +36,7 @@ const ProfileScreen = () => {
       setNewPassword('')
       setConfirmPassword('')
       setPasswordError('')
-      
+
       // Reset state sau 2 giây
       setTimeout(() => {
         dispatch({ type: USER_CHANGE_PASSWORD_RESET })
@@ -128,7 +128,7 @@ const ProfileScreen = () => {
             </div>
             <div className='order-quick-access'>
               <p>Xem và quản lý tất cả đơn hàng của bạn</p>
-              <button 
+              <button
                 className='btn-view-orders'
                 onClick={() => history.push('/orders')}
               >
@@ -142,7 +142,7 @@ const ProfileScreen = () => {
             <div className='section-header'>
               <h2>Bảo mật</h2>
               {!showPasswordForm && (
-                <button 
+                <button
                   className='btn-change-password'
                   onClick={() => setShowPasswordForm(true)}
                 >
@@ -172,7 +172,6 @@ const ProfileScreen = () => {
                       id='currentPassword'
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
-                      placeholder='Nhập mật khẩu hiện tại'
                       disabled={loading}
                     />
                   </div>
@@ -184,7 +183,6 @@ const ProfileScreen = () => {
                       id='newPassword'
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder='Nhập mật khẩu mới (tối thiểu 6 ký tự)'
                       disabled={loading}
                     />
                   </div>
@@ -196,21 +194,20 @@ const ProfileScreen = () => {
                       id='confirmPassword'
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder='Nhập lại mật khẩu mới'
                       disabled={loading}
                     />
                   </div>
 
                   <div className='form-actions'>
-                    <button 
-                      type='submit' 
+                    <button
+                      type='submit'
                       className='btn-submit'
                       disabled={loading}
                     >
                       {loading ? 'Đang xử lý...' : 'Xác nhận đổi mật khẩu'}
                     </button>
-                    <button 
-                      type='button' 
+                    <button
+                      type='button'
                       className='btn-cancel'
                       onClick={handleCancelPasswordChange}
                       disabled={loading}

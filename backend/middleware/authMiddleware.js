@@ -5,8 +5,8 @@ import User from '../models/userModel.js'
 const protect = asyncHandler(async (req, res, next) => {
   let token
 
-  console.log('🔍 Protect middleware called')
-  console.log('🔍 Authorization header:', req.headers.authorization)
+  console.log('Protect middleware called')
+  console.log('Authorization header:', req.headers.authorization)
 
   if (
     req.headers.authorization &&
@@ -14,28 +14,28 @@ const protect = asyncHandler(async (req, res, next) => {
   ) {
     try {
       token = req.headers.authorization.split(' ')[1]
-      console.log('🔍 Token extracted:', token.substring(0, 20) + '...')
+      console.log('Token extracted:', token.substring(0, 20) + '...')
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET)
-      console.log('🔍 Token decoded successfully, user ID:', decoded.id)
+      console.log('Token decoded successfully, user ID:', decoded.id)
 
       req.user = await User.findById(decoded.id).select('-password').populate('role_id')
-      
+
       if (!req.user) {
-        console.error('❌ User not found in database')
+        console.error('User not found in database')
         res.status(401)
         throw new Error('User not found')
       }
-      
-      console.log('✅ User authenticated:', req.user.email)
+
+      console.log('User authenticated:', req.user.email)
       next()
     } catch (error) {
-      console.error('❌ Auth error:', error.message)
+      console.error('Auth error:', error.message)
       res.status(401)
       throw new Error('Not authorized, token failed')
     }
   } else {
-    console.error('❌ No Authorization header or wrong format')
+    console.error('No Authorization header or wrong format')
     res.status(401)
     throw new Error('Not authorized, no token')
   }
@@ -44,7 +44,7 @@ const protect = asyncHandler(async (req, res, next) => {
 // ✅ Sửa admin middleware - thêm optional chaining
 export const admin = (req, res, next) => {
   if (req.user && (
-    req.user.isAdmin || 
+    req.user.isAdmin ||
     req.user.role_id?.role_name === 'admin'
   )) {
     next()
@@ -79,7 +79,7 @@ export const serviceStaff = (req, res, next) => {
 
 export const saleStaff = (req, res, next) => {
   if (req.user && req.user.role_id?.role_name?.toLowerCase() === 'sale') {
-    next()  
+    next()
   } else {
     res.status(403)
     throw new Error('Không có quyền Sale Staff')
@@ -107,9 +107,9 @@ export const adminOrStaff = (req, res, next) => {
     roleName: roleName,
   }
   console.log('adminOrStaff check:', userDebug)
-  
+
   if (req.user && (
-    req.user.isAdmin || 
+    req.user.isAdmin ||
     roleName === 'admin' ||
     ['inventory', 'service', 'sale'].includes(roleName)
   )) {

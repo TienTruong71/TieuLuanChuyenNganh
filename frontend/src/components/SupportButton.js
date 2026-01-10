@@ -50,15 +50,14 @@ const SupportButton = () => {
         if (isOpen && isLocked && userInfo) {
             // Lấy ngay khi mở
             dispatch(getActiveSupportRequest())
-            
+
             // Setup polling
             const interval = setInterval(() => {
-                console.log('🔄 Polling for new messages...')
                 dispatch(getActiveSupportRequest())
             }, 3000) // 3 giây
-            
+
             setPollInterval(interval)
-            
+
             return () => {
                 clearInterval(interval)
                 setPollInterval(null)
@@ -80,7 +79,7 @@ const SupportButton = () => {
         const handleAIChatOpen = () => {
             setIsOpen(false)
         }
-        
+
         window.addEventListener('ai-chat-opened', handleAIChatOpen)
         return () => {
             window.removeEventListener('ai-chat-opened', handleAIChatOpen)
@@ -187,8 +186,8 @@ const SupportButton = () => {
                             {/* Chat Messages */}
                             <div className='support-messages'>
                                 {activeRequest.messages && activeRequest.messages.map((msg, index) => (
-                                    <div 
-                                        key={index} 
+                                    <div
+                                        key={index}
                                         className={`support-message ${msg.senderRole === 'customer' ? 'customer' : 'staff'}`}
                                     >
                                         <div className='message-sender'>
@@ -197,9 +196,9 @@ const SupportButton = () => {
                                         </div>
                                         <div className='message-text'>{msg.text}</div>
                                         <div className='message-time'>
-                                            {new Date(msg.timestamp).toLocaleTimeString('vi-VN', { 
-                                                hour: '2-digit', 
-                                                minute: '2-digit' 
+                                            {new Date(msg.timestamp).toLocaleTimeString('vi-VN', {
+                                                hour: '2-digit',
+                                                minute: '2-digit'
                                             })}
                                         </div>
                                     </div>

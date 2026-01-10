@@ -66,27 +66,24 @@ export const createVNPayPayment = asyncHandler(async (req, res) => {
   vnp_Params['vnp_IpAddr'] = ipAddr
   vnp_Params['vnp_CreateDate'] = createDate
 
-  // ✅ Sắp xếp params theo alphabet
+  // Sắp xếp params theo alphabet
   vnp_Params = sortObject(vnp_Params)
 
-  // ✅ Tạo query string để hash (KHÔNG encode)
+  // Tạo query string để hash (KHÔNG encode)
   const signData = new URLSearchParams(vnp_Params).toString()
 
-  console.log('📝 Sign Data:', signData)
 
-  // ✅ Tạo chữ ký HMAC SHA512
+  // Tạo chữ ký HMAC SHA512
   const hmac = crypto.createHmac('sha512', vnpayConfig.vnp_HashSecret)
   const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex')
 
-  console.log('🔐 Secure Hash:', signed)
 
   // Thêm chữ ký vào params
   vnp_Params['vnp_SecureHash'] = signed
 
-  // ✅ Tạo URL cuối cùng (CÓ encode)
+  // Tạo URL cuối cùng (CÓ encode)
   const paymentUrl = vnpayConfig.vnp_Url + '?' + new URLSearchParams(vnp_Params).toString()
 
-  console.log('🔗 Payment URL:', paymentUrl)
 
   res.status(200).json({
     message: 'Tạo URL VNPay thành công',
@@ -122,9 +119,6 @@ export const vnpayReturn = asyncHandler(async (req, res) => {
 
   // Verify chữ ký
   if (secureHash !== signed) {
-    console.log('❌ Invalid signature')
-    console.log('Expected:', signed)
-    console.log('Received:', secureHash)
     return res.redirect(`${frontendUrl}/payment/failed?reason=invalid_signature`)
   }
 
@@ -149,7 +143,6 @@ export const vnpayReturn = asyncHandler(async (req, res) => {
       await order.save()
     }
 
-    console.log('✅ Payment success:', { order_id: order?._id, payment_id: payment._id })
 
     return res.redirect(
       `${frontendUrl}/payment/success?order_id=${order?._id}&payment_id=${payment._id}`
@@ -158,15 +151,13 @@ export const vnpayReturn = asyncHandler(async (req, res) => {
     payment.status = 'failed'
     await payment.save()
 
-    console.log('❌ Payment failed:', { code: rspCode, payment_id: payment._id })
-
     return res.redirect(
       `${frontendUrl}/payment/failed?reason=payment_failed&code=${rspCode}`
     )
   }
 })
 
-// ✅ Hàm sắp xếp object theo key alphabet
+// Hàm sắp xếp object theo key alphabet
 function sortObject(obj) {
   let sorted = {}
   let str = []

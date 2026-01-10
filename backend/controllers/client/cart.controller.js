@@ -6,51 +6,51 @@ import asyncHandler from 'express-async-handler'
 // ✅ Helper: Convert object {0:'h', 1:'t', 2:'t', 3:'p'...} thành string
 const convertBrokenObjectToString = (obj) => {
   if (!obj || typeof obj !== 'object') return null
-  
+
   // Convert Mongoose document to plain object
   const plainObj = obj.toObject ? obj.toObject() : obj
-  
+
   // Lấy tất cả keys là số
   const numericKeys = Object.keys(plainObj).filter(key => /^\d+$/.test(key))
-  
+
   if (numericKeys.length === 0) return null
-  
+
   // Sort theo số và ghép lại
   numericKeys.sort((a, b) => parseInt(a) - parseInt(b))
   const reconstructedUrl = numericKeys.map(key => plainObj[key]).join('')
-  
+
   if (reconstructedUrl.startsWith('http')) {
     return reconstructedUrl
   }
-  
+
   return null
 }
 
 // ✅ Helper: Get first image from product (handle all formats)
 const getFirstImage = (product) => {
   if (!product) return ''
-  
+
   // Check images array
   if (product.images && Array.isArray(product.images) && product.images.length > 0) {
     const firstImage = product.images[0]
-    
+
     // Case 1: String bình thường
     if (typeof firstImage === 'string' && firstImage.trim()) {
       return firstImage
     }
-    
+
     // Case 2: Object
     if (typeof firstImage === 'object' && firstImage !== null) {
       // Có image_url hoặc url
       if (firstImage.image_url) return firstImage.image_url
       if (firstImage.url) return firstImage.url
-      
+
       // Data bị lưu sai dạng {0: 'h', 1: 't', ...}
       const reconstructed = convertBrokenObjectToString(firstImage)
       if (reconstructed) return reconstructed
     }
   }
-  
+
   // Fallback: single image field
   if (product.image) {
     if (typeof product.image === 'string') return product.image
@@ -59,7 +59,7 @@ const getFirstImage = (product) => {
       if (reconstructed) return reconstructed
     }
   }
-  
+
   return ''
 }
 
@@ -82,7 +82,7 @@ const mapCartItem = (item) => {
 export const getCart = asyncHandler(async (req, res) => {
   try {
     console.log('Getting cart for user:', req.user._id)
-    
+
     const cart = await Cart.findOne({ user_id: req.user._id })
       .populate({
         path: 'items.product_id',
@@ -123,8 +123,6 @@ export const getCart = asyncHandler(async (req, res) => {
 export const addToCart = asyncHandler(async (req, res) => {
   const { product_id, quantity } = req.body
 
-  console.log('🛒 Add to cart:', { user_id: req.user._id, product_id, quantity })
-
   if (!product_id || !quantity || quantity < 1) {
     res.status(400)
     throw new Error('Vui lòng cung cấp product_id và số lượng hợp lệ')
@@ -132,7 +130,7 @@ export const addToCart = asyncHandler(async (req, res) => {
 
   const product = await Product.findById(product_id).populate('category_id', 'category_name')
   if (!product) {
-    console.error('❌ Product not found:', product_id)
+    console.error('Product not found:', product_id)
     res.status(404)
     throw new Error('Sản phẩm không tồn tại')
   }
@@ -171,7 +169,7 @@ export const addToCart = asyncHandler(async (req, res) => {
   })
 
   const validItems = updatedCart.items.filter(item => item.product_id !== null)
-  
+
   const total = validItems.reduce((sum, item) => {
     return sum + (parseFloat(item.product_id.price) * item.quantity)
   }, 0)

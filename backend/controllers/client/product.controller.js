@@ -29,10 +29,10 @@ export const getProducts = asyncHandler(async (req, res) => {
 export const getProductById = asyncHandler(async (req, res) => {
   const { id } = req.params
 
-  console.log('🔍 Getting product by ID:', id)
+  console.log('Getting product by ID:', id)
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    console.error('❌ Invalid product ID:', id)
+    console.error('Invalid product ID:', id)
     res.status(400)
     throw new Error('Product ID không hợp lệ')
   }
@@ -41,12 +41,12 @@ export const getProductById = asyncHandler(async (req, res) => {
     .populate('category_id', 'category_name image')
 
   if (!product) {
-    console.error('❌ Product not found:', id)
+    console.error('Product not found:', id)
     res.status(404)
     throw new Error('Không tìm thấy sản phẩm')
   }
 
-  console.log('✅ Product found:', {
+  console.log('Product found:', {
     id: product._id,
     name: product.product_name,
     images: product.images,

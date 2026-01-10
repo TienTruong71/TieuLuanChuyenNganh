@@ -17,7 +17,6 @@ export const AiChatController = {
 
       if (!message) return res.status(400).json({ success: false, error: "Empty message" });
 
-      console.log(`\n💬 USER: "${message}"`);
 
       // =================================================================================
       // BƯỚC 1: SCHEMA PROMPT (Đã thêm intent category_check)
@@ -57,7 +56,6 @@ export const AiChatController = {
       let q = { intent: "general" };
       try {
         q = JSON.parse(cleanJsonString(result.response.text()));
-        console.log("🤖 AI PARSED:", JSON.stringify(q, null, 2));
       } catch (e) {
         console.error("JSON Parse Fail:", e);
       }
@@ -230,7 +228,6 @@ export const AiChatController = {
         dbContext = "Thông tin chung: CarsShop chuyên mua bán xe mới/cũ, phụ kiện và dịch vụ bảo dưỡng uy tín.";
       }
 
-      console.log(`📚 DB CONTEXT LENGTH: ${dbContext.length}`);
 
       // =================================================================================
       // BƯỚC 3: RESPONSE GENERATION

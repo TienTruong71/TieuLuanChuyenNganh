@@ -37,12 +37,12 @@ export const createOrder = asyncHandler(async (req, res) => {
     })
   )
 
-  // ✅ TỰ ĐỘNG XÓA GIỎ HÀNG SAU KHI ĐẶT HÀNG THÀNH CÔNG
+  // TỰ ĐỘNG XÓA GIỎ HÀNG SAU KHI ĐẶT HÀNG THÀNH CÔNG
   try {
     await Cart.deleteOne({ user_id: req.user._id })
-    console.log('✅ Đã xóa giỏ hàng của user:', req.user._id)
+    console.log('Đã xóa giỏ hàng của user:', req.user._id)
   } catch (err) {
-    console.error('❌ Lỗi khi xóa giỏ hàng:', err)
+    console.error('Lỗi khi xóa giỏ hàng:', err)
     // Không throw error, vẫn trả về success
   }
 
@@ -72,12 +72,12 @@ export const getOrderById = asyncHandler(async (req, res) => {
     .populate({
       path: 'product_id',
       select: 'product_name price images category_id stock_quantity',  // ← Sửa 'name' thành 'product_name'
-      populate: { 
-        path: 'category_id', 
-        select: 'category_name' 
+      populate: {
+        path: 'category_id',
+        select: 'category_name'
       }
     });
-  
+
   order.items = items;
 
   res.status(200).json(order);
@@ -97,10 +97,10 @@ export const getMyOrders = asyncHandler(async (req, res) => {
     const items = await OrderItem.find({ order_id: order._id })
       .populate({
         path: 'product_id',
-        select: 'product_name price images category_id',  
-        populate: { 
-          path: 'category_id', 
-          select: 'category_name' 
+        select: 'product_name price images category_id',
+        populate: {
+          path: 'category_id',
+          select: 'category_name'
         }
       });
     order.items = items;
