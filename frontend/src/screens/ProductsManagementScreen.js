@@ -355,7 +355,7 @@ const ProductsManagementScreen = () => {
                 const typeInfo = getProductTypeInfo(product.type)
                 const stockClass = getStockClass(product.stock_quantity)
                 const inventoryClass = getStockClass(product.inventory_quantity || 0)
-                
+
                 return (
                   <div key={product._id} className='product-card-admin'>
                     {product.images && product.images.length > 0 && (() => {
@@ -402,7 +402,7 @@ const ProductsManagementScreen = () => {
                       <p className='product-desc'>{product.description}</p>
                       <div className='product-details'>
                         <span className='product-price'>{formatPrice(product.price)}đ</span>
-                        
+
                         {/* ✅ HIỂN THỊ CẢ 2 GIÁ TRỊ TỒN KHO */}
                         <div className='product-stock-info'>
                           <span className={`product-stock ${stockClass}`}>
@@ -412,7 +412,7 @@ const ProductsManagementScreen = () => {
                             📦 Tổng Kho: {product.inventory_quantity || 0}
                           </span>
                         </div>
-                        
+
                         {/* ✅ Hiển thị loại sản phẩm với icon */}
                         <span className={`product-type ${typeInfo.class}`}>
                           {typeInfo.icon} {typeInfo.label}
@@ -532,7 +532,7 @@ const ProductsManagementScreen = () => {
                   />
                 </div>
                 <div className='form-group'>
-                  <label>Tồn kho (DB): *</label>
+                  <label>Hiện có: *</label>
                   <input
                     type='number'
                     value={productStock}
@@ -540,9 +540,6 @@ const ProductsManagementScreen = () => {
                     required
                     min='0'
                   />
-                  <small className='form-hint'>
-                    💡 Số lượng trong database. Showroom được tính tự động từ bảng inventories.
-                  </small>
                 </div>
                 <div className='form-group'>
                   <label>Loại sản phẩm: *</label>

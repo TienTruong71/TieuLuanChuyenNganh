@@ -215,6 +215,15 @@ export const loginWithGoogle = asyncHandler(async (req, res) => {
       status: 'active',
     })
 
+    // Gán object role vào user để trả về response đúng định dạng
+    user.role_id = customerRole
+  }
+
+  // ✅ Fix lỗi: Nếu user tồn tại nhưng mất role (role_id == null) -> gán lại Customer
+  if (!user.role_id) {
+    user.role_id = customerRole._id
+    await user.save()
+    user.role_id = customerRole // Cập nhật object in-memory
   }
 
   if (user && !user.googleId) {
@@ -235,6 +244,7 @@ export const loginWithGoogle = asyncHandler(async (req, res) => {
     throw new Error('Tài khoản đã bị khóa hoặc chưa kích hoạt')
   }
 
+  // user.role_id lúc này chắc chắn là object (do populate hoặc gán thủ công ở trên)
   const isAdmin =
     user.role_id?.role_name === 'admin' ||
     user.role_id?.role_name === 'manager'
@@ -245,9 +255,9 @@ export const loginWithGoogle = asyncHandler(async (req, res) => {
     email: user.email,
     full_name: user.full_name,
     avatar: user.avatar,
-    role: user.role_id.role_name,
+    role: user.role_id?.role_name || 'Customer', // Fallback an toàn
     isAdmin,
-    authProvider: user.authProvider, // ⬅️ TRẢ VỀ authProvider
+    authProvider: user.authProvider,
     token: generateToken(user._id),
   })
 })

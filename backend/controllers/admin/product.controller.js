@@ -58,7 +58,37 @@ export const getProductsByCategory = asyncHandler(async (req, res) => {
     throw new Error('Category ID không hợp lệ')
   }
 
-  const products = await Product.find({ category_id: categoryId })
+  const products = await Product.aggregate([
+    {
+      $match: {
+        category_id: new mongoose.Types.ObjectId(categoryId)
+      }
+    },
+    {
+      $lookup: {
+        from: 'inventories',
+        localField: '_id',
+        foreignField: 'product_id',
+        as: 'inventory_data'
+      }
+    },
+    {
+      $addFields: {
+        inventory_quantity: {
+          $ifNull: [{ $arrayElemAt: ["$inventory_data.quantity_available", 0] }, 0]
+        }
+      }
+    },
+    {
+      $project: {
+        inventory_data: 0
+      }
+    },
+    {
+      $sort: { createdAt: -1 }
+    }
+  ])
+
   res.json(products)
 })
 
