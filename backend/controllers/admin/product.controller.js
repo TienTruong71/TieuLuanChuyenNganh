@@ -110,13 +110,11 @@ export const createProduct = asyncHandler(async (req, res) => {
     throw new Error('Thiếu thông tin bắt buộc của sản phẩm')
   }
 
-  // Xử lý hình ảnh từ Cloudinary
+  // Xử lý hình ảnh từ Cloudinary (chỉ 1 file)
   let images = []
-  if (req.files && req.files.length > 0) {
-    images = req.files.map(file => ({
-      url: file.path,        // Cloudinary URL
-      public_id: file.filename, // Cloudinary public_id để xóa sau này
-    }))
+  if (req.file) {
+    // lưu url string vì model định nghĩa mảng string
+    images = [req.file.path]
   }
 
   const product = new Product({
@@ -151,13 +149,10 @@ export const updateProduct = asyncHandler(async (req, res) => {
     throw new Error('Sản phẩm không tồn tại')
   }
 
-  // Xử lý hình ảnh mới từ Cloudinary
+  // Xử lý hình ảnh mới từ Cloudinary (một file)
   let newImages = []
-  if (req.files && req.files.length > 0) {
-    newImages = req.files.map(file => ({
-      url: file.path,
-      public_id: file.filename,
-    }))
+  if (req.file) {
+    newImages = [req.file.path]
   }
 
   // Cập nhật thông tin sản phẩm
@@ -167,10 +162,9 @@ export const updateProduct = asyncHandler(async (req, res) => {
   product.stock_quantity = stock_quantity !== undefined ? stock_quantity : product.stock_quantity
   product.type = type || product.type
 
-  // Nếu có hình mới, thêm vào mảng images (hoặc thay thế tùy logic)
+  // Nếu có hình mới, chỉ giữ file mới (1 ảnh)
   if (newImages.length > 0) {
-    product.images = [...product.images, ...newImages] // Thêm vào cuối
-    // Hoặc: product.images = newImages // Thay thế toàn bộ
+    product.images = newImages
   }
 
   const updatedProduct = await product.save()

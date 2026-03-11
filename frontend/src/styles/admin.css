@@ -1879,6 +1879,7 @@
   margin-bottom: 20px;
 }
 
+
 .image-upload-area:hover {
   border-color: #2980b9;
   background: rgba(52, 152, 219, 0.1);
@@ -1924,13 +1925,13 @@
 }
 
 .image-previews {
-  display: grid;
+  display: inline-grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 15px;
   margin-top: 20px;
-  padding: 15px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
+  /* remove padding and background so container wraps tightly */
+  padding: 0;
+  background: transparent;
 }
 
 .image-preview-item {
@@ -1939,7 +1940,10 @@
   aspect-ratio: 1;
   border-radius: 6px;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.3);
+  /* prettier background: light blue with subtle border and shadow */
+  background: rgba(52, 152, 219, 0.1);
+  border: 1px solid rgba(52, 152, 219, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .image-preview-item img {

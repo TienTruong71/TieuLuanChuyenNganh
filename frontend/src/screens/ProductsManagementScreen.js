@@ -34,7 +34,7 @@ const ProductsManagementScreen = () => {
   // Category form
   const [categoryName, setCategoryName] = useState('')
   const [categoryDesc, setCategoryDesc] = useState('')
-  const [categoryImages, setCategoryImages] = useState([])
+  const [categoryImages, setCategoryImages] = useState([]) // only one file
   const [categoryImagePreviews, setCategoryImagePreviews] = useState([])
 
   // Product form
@@ -43,8 +43,8 @@ const ProductsManagementScreen = () => {
   const [productPrice, setProductPrice] = useState('')
   const [productStock, setProductStock] = useState('')
   const [productType, setProductType] = useState('product')
-  const [productImages, setProductImages] = useState([]) // Changed to array for files
-  const [imagePreviews, setImagePreviews] = useState([]) // For drag & drop preview
+  const [productImages, setProductImages] = useState([]) // will only contain at most 1 file
+  const [imagePreviews, setImagePreviews] = useState([]) // For drag & drop preview (single)
 
   const categoryList = useSelector((state) => state.adminCategoryList)
   const { loading: loadingCategories, categories, error: errorCategories } = categoryList
@@ -200,7 +200,6 @@ const ProductsManagementScreen = () => {
     setProductType('product')
     setProductImages([])
     setImagePreviews([])
-    setImagePreviews([])
     setEditingProduct(null)
   }
 
@@ -211,10 +210,10 @@ const ProductsManagementScreen = () => {
     formData.append('category_name', categoryName)
     formData.append('description', categoryDesc)
     
-    // Append image files
-    categoryImages.forEach((file) => {
-      formData.append('image', file)
-    })
+    // Append single image if exists
+    if (categoryImages.length > 0) {
+      formData.append('image', categoryImages[0])
+    }
 
     if (editingCategory) {
       dispatch(updateCategory(editingCategory._id, formData))
@@ -254,10 +253,10 @@ const ProductsManagementScreen = () => {
     formData.append('stock_quantity', productStock)
     formData.append('type', productType)
 
-    // Append each image file
-    productImages.forEach((file, index) => {
-      formData.append('images', file)
-    })
+    // Append single image if present
+    if (productImages.length > 0) {
+      formData.append('image', productImages[0])
+    }
 
     if (editingProduct) {
       dispatch(updateProduct(editingProduct._id, formData))
@@ -273,8 +272,9 @@ const ProductsManagementScreen = () => {
     setProductPrice(product.price)
     setProductStock(product.stock_quantity)
     setProductType(product.type || 'product')
-    setProductImages(product.images || [])
-    setImagePreviews(product.images ? product.images.map(img => img.url || img) : [])
+    // product.images now array of strings
+    setProductImages(product.images && product.images.length > 0 ? [product.images[0]] : [])
+    setImagePreviews(product.images && product.images.length > 0 ? [product.images[0]] : [])
     setShowProductModal(true)
   }
 
@@ -284,60 +284,80 @@ const ProductsManagementScreen = () => {
     }
   }
 
-  // Handle file selection for category
+  // Handle file selection for category (single image)
   const handleCategoryFileSelect = (e) => {
     const files = Array.from(e.target.files)
-    setCategoryImages(prev => [...prev, ...files])
-    files.forEach(file => {
-      const reader = new FileReader()
-      reader.onload = (e) => setCategoryImagePreviews(prev => [...prev, e.target.result])
-      reader.readAsDataURL(file)
-    })
+    if (files.length === 0) return
+    if (categoryImages.length > 0) {
+      alert('Đã có ảnh, hãy xóa trước khi thêm ảnh mới')
+      return
+    }
+    if (files.length > 1) {
+      alert('Chỉ được chọn 1 ảnh cho danh mục')
+    }
+    const file = files[0]
+    setCategoryImages([file])
+    const reader = new FileReader()
+    reader.onload = (e) => setCategoryImagePreviews([e.target.result])
+    reader.readAsDataURL(file)
   }
 
-  // Handle drag and drop for category
+  // Handle drag and drop for category (single image)
   const handleCategoryDrop = (e) => {
     e.preventDefault()
     const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'))
-    setCategoryImages(prev => [...prev, ...files])
-    files.forEach(file => {
-      const reader = new FileReader()
-      reader.onload = (e) => setCategoryImagePreviews(prev => [...prev, e.target.result])
-      reader.readAsDataURL(file)
-    })
+    if (files.length === 0) return
+    if (categoryImages.length > 0) {
+      alert('Đã có ảnh, hãy xóa trước khi thêm ảnh mới')
+      return
+    }
+    if (files.length > 1) {
+      alert('Chỉ được thả 1 ảnh cho danh mục')
+    }
+    const file = files[0]
+    setCategoryImages([file])
+    const reader = new FileReader()
+    reader.onload = (e) => setCategoryImagePreviews([e.target.result])
+    reader.readAsDataURL(file)
   }
 
   const handleCategoryDragOver = (e) => {
     e.preventDefault()
   }
 
-  const removeCategoryImage = (index) => {
-    setCategoryImages(prev => prev.filter((_, i) => i !== index))
-    setCategoryImagePreviews(prev => prev.filter((_, i) => i !== index))
+  const removeCategoryImage = () => {
+    setCategoryImages([])
+    setCategoryImagePreviews([])
   }
 
   // Handle file selection
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files)
-    setProductImages(prev => [...prev, ...files])
-    // Create previews
-    files.forEach(file => {
-      const reader = new FileReader()
-      reader.onload = (e) => setImagePreviews(prev => [...prev, e.target.result])
-      reader.readAsDataURL(file)
-    })
+    if (files.length === 0) return
+    if (files.length > 1) {
+      alert('Chỉ được chọn 1 ảnh duy nhất')
+    }
+    const file = files[0]
+    setProductImages([file])
+    // preview
+    const reader = new FileReader()
+    reader.onload = (e) => setImagePreviews([e.target.result])
+    reader.readAsDataURL(file)
   }
 
   // Handle drag and drop
   const handleDrop = (e) => {
     e.preventDefault()
     const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'))
-    setProductImages(prev => [...prev, ...files])
-    files.forEach(file => {
-      const reader = new FileReader()
-      reader.onload = (e) => setImagePreviews(prev => [...prev, e.target.result])
-      reader.readAsDataURL(file)
-    })
+    if (files.length === 0) return
+    if (files.length > 1) {
+      alert('Chỉ được thả 1 ảnh duy nhất')
+    }
+    const file = files[0]
+    setProductImages([file])
+    const reader = new FileReader()
+    reader.onload = (e) => setImagePreviews([e.target.result])
+    reader.readAsDataURL(file)
   }
 
   const handleDragOver = (e) => {
@@ -345,9 +365,9 @@ const ProductsManagementScreen = () => {
   }
 
   // Remove image
-  const removeImage = (index) => {
-    setProductImages(prev => prev.filter((_, i) => i !== index))
-    setImagePreviews(prev => prev.filter((_, i) => i !== index))
+  const removeImage = () => {
+    setProductImages([])
+    setImagePreviews([])
   }
 
   return (
@@ -554,7 +574,7 @@ const ProductsManagementScreen = () => {
                 >
                   <div className='upload-placeholder'>
                     <div className='upload-icon'>📁</div>
-                    <p>Kéo thả ảnh vào đây hoặc nhấn để chọn</p>
+                    <p>Kéo thả 1 ảnh vào đây hoặc nhấn để chọn</p>
                     <input
                       type='file'
                       accept='image/*'
@@ -568,7 +588,7 @@ const ProductsManagementScreen = () => {
                   </div>
                 </div>
                 {categoryImagePreviews.length > 0 && (
-                  <div className='image-previews'>
+                  <div className='image-previews' onDrop={handleCategoryDrop} onDragOver={handleCategoryDragOver}>
                     {categoryImagePreviews.map((preview, index) => (
                       <div key={index} className='image-preview-item'>
                         <img src={preview} alt={`Preview ${index + 1}`} />
@@ -698,10 +718,9 @@ const ProductsManagementScreen = () => {
                 >
                   <div className='upload-placeholder'>
                     <div className='upload-icon'>📸</div>
-                    <p>Kéo thả ảnh vào đây hoặc nhấn để chọn</p>
+                    <p>Kéo thả 1 ảnh vào đây hoặc nhấn để chọn</p>
                     <input
                       type='file'
-                      multiple
                       accept='image/*'
                       onChange={handleFileSelect}
                       style={{ display: 'none' }}
@@ -720,7 +739,7 @@ const ProductsManagementScreen = () => {
                         <button
                           type='button'
                           className='remove-image-btn'
-                          onClick={() => removeImage(index)}
+                          onClick={removeImage}
                         >
                           ✕
                         </button>

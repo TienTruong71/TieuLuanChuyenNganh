@@ -29,16 +29,16 @@ router.get('/', getAllProducts)
 // Lấy danh sách sản phẩm theo category
 router.get('/:categoryId', getProductsByCategory)
 
-// Thêm sản phẩm mới
+// Thêm sản phẩm mới (một ảnh duy nhất)
 router.post('/', (req, res, next) => {
-  upload.array('images', 10)(req, res, (err) => {
+  upload.single('image')(req, res, (err) => {
     handleMulterError(err, req, res, () => createProduct(req, res))
   })
 })
 
-// Cập nhật sản phẩm
+// Cập nhật sản phẩm (một ảnh duy nhất)
 router.put('/:id', (req, res, next) => {
-  upload.array('images', 10)(req, res, (err) => {
+  upload.single('image')(req, res, (err) => {
     handleMulterError(err, req, res, () => updateProduct(req, res))
   })
 })
