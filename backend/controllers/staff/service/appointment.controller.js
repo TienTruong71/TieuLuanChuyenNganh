@@ -4,9 +4,7 @@ import User from '../../../models/userModel.js'
 import Notification from '../../../models/notificationModel.js'
 import asyncHandler from 'express-async-handler'
 
-// @desc    Lấy danh sách lịch hẹn (cho Service Staff)
-// @route   GET /api/staff/service/appointments
-// @access  Private/Service Staff
+
 export const getAppointments = asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page) || 1
     const limit = parseInt(req.query.limit) || 10

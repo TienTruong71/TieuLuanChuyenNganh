@@ -1,12 +1,11 @@
 // backend/controllers/admin/customer.controller.js
 import User from '../../models/userModel.js'
 import Order from '../../models/orderModel.js'
+import OrderItem from '../../models/orderItemModel.js'
 import Booking from '../../models/bookingModel.js'
 import asyncHandler from 'express-async-handler'
 
-// @desc    Lấy danh sách khách hàng (chỉ role "customer")
-// @route   GET /api/admin/customers
-// @access  Private/Admin
+
 export const getCustomers = asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page) || 1
     const limit = parseInt(req.query.limit) || 10
@@ -40,9 +39,7 @@ export const getCustomers = asyncHandler(async (req, res) => {
     })
 })
 
-// @desc    Lấy chi tiết khách hàng
-// @route   GET /api/admin/customers/:id
-// @access  Private/Admin
+
 export const getCustomerById = asyncHandler(async (req, res) => {
     const customer = await User.findById(req.params.id)
         .select('-password')
@@ -59,12 +56,18 @@ export const getCustomerById = asyncHandler(async (req, res) => {
         throw new Error('Người dùng này không phải là khách hàng')
     }
 
-    res.json(customer)
+    // thêm thông tin thống kê nhanh để UI admin có thể hiển thị
+    const orderCount = await Order.countDocuments({ user_id: customer._id })
+    const bookingCount = await Booking.countDocuments({ user_id: customer._id })
+
+    res.json({
+        ...customer.toObject(),
+        orderCount,
+        bookingCount,
+    })
 })
 
-// @desc    Cập nhật khách hàng
-// @route   PUT /api/admin/customers/:id
-// @access  Private/Admin
+
 export const updateCustomer = asyncHandler(async (req, res) => {
     const { full_name, email, phone, address, status } = req.body
 
@@ -80,7 +83,6 @@ export const updateCustomer = asyncHandler(async (req, res) => {
         throw new Error('Không thể cập nhật: không phải khách hàng')
     }
 
-    // Cập nhật
     customer.full_name = full_name || customer.full_name
     customer.email = email || customer.email
     customer.phone = phone || customer.phone
@@ -102,9 +104,7 @@ export const updateCustomer = asyncHandler(async (req, res) => {
     })
 })
 
-// @desc    Xóa (hoặc vô hiệu hóa) khách hàng
-// @route   DELETE /api/admin/customers/:id
-// @access  Private/Admin
+
 export const deleteCustomer = asyncHandler(async (req, res) => {
     const customer = await User.findById(req.params.id)
     if (!customer) {
@@ -118,7 +118,6 @@ export const deleteCustomer = asyncHandler(async (req, res) => {
         throw new Error('Không thể xóa: không phải khách hàng')
     }
 
-    // Kiểm tra đơn hàng active
     const activeOrder = await Order.findOne({
         user_id: customer._id,
         status: { $in: ['pending', 'processing', 'shipped'] }
@@ -128,7 +127,6 @@ export const deleteCustomer = asyncHandler(async (req, res) => {
         throw new Error('Không thể khóa: Khách hàng đang có đơn hàng chưa hoàn thành')
     }
 
-    // Kiểm tra booking active
     const activeBooking = await Booking.findOne({
         user_id: customer._id,
         status: { $in: ['pending', 'confirmed', 'in_progress'] }
@@ -138,14 +136,95 @@ export const deleteCustomer = asyncHandler(async (req, res) => {
         throw new Error('Không thể khóa: Khách hàng đang có lịch hẹn/dịch vụ chưa hoàn thành')
     }
 
-    // Thay vì xóa thật → đổi status
     customer.status = 'suspended'
     await customer.save()
 
     res.json({ message: 'Đã vô hiệu hóa khách hàng' })
 })
 
-// Helper: Lấy danh sách role_id của "customer"
+
+const assertIsCustomer = async (id) => {
+    const customer = await User.findById(id)
+    if (!customer) {
+        const err = new Error('Khách hàng không tồn tại')
+        err.statusCode = 404
+        throw err
+    }
+    const customerRoleIds = await getCustomerRoleIds()
+    if (!customerRoleIds.includes(customer.role_id.toString())) {
+        const err = new Error('Người dùng này không phải là khách hàng')
+        err.statusCode = 400
+        throw err
+    }
+    return customer
+}
+
+export const getOrdersByCustomer = asyncHandler(async (req, res) => {
+    const customerId = req.params.id
+    await assertIsCustomer(customerId)
+
+    const orders = await Order.find({ user_id: customerId })
+        .sort({ createdAt: -1 })
+        .lean()
+
+    if (!orders.length) {
+        return res.status(404).json({ message: 'Không có lịch sử đơn hàng' })
+    }
+
+    for (let order of orders) {
+        const items = await OrderItem.find({ order_id: order._id })
+            .populate({
+                path: 'product_id',
+                select: 'product_name price images category_id',
+                populate: { path: 'category_id', select: 'category_name' }
+            })
+        order.items = items
+    }
+
+    res.json({ orders })
+})
+
+
+export const getBookingsByCustomer = asyncHandler(async (req, res) => {
+    const customerId = req.params.id
+    await assertIsCustomer(customerId)
+
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 10
+    const status = req.query.status || ''
+
+    const query = { user_id: customerId }
+    if (status) query.status = status
+
+    const total = await Booking.countDocuments(query)
+    const bookings = await Booking.find(query)
+        .populate('service_id', 'service_name price duration description')
+        .populate('product_id', 'product_name price type description')
+        .sort({ booking_date: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+
+    const books = bookings.map(b => {
+        const bookingObj = b.toObject()
+        const snapshotPrice = bookingObj.price
+        if (snapshotPrice !== undefined && snapshotPrice !== null) {
+            if (bookingObj.service_id) bookingObj.service_id.price = snapshotPrice
+            if (bookingObj.product_id) bookingObj.product_id.price = snapshotPrice
+        }
+        return bookingObj
+    })
+
+    res.json({
+        bookings: books,
+        pagination: {
+            page,
+            limit,
+            total,
+            pages: Math.ceil(total / limit),
+        },
+    })
+})
+
 const getCustomerRoleIds = async () => {
     const Role = (await import('../../models/roleModel.js')).default
     const customerRoles = await Role.find({ role_name: { $in: ['customer', 'Customer'] } })

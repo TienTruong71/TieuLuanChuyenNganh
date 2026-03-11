@@ -9,17 +9,13 @@ import Role from '../../models/roleModel.js'
 import OrderItem from '../../models/orderItemModel.js'
 import moment from 'moment'
 
-// @desc    Lấy thống kê tổng quan cho dashboard
-// @route   GET /api/admin/dashboard
-// @access  Private/Admin
+
 export const getDashboardStats = asyncHandler(async (req, res) => {
     const { startDate, endDate } = req.query
 
-    // Mặc định lấy dữ liệu 30 ngày gần nhất nếu không có ngày
     const start = startDate ? moment(startDate).startOf('day') : moment().subtract(30, 'days').startOf('day')
     const end = endDate ? moment(endDate).endOf('day') : moment().endOf('day')
 
-    // 1. Tổng doanh thu (từ orders đã completed)
     const completedOrders = await Order.aggregate([
         {
             $match: {
@@ -36,23 +32,19 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
         },
     ])
 
-    // 2. Số lượng khách hàng mới
     const newCustomers = await User.countDocuments({
         role_id: (await Role.findOne({ role_name: 'customer' }))._id,
         createdAt: { $gte: start.toDate(), $lte: end.toDate() },
     })
 
-    // 3. Số lượng sản phẩm tồn kho thấp (< 5)
     const lowStockProducts = await Product.countDocuments({
         stock_quantity: { $lt: 5 },
     })
 
-    // 4. Số lượng booking trong khoảng thời gian
     const bookings = await Booking.countDocuments({
         createdAt: { $gte: start.toDate(), $lte: end.toDate() },
     })
 
-    // 5. Thống kê trạng thái đơn hàng
     const orderStatusStats = await Order.aggregate([
         {
             $match: {
@@ -84,9 +76,7 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
     })
 })
 
-// @desc    Lấy báo cáo doanh thu theo tháng
-// @route   GET /api/admin/dashboard/revenue-report
-// @access  Private/Admin
+
 export const getRevenueReport = asyncHandler(async (req, res) => {
     const { year } = req.query
 
@@ -102,9 +92,7 @@ export const getRevenueReport = asyncHandler(async (req, res) => {
     })
 })
 
-// @desc    Lấy top 5 sản phẩm bán chạy
-// @route   GET /api/admin/dashboard/top-products
-// @access  Private/Admin
+
 export const getTopProducts = asyncHandler(async (req, res) => {
     const { startDate, endDate } = req.query
 

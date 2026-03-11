@@ -3,17 +3,13 @@ import Product from '../../models/productModel.js'
 import Category from '../../models/categoryModel.js'
 import mongoose from 'mongoose'
 
-// @desc    Lấy danh sách danh mục
-// @route   GET /api/admin/categories
-// @access  Private (Manager)
+
 export const getCategories = asyncHandler(async (req, res) => {
   const categories = await Category.find({})
   res.json(categories)
 })
 
-// @desc    Tạo danh mục mới
-// @route   POST /api/admin/categories
-// @access  Private (Manager)
+
 export const createCategory = asyncHandler(async (req, res) => {
   const { category_name, description, image } = req.body
 
@@ -38,9 +34,7 @@ export const createCategory = asyncHandler(async (req, res) => {
   res.status(201).json(createdCategory)
 })
 
-// @desc    Cập nhật danh mục
-// @route   PUT /api/admin/categories/:id
-// @access  Private (Manager)
+
 export const updateCategory = asyncHandler(async (req, res) => {
   const { id } = req.params
   const { category_name, description, image } = req.body
@@ -56,7 +50,7 @@ export const updateCategory = asyncHandler(async (req, res) => {
     throw new Error('Danh mục không tồn tại')
   }
 
-  // Check duplicate name (nếu đổi tên)
+ 
   if (category_name && category_name !== category.category_name) {
     const existingCategory = await Category.findOne({ category_name })
     if (existingCategory) {
@@ -73,9 +67,7 @@ export const updateCategory = asyncHandler(async (req, res) => {
   res.json(updatedCategory)
 })
 
-// @desc    Xóa danh mục
-// @route   DELETE /api/admin/categories/:id
-// @access  Private (Manager)
+
 export const deleteCategory = asyncHandler(async (req, res) => {
   const { id } = req.params
 
@@ -90,7 +82,6 @@ export const deleteCategory = asyncHandler(async (req, res) => {
     throw new Error('Danh mục không tồn tại')
   }
 
-  // Check if category has products
   const productsCount = await Product.countDocuments({ category_id: id })
   if (productsCount > 0) {
     res.status(400)

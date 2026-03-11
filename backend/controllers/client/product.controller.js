@@ -2,9 +2,7 @@ import asyncHandler from 'express-async-handler'
 import Product from '../../models/productModel.js'
 import mongoose from 'mongoose'
 
-// @desc    Lấy danh sách sản phẩm
-// @route   GET /api/client/products
-// @access  Public
+
 export const getProducts = asyncHandler(async (req, res) => {
   const { category, minPrice, maxPrice } = req.query
 
@@ -23,9 +21,7 @@ export const getProducts = asyncHandler(async (req, res) => {
   res.json(products)
 })
 
-// @desc    Lấy chi tiết sản phẩm theo ID
-// @route   GET /api/client/products/:id
-// @access  Public
+
 export const getProductById = asyncHandler(async (req, res) => {
   const { id } = req.params
 
@@ -57,17 +53,13 @@ export const getProductById = asyncHandler(async (req, res) => {
   res.json(product)
 })
 
-// @desc    Lấy TẤT CẢ sản phẩm
-// @route   GET /api/admin/products
-// @access  Private (Manager)
+
 export const getAllProducts = asyncHandler(async (req, res) => {
   const products = await Product.find({}).populate('category_id', 'category_name')
   res.json(products)
 })
 
-// @desc    Lấy danh sách sản phẩm theo category
-// @route   GET /api/admin/products/:categoryId
-// @access  Private (Manager)
+
 export const getProductsByCategory = asyncHandler(async (req, res) => {
   const { categoryId } = req.params
 
@@ -80,9 +72,6 @@ export const getProductsByCategory = asyncHandler(async (req, res) => {
   res.json(products)
 })
 
-// @desc    Thêm sản phẩm mới
-// @route   POST /api/admin/products
-// @access  Private (Manager)
 export const createProduct = asyncHandler(async (req, res) => {
   const {
     category_id,
@@ -94,7 +83,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     images,
   } = req.body
 
-  // Validation
+
   if (!product_name) {
     res.status(400)
     throw new Error('Tên sản phẩm là bắt buộc')
@@ -105,14 +94,14 @@ export const createProduct = asyncHandler(async (req, res) => {
     throw new Error('Giá sản phẩm phải lớn hơn 0')
   }
 
-  // Nếu đang ở mode "Theo danh mục" thì category_id bắt buộc
+
   if (category_id && !mongoose.Types.ObjectId.isValid(category_id)) {
     res.status(400)
     throw new Error('Category ID không hợp lệ')
   }
 
   const product = new Product({
-    category_id: category_id || null, // Cho phép null nếu chưa chọn category
+    category_id: category_id || null, 
     product_name,
     description: description || '',
     price,

@@ -5,12 +5,13 @@ import {
     getCustomerById,
     updateCustomer,
     deleteCustomer,
+    getOrdersByCustomer,
+    getBookingsByCustomer,
 } from '../../controllers/admin/customer.controller.js'
 import { protect, admin } from '../../middleware/authMiddleware.js'
 
 const router = express.Router()
 
-// Bảo vệ tất cả route bằng admin
 router.use(protect, admin)
 
 router.route('/')
@@ -20,5 +21,11 @@ router.route('/:id')
     .get(getCustomerById)
     .put(updateCustomer)
     .delete(deleteCustomer)
+
+router.route('/:id/orders')
+    .get(getOrdersByCustomer)
+
+router.route('/:id/bookings')
+    .get(getBookingsByCustomer)
 
 export default router

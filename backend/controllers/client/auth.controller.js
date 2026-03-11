@@ -43,7 +43,7 @@ export const loginUser = asyncHandler(async (req, res) => {
     full_name: user.full_name,
     role: user.role_id.role_name,
     isAdmin,
-    authProvider: user.authProvider || 'local', // ⬅️ THÊM authProvider
+    authProvider: user.authProvider || 'local',
     token: generateToken(user._id),
   })
 })
@@ -199,8 +199,7 @@ export const loginWithGoogle = asyncHandler(async (req, res) => {
   }
 
   if (!user) {
-    // ✅ TẠO MẬT KHẨU RANDOM CHO USER MỚI
-    const randomPassword = crypto.randomBytes(16).toString('hex') // Tạo password random 32 ký tự
+    const randomPassword = crypto.randomBytes(16).toString('hex') 
 
     user = await User.create({
       email,
@@ -208,22 +207,20 @@ export const loginWithGoogle = asyncHandler(async (req, res) => {
       full_name: name,
       avatar: picture,
       googleId,
-      password: randomPassword, // ⬅️ THÊM PASSWORD RANDOM
+      password: randomPassword, 
       role_id: customerRole._id,
       authProvider: 'google',
       isEmailVerified: true,
       status: 'active',
     })
 
-    // Gán object role vào user để trả về response đúng định dạng
     user.role_id = customerRole
   }
 
-  // ✅ Fix lỗi: Nếu user tồn tại nhưng mất role (role_id == null) -> gán lại Customer
   if (!user.role_id) {
     user.role_id = customerRole._id
     await user.save()
-    user.role_id = customerRole // Cập nhật object in-memory
+    user.role_id = customerRole 
   }
 
   if (user && !user.googleId) {
@@ -238,13 +235,11 @@ export const loginWithGoogle = asyncHandler(async (req, res) => {
     await user.save()
   }
 
-  // Check status for Google login users
   if (user.status !== 'active') {
     res.status(403)
     throw new Error('Tài khoản đã bị khóa hoặc chưa kích hoạt')
   }
 
-  // user.role_id lúc này chắc chắn là object (do populate hoặc gán thủ công ở trên)
   const isAdmin =
     user.role_id?.role_name === 'admin' ||
     user.role_id?.role_name === 'manager'
@@ -255,15 +250,13 @@ export const loginWithGoogle = asyncHandler(async (req, res) => {
     email: user.email,
     full_name: user.full_name,
     avatar: user.avatar,
-    role: user.role_id?.role_name || 'Customer', // Fallback an toàn
+    role: user.role_id?.role_name || 'Customer', 
     isAdmin,
     authProvider: user.authProvider,
     token: generateToken(user._id),
   })
 })
 
-// =====================================================
-// =====================================================
 export const changePassword = asyncHandler(async (req, res) => {
   console.log('changePassword function called')
   const { currentPassword, newPassword } = req.body
@@ -285,26 +278,20 @@ export const changePassword = asyncHandler(async (req, res) => {
     throw new Error('Không tìm thấy người dùng')
   }
 
-  // if (user.authProvider === 'google') {
-  //   res.status(400)
-  //   throw new Error('Tài khoản đăng nhập bằng Google không thể đổi mật khẩu...')
-  // }
 
-  // Kiểm tra mật khẩu hiện tại
   const isPasswordMatch = await user.matchPassword(currentPassword)
   if (!isPasswordMatch) {
     res.status(401)
     throw new Error('Mật khẩu hiện tại không đúng')
   }
 
-  // Kiểm tra mật khẩu mới không trùng cũ
   const isSamePassword = await user.matchPassword(newPassword)
   if (isSamePassword) {
     res.status(400)
     throw new Error('Mật khẩu mới không được trùng với mật khẩu hiện tại')
   }
 
-  // Cập nhật mật khẩu
+
   user.password = newPassword
   await user.save()
 

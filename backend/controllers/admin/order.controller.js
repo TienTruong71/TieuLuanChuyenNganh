@@ -6,9 +6,7 @@ import Product from '../../models/productModel.js'
 import User from '../../models/userModel.js'
 import asyncHandler from 'express-async-handler'
 
-// @desc    Lấy danh sách đơn hàng
-// @route   GET /api/admin/orders
-// @access  Private/Admin
+
 export const getOrders = asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page) || 1
     const limit = parseInt(req.query.limit) || 10
@@ -68,9 +66,7 @@ export const getOrders = asyncHandler(async (req, res) => {
     })
 })
 
-// @desc    Lấy chi tiết đơn hàng
-// @route   GET /api/admin/orders/:id
-// @access  Private/Admin
+
 export const getOrderById = asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id).populate('user_id', 'full_name email phone')
     if (!order) {
@@ -99,26 +95,24 @@ export const getOrderById = asyncHandler(async (req, res) => {
     })
 })
 
-// @desc    Tạo đơn hàng mới (cho Admin, thủ công)
-// @route   POST /api/admin/orders
-// @access  Private/Admin
+
 export const createOrder = asyncHandler(async (req, res) => {
     const { user_id, items, total_amount, payment_method } = req.body
 
-    // Validate
+ 
     if (!user_id || !items || !items.length || !total_amount || !payment_method) {
         res.status(400)
         throw new Error('Vui lòng nhập đầy đủ thông tin: khách hàng, sản phẩm, tổng tiền, phương thức thanh toán')
     }
 
-    // Kiểm tra user
+    
     const user = await User.findById(user_id)
     if (!user) {
         res.status(404)
         throw new Error('Khách hàng không tồn tại')
     }
 
-    // Tạo Order
+    
     const order = await Order.create({
         user_id,
         total_amount: parseFloat(total_amount),
@@ -126,7 +120,7 @@ export const createOrder = asyncHandler(async (req, res) => {
         payment_method,
     })
 
-    // Tạo OrderItem và cập nhật stock
+ 
     for (const item of items) {
         const product = await Product.findById(item.product_id)
         if (!product) {
@@ -151,7 +145,7 @@ export const createOrder = asyncHandler(async (req, res) => {
         await product.save()
     }
 
-    // Tạo Payment
+  
     const payment = await Payment.create({
         order_id: order._id,
         amount: parseFloat(total_amount),
@@ -175,9 +169,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     })
 })
 
-// @desc    Cập nhật trạng thái đơn hàng
-// @route   PUT /api/admin/orders/:id
-// @access  Private/Admin
+
 export const updateOrder = asyncHandler(async (req, res) => {
     const { status, payment_status } = req.body
 
@@ -225,9 +217,7 @@ export const updateOrder = asyncHandler(async (req, res) => {
     })
 })
 
-// @desc    Xóa đơn hàng
-// @route   DELETE /api/admin/orders/:id
-// @access  Private/Admin
+
 export const deleteOrder = asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id)
     if (!order) {
@@ -240,10 +230,10 @@ export const deleteOrder = asyncHandler(async (req, res) => {
         throw new Error('Chỉ có thể xóa đơn hàng đã hủy')
     }
 
-    // Xóa OrderItem
+
     await OrderItem.deleteMany({ order_id: order._id })
 
-    // Xóa Payment
+
     await Payment.deleteOne({ order_id: order._id })
 
     await order.deleteOne()
