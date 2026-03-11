@@ -103,12 +103,20 @@ export const createProduct = asyncHandler(async (req, res) => {
     price,
     stock_quantity,
     type,
-    images,
   } = req.body
 
   if (!category_id || !product_name || !price || !type) {
     res.status(400)
     throw new Error('Thiếu thông tin bắt buộc của sản phẩm')
+  }
+
+  // Xử lý hình ảnh từ Cloudinary
+  let images = []
+  if (req.files && req.files.length > 0) {
+    images = req.files.map(file => ({
+      url: file.path,        // Cloudinary URL
+      public_id: file.filename, // Cloudinary public_id để xóa sau này
+    }))
   }
 
   const product = new Product({
@@ -118,7 +126,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     price,
     stock_quantity: stock_quantity || 0,
     type,
-    images: images || [],
+    images,
   })
 
   const createdProduct = await product.save()
@@ -130,7 +138,7 @@ export const createProduct = asyncHandler(async (req, res) => {
 // @access  Private (Manager)
 export const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params
-  const { product_name, description, price, stock_quantity, type, images } = req.body
+  const { product_name, description, price, stock_quantity, type } = req.body
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     res.status(400)
@@ -143,12 +151,27 @@ export const updateProduct = asyncHandler(async (req, res) => {
     throw new Error('Sản phẩm không tồn tại')
   }
 
+  // Xử lý hình ảnh mới từ Cloudinary
+  let newImages = []
+  if (req.files && req.files.length > 0) {
+    newImages = req.files.map(file => ({
+      url: file.path,
+      public_id: file.filename,
+    }))
+  }
+
+  // Cập nhật thông tin sản phẩm
   product.product_name = product_name || product.product_name
   product.description = description || product.description
   product.price = price || product.price
   product.stock_quantity = stock_quantity !== undefined ? stock_quantity : product.stock_quantity
   product.type = type || product.type
-  product.images = images || product.images
+
+  // Nếu có hình mới, thêm vào mảng images (hoặc thay thế tùy logic)
+  if (newImages.length > 0) {
+    product.images = [...product.images, ...newImages] // Thêm vào cuối
+    // Hoặc: product.images = newImages // Thay thế toàn bộ
+  }
 
   const updatedProduct = await product.save()
   res.json(updatedProduct)

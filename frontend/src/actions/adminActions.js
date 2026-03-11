@@ -215,7 +215,6 @@ export const createCategory = (categoryData) => async (dispatch, getState) => {
     const { userLogin: { userInfo } } = getState()
     const config = {
       headers: {
-        'Content-Type': 'application/json',
         Authorization: `Bearer ${userInfo.token}`,
       },
     }
@@ -254,7 +253,6 @@ export const createProduct = (productData) => async (dispatch, getState) => {
     const { userLogin: { userInfo } } = getState()
     const config = {
       headers: {
-        'Content-Type': 'application/json',
         Authorization: `Bearer ${userInfo.token}`,
       },
     }
@@ -274,7 +272,6 @@ export const updateProduct = (id, productData) => async (dispatch, getState) => 
     const { userLogin: { userInfo } } = getState()
     const config = {
       headers: {
-        'Content-Type': 'application/json',
         Authorization: `Bearer ${userInfo.token}`,
       },
     }
@@ -402,7 +399,6 @@ export const updateCategory = (id, categoryData) => async (dispatch, getState) =
     const { userLogin: { userInfo } } = getState()
     const config = {
       headers: {
-        'Content-Type': 'application/json',
         Authorization: `Bearer ${userInfo.token}`,
       },
     }

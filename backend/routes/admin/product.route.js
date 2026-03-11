@@ -7,6 +7,7 @@ import {
   deleteProduct,
 } from '../../controllers/admin/product.controller.js'
 import { protect, admin } from '../../middleware/authMiddleware.js'
+import { upload } from '../../config/cloudinary.js'
 
 const router = express.Router()
 
@@ -14,16 +15,33 @@ const router = express.Router()
 router.use(protect)
 router.use(admin)
 
+// Middleware to handle multer errors
+const handleMulterError = (err, req, res, next) => {
+  if (err) {
+    console.error('Multer Error:', err)
+    return res.status(400).json({ message: err.message })
+  }
+  next()
+}
+
 router.get('/', getAllProducts)
 
 // Lấy danh sách sản phẩm theo category
 router.get('/:categoryId', getProductsByCategory)
 
 // Thêm sản phẩm mới
-router.post('/', createProduct)
+router.post('/', (req, res, next) => {
+  upload.array('images', 10)(req, res, (err) => {
+    handleMulterError(err, req, res, () => createProduct(req, res))
+  })
+})
 
 // Cập nhật sản phẩm
-router.put('/:id', updateProduct)
+router.put('/:id', (req, res, next) => {
+  upload.array('images', 10)(req, res, (err) => {
+    handleMulterError(err, req, res, () => updateProduct(req, res))
+  })
+})
 
 // Xóa sản phẩm
 router.delete('/:id', deleteProduct)

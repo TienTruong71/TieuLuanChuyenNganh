@@ -34,7 +34,8 @@ const ProductsManagementScreen = () => {
   // Category form
   const [categoryName, setCategoryName] = useState('')
   const [categoryDesc, setCategoryDesc] = useState('')
-  const [categoryImage, setCategoryImage] = useState('')
+  const [categoryImages, setCategoryImages] = useState([])
+  const [categoryImagePreviews, setCategoryImagePreviews] = useState([])
 
   // Product form
   const [productName, setProductName] = useState('')
@@ -42,7 +43,8 @@ const ProductsManagementScreen = () => {
   const [productPrice, setProductPrice] = useState('')
   const [productStock, setProductStock] = useState('')
   const [productType, setProductType] = useState('product')
-  const [productImages, setProductImages] = useState('')
+  const [productImages, setProductImages] = useState([]) // Changed to array for files
+  const [imagePreviews, setImagePreviews] = useState([]) // For drag & drop preview
 
   const categoryList = useSelector((state) => state.adminCategoryList)
   const { loading: loadingCategories, categories, error: errorCategories } = categoryList
@@ -79,6 +81,11 @@ const ProductsManagementScreen = () => {
     return typeMap[type] || typeMap['product']
   }
 
+  
+  const formatPrice = (price) => {
+    return parseFloat(price || 0).toLocaleString('vi-VN')
+  }
+
   // ✅ Helper: Lấy class màu cho tồn kho
   const getStockClass = (stock) => {
     if (stock === 0) return 'stock-out'
@@ -97,7 +104,8 @@ const ProductsManagementScreen = () => {
       setShowCategoryModal(false)
       setCategoryName('')
       setCategoryDesc('')
-      setCategoryImage('')
+      setCategoryImages([])
+      setCategoryImagePreviews([])
       setEditingCategory(null)
       dispatch({ type: ADMIN_CATEGORY_CREATE_RESET })
       dispatch(listCategories())
@@ -110,7 +118,8 @@ const ProductsManagementScreen = () => {
       setShowCategoryModal(false)
       setCategoryName('')
       setCategoryDesc('')
-      setCategoryImage('')
+      setCategoryImages([])
+      setCategoryImagePreviews([])
       setEditingCategory(null)
       dispatch({ type: ADMIN_CATEGORY_UPDATE_RESET })
       dispatch(listCategories())
@@ -138,7 +147,7 @@ const ProductsManagementScreen = () => {
       }
     }
   }, [successProductCreate, dispatch, selectedCategory, viewMode])
-
+ 
   useEffect(() => {
     if (successProductUpdate) {
       alert('Cập nhật sản phẩm thành công!')
@@ -189,22 +198,28 @@ const ProductsManagementScreen = () => {
     setProductPrice('')
     setProductStock('')
     setProductType('product')
-    setProductImages('')
+    setProductImages([])
+    setImagePreviews([])
+    setImagePreviews([])
     setEditingProduct(null)
   }
 
   const handleCategorySubmit = (e) => {
     e.preventDefault()
-    const categoryData = {
-      category_name: categoryName,
-      description: categoryDesc,
-      image: categoryImage,
-    }
+    
+    const formData = new FormData()
+    formData.append('category_name', categoryName)
+    formData.append('description', categoryDesc)
+    
+    // Append image files
+    categoryImages.forEach((file) => {
+      formData.append('image', file)
+    })
 
     if (editingCategory) {
-      dispatch(updateCategory(editingCategory._id, categoryData))
+      dispatch(updateCategory(editingCategory._id, formData))
     } else {
-      dispatch(createCategory(categoryData))
+      dispatch(createCategory(formData))
     }
   }
 
@@ -212,7 +227,8 @@ const ProductsManagementScreen = () => {
     setEditingCategory(category)
     setCategoryName(category.category_name)
     setCategoryDesc(category.description || '')
-    setCategoryImage(category.image || '')
+    setCategoryImages(category.image ? [category.image] : [])
+    setCategoryImagePreviews(category.image ? [category.image] : [])
     setShowCategoryModal(true)
   }
 
@@ -224,20 +240,29 @@ const ProductsManagementScreen = () => {
 
   const handleProductSubmit = (e) => {
     e.preventDefault()
-    const productData = {
-      category_id: selectedCategory,
-      product_name: productName,
-      description: productDesc,
-      price: parseFloat(productPrice),
-      stock_quantity: parseInt(productStock),
-      type: productType,
-      images: productImages ? productImages.split(',').map((img) => img.trim()) : [],
+
+    if (!productName || !productPrice || !selectedCategory) {
+      alert('Vui lòng điền đầy đủ thông tin bắt buộc')
+      return
     }
 
+    const formData = new FormData()
+    formData.append('category_id', selectedCategory)
+    formData.append('product_name', productName)
+    formData.append('description', productDesc)
+    formData.append('price', productPrice)
+    formData.append('stock_quantity', productStock)
+    formData.append('type', productType)
+
+    // Append each image file
+    productImages.forEach((file, index) => {
+      formData.append('images', file)
+    })
+
     if (editingProduct) {
-      dispatch(updateProduct(editingProduct._id, productData))
+      dispatch(updateProduct(editingProduct._id, formData))
     } else {
-      dispatch(createProduct(productData))
+      dispatch(createProduct(formData))
     }
   }
 
@@ -248,7 +273,8 @@ const ProductsManagementScreen = () => {
     setProductPrice(product.price)
     setProductStock(product.stock_quantity)
     setProductType(product.type || 'product')
-    setProductImages(product.images ? product.images.join(', ') : '')
+    setProductImages(product.images || [])
+    setImagePreviews(product.images ? product.images.map(img => img.url || img) : [])
     setShowProductModal(true)
   }
 
@@ -258,8 +284,70 @@ const ProductsManagementScreen = () => {
     }
   }
 
-  const formatPrice = (price) => {
-    return parseFloat(price || 0).toLocaleString('vi-VN')
+  // Handle file selection for category
+  const handleCategoryFileSelect = (e) => {
+    const files = Array.from(e.target.files)
+    setCategoryImages(prev => [...prev, ...files])
+    files.forEach(file => {
+      const reader = new FileReader()
+      reader.onload = (e) => setCategoryImagePreviews(prev => [...prev, e.target.result])
+      reader.readAsDataURL(file)
+    })
+  }
+
+  // Handle drag and drop for category
+  const handleCategoryDrop = (e) => {
+    e.preventDefault()
+    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'))
+    setCategoryImages(prev => [...prev, ...files])
+    files.forEach(file => {
+      const reader = new FileReader()
+      reader.onload = (e) => setCategoryImagePreviews(prev => [...prev, e.target.result])
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const handleCategoryDragOver = (e) => {
+    e.preventDefault()
+  }
+
+  const removeCategoryImage = (index) => {
+    setCategoryImages(prev => prev.filter((_, i) => i !== index))
+    setCategoryImagePreviews(prev => prev.filter((_, i) => i !== index))
+  }
+
+  // Handle file selection
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files)
+    setProductImages(prev => [...prev, ...files])
+    // Create previews
+    files.forEach(file => {
+      const reader = new FileReader()
+      reader.onload = (e) => setImagePreviews(prev => [...prev, e.target.result])
+      reader.readAsDataURL(file)
+    })
+  }
+
+  // Handle drag and drop
+  const handleDrop = (e) => {
+    e.preventDefault()
+    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'))
+    setProductImages(prev => [...prev, ...files])
+    files.forEach(file => {
+      const reader = new FileReader()
+      reader.onload = (e) => setImagePreviews(prev => [...prev, e.target.result])
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+  }
+
+  // Remove image
+  const removeImage = (index) => {
+    setProductImages(prev => prev.filter((_, i) => i !== index))
+    setImagePreviews(prev => prev.filter((_, i) => i !== index))
   }
 
   return (
@@ -458,13 +546,43 @@ const ProductsManagementScreen = () => {
                 />
               </div>
               <div className='form-group'>
-                <label>URL hình ảnh:</label>
-                <input
-                  type='text'
-                  value={categoryImage}
-                  onChange={(e) => setCategoryImage(e.target.value)}
-                  placeholder='https://example.com/image.jpg'
-                />
+                <label>Hình ảnh danh mục:</label>
+                <div
+                  className='image-upload-area'
+                  onDrop={handleCategoryDrop}
+                  onDragOver={handleCategoryDragOver}
+                >
+                  <div className='upload-placeholder'>
+                    <div className='upload-icon'>📁</div>
+                    <p>Kéo thả ảnh vào đây hoặc nhấn để chọn</p>
+                    <input
+                      type='file'
+                      accept='image/*'
+                      onChange={handleCategoryFileSelect}
+                      style={{ display: 'none' }}
+                      id='category-image-upload'
+                    />
+                    <label htmlFor='category-image-upload' className='upload-btn'>
+                      Chọn từ máy tính
+                    </label>
+                  </div>
+                </div>
+                {categoryImagePreviews.length > 0 && (
+                  <div className='image-previews'>
+                    {categoryImagePreviews.map((preview, index) => (
+                      <div key={index} className='image-preview-item'>
+                        <img src={preview} alt={`Preview ${index + 1}`} />
+                        <button
+                          type='button'
+                          className='remove-image-btn'
+                          onClick={() => removeCategoryImage(index)}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className='form-group'>
                 <label>Mô tả:</label>
@@ -493,7 +611,8 @@ const ProductsManagementScreen = () => {
                     setShowCategoryModal(false)
                     setCategoryName('')
                     setCategoryDesc('')
-                    setCategoryImage('')
+                    setCategoryImages([])
+                    setCategoryImagePreviews([])
                     setEditingCategory(null)
                   }}
                 >
@@ -571,16 +690,44 @@ const ProductsManagementScreen = () => {
                 />
               </div>
               <div className='form-group'>
-                <label>URL hình ảnh (cách nhau bởi dấu phẩy):</label>
-                <textarea
-                  value={productImages}
-                  onChange={(e) => setProductImages(e.target.value)}
-                  rows='2'
-                  placeholder='https://image1.jpg, https://image2.jpg, https://image3.jpg'
-                />
-                <small className='form-hint'>
-                  💡 Có thể thêm nhiều ảnh, phân cách bằng dấu phẩy. Ảnh đầu tiên sẽ là ảnh chính.
-                </small>
+                <label>Hình ảnh sản phẩm:</label>
+                <div
+                  className='image-upload-area'
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                >
+                  <div className='upload-placeholder'>
+                    <div className='upload-icon'>📸</div>
+                    <p>Kéo thả ảnh vào đây hoặc nhấn để chọn</p>
+                    <input
+                      type='file'
+                      multiple
+                      accept='image/*'
+                      onChange={handleFileSelect}
+                      style={{ display: 'none' }}
+                      id='image-upload'
+                    />
+                    <label htmlFor='image-upload' className='upload-btn'>
+                      Chọn từ máy tính
+                    </label>
+                  </div>
+                </div>
+                {imagePreviews.length > 0 && (
+                  <div className='image-previews'>
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className='image-preview-item'>
+                        <img src={preview} alt={`Preview ${index + 1}`} />
+                        <button
+                          type='button'
+                          className='remove-image-btn'
+                          onClick={() => removeImage(index)}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className='modal-buttons'>
                 <button

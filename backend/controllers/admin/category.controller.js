@@ -11,7 +11,7 @@ export const getCategories = asyncHandler(async (req, res) => {
 
 
 export const createCategory = asyncHandler(async (req, res) => {
-  const { category_name, description, image } = req.body
+  const { category_name, description } = req.body
 
   if (!category_name) {
     res.status(400)
@@ -24,10 +24,16 @@ export const createCategory = asyncHandler(async (req, res) => {
     throw new Error('Danh mục đã tồn tại')
   }
 
+  // Lấy ảnh từ Cloudinary qua multer
+  let imageUrl = ''
+  if (req.file) {
+    imageUrl = req.file.path  // Cloudinary URL
+  }
+
   const category = new Category({
     category_name,
     description,
-    image: image || '',
+    image: imageUrl,
   })
 
   const createdCategory = await category.save()
@@ -37,7 +43,7 @@ export const createCategory = asyncHandler(async (req, res) => {
 
 export const updateCategory = asyncHandler(async (req, res) => {
   const { id } = req.params
-  const { category_name, description, image } = req.body
+  const { category_name, description } = req.body
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     res.status(400)
@@ -50,7 +56,7 @@ export const updateCategory = asyncHandler(async (req, res) => {
     throw new Error('Danh mục không tồn tại')
   }
 
- 
+  // Kiểm tra tên danh mục trùng
   if (category_name && category_name !== category.category_name) {
     const existingCategory = await Category.findOne({ category_name })
     if (existingCategory) {
@@ -61,7 +67,11 @@ export const updateCategory = asyncHandler(async (req, res) => {
 
   category.category_name = category_name || category.category_name
   category.description = description !== undefined ? description : category.description
-  category.image = image !== undefined ? image : category.image
+
+  // Cập nhật ảnh từ Cloudinary nếu có file upload mới
+  if (req.file) {
+    category.image = req.file.path
+  }
 
   const updatedCategory = await category.save()
   res.json(updatedCategory)

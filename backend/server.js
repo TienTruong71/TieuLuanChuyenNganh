@@ -4,15 +4,29 @@ import express from 'express'
 import dotenv from 'dotenv'
 import morgan from 'morgan'
 import colors from 'colors'
-import connectDB from './config/db.js'
-import './models/index.js'
-import { notFound, errorHandler } from './middleware/errorMiddleware.js'
 import cors from "cors"
-import seedRoles from './seeders/roleSeed.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+// ⚠️ Load .env FIRST
 dotenv.config({ path: path.join(__dirname, '.env') })
+
+// ⚠️ Verify env variables are loaded
+console.log('ENV CHECK:', {
+  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME ? '✓' : '✗',
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY ? '✓' : '✗',
+  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET ? '✓' : '✗',
+})
+
+// Now import modules that depend on env variables
+import connectDB from './config/db.js'
+import './models/index.js'
+import { notFound, errorHandler } from './middleware/errorMiddleware.js'
+import seedRoles from './seeders/roleSeed.js'
+import { ensureConfigured } from './config/cloudinary.js'
+
+// Force configure cloudinary NOW
+ensureConfigured()
 
 const initializeDatabase = async () => {
   await connectDB()
