@@ -527,6 +527,7 @@ const AdminScreen = () => {
                         <tr>
                           <th>Mã ĐH</th>
                           <th>Khách hàng</th>
+                          <th>Sản phẩm</th>
                           <th>Tổng tiền</th>
                           <th>Trạng thái</th>
                           <th>Ngày tạo</th>
@@ -548,6 +549,14 @@ const AdminScreen = () => {
                                   <span style={{ color: '#999' }}>
                                     Khách vãng lai / Đã xóa
                                   </span>
+                                )}
+                              </td>
+                              <td>
+                                {/* join product names, gracefully handle missing info */}
+                                {order.items && order.items.length > 0 ? (
+                                  order.items.map(i => i.product_name).join(', ')
+                                ) : (
+                                  <span style={{ color: '#999' }}>Không có sản phẩm</span>
                                 )}
                               </td>
                               <td className='price-cell'>{formatPrice(order.total_amount)}đ</td>
@@ -628,6 +637,16 @@ const AdminScreen = () => {
             <div className='modal-content' onClick={(e) => e.stopPropagation()}>
               <h3>Cập nhật trạng thái đơn hàng</h3>
               <p>Mã: #{selectedOrder._id.slice(-8)}</p>
+              {selectedOrder.items && selectedOrder.items.length > 0 && (
+                <div className='form-group'>
+                  <label>Sản phẩm:</label>
+                  <ul style={{ maxHeight: '100px', overflowY: 'auto', paddingLeft: '20px' }}>
+                    {selectedOrder.items.map(i => (
+                      <li key={i.product_id}>{i.product_name} x{i.quantity}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <div className='form-group'>
                 <label>Trạng thái mới:</label>
                 <select
