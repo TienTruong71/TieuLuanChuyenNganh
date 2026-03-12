@@ -1,0 +1,88 @@
+/* ========================================
+   ANTD DARK THEME OVERRIDES
+======================================== */
+.ant-dark-theme-override .ant-input-search .ant-input,
+.ant-dark-theme-override .ant-input-search .ant-input-affix-wrapper {
+  background-color: #1a1d20 !important;
+  border-color: #3f4246 !important;
+  color: #ffffff !important;
+}
+.ant-dark-theme-override .ant-input-search .ant-input-affix-wrapper > input.ant-input {
+  background-color: transparent !important;
+  color: #ffffff !important;
+}
+.ant-dark-theme-override .ant-input-search .ant-input::placeholder {
+  color: #a0a5ab !important;
+}
+.ant-dark-theme-override .ant-input-search .ant-input-group-addon .ant-btn {
+  background-color: #2b3035 !important;
+  border-color: #3f4246 !important;
+  color: #ffffff !important;
+}
+.ant-dark-theme-override .ant-input-search .ant-input-group-addon .ant-btn:hover {
+  background-color: #3a4148 !important;
+  border-color: #4a4e53 !important;
+}
+.ant-dark-theme-override .ant-input-clear-icon {
+  color: rgba(255,255,255,0.7) !important;
+}
+
+.ant-dark-theme-override .ant-select-selector,
+.ant-dark-theme-override.ant-select .ant-select-selector,
+.ant-dark-theme-override .ant-pagination-options .ant-select-selector,
+.ant-dark-theme-override.ant-pagination .ant-pagination-options .ant-select-selector {
+  background-color: #1a1d20 !important;
+  border-color: #3f4246 !important;
+  color: #fff !important;
+}
+
+.ant-dark-theme-override .ant-select-selector .ant-select-selection-item,
+.ant-dark-theme-override.ant-select .ant-select-selection-item,
+.ant-dark-theme-override.ant-pagination .ant-select-selection-item {
+  color: #fff !important;
+}
+
+.ant-dark-theme-override .ant-select-arrow,
+.ant-dark-theme-override.ant-select .ant-select-arrow,
+.ant-dark-theme-override.ant-pagination .ant-select-arrow {
+  color: #fff !important;
+}
+
+.ant-dark-theme-override .ant-pagination-item {
+  background-color: transparent !important;
+  border-color: rgba(255,255,255,0.2) !important;
+}
+.ant-dark-theme-override .ant-pagination-item a {
+  color: #fff !important;
+}
+.ant-dark-theme-override .ant-pagination-item-active {
+  background-color: #00bfff !important;
+  border-color: #00bfff !important;
+}
+.ant-dark-theme-override .ant-pagination-prev .ant-pagination-item-link,
+.ant-dark-theme-override .ant-pagination-next .ant-pagination-item-link,
+.ant-dark-theme-override .ant-pagination-jump-prev .ant-pagination-item-link-icon,
+.ant-dark-theme-override .ant-pagination-jump-next .ant-pagination-item-link-icon {
+  background-color: transparent !important;
+  border-color: rgba(255,255,255,0.2) !important;
+  color: #fff !important;
+}
+.ant-dark-theme-override .ant-pagination-total-text,
+.ant-dark-theme-override.ant-pagination .ant-pagination-total-text {
+  color: #fff !important;
+}
+
+.ant-dark-dropdown {
+  background-color: #1f1f1f !important;
+}
+.ant-dark-dropdown .ant-select-item {
+  color: rgba(255,255,255,0.85) !important;
+}
+.ant-dark-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background-color: #111b26 !important;
+  color: #00bfff !important;
+  font-weight: 600;
+}
+.ant-dark-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background-color: rgba(255,255,255,0.08) !important;
+}

@@ -1,3 +1,4 @@
+import http from 'http' // Add core http module for socket.io
 import path from 'path'
 import { fileURLToPath } from 'url'
 import express from 'express'
@@ -15,6 +16,7 @@ import './models/index.js'
 import { notFound, errorHandler } from './middleware/errorMiddleware.js'
 import seedRoles from './seeders/roleSeed.js'
 import { ensureConfigured } from './config/cloudinary.js'
+import { initSocket } from './config/socket.js' // Nhúng Socket.io config
 
 ensureConfigured()
 
@@ -26,6 +28,11 @@ const initializeDatabase = async () => {
 initializeDatabase()
 
 const app = express()
+const server = http.createServer(app) // Tạo HTTP server trần
+
+// Khởi tạo Socket.io truyền bằng Server HTTP trần
+initSocket(server)
+
 app.use(cors())
 
 if (process.env.NODE_ENV === 'development') {
@@ -143,6 +150,7 @@ app.use(notFound)
 app.use(errorHandler)
 
 const PORT = process.env.PORT || 5000
-app.listen(PORT, () =>
-  console.log(`Server running on port ${PORT}`.yellow.bold)
+// Listen trên HTTP server thay vì Express App riêng lẻ
+server.listen(PORT, () =>
+  console.log(`Server & WebSocket chạy trên cổng ${PORT}`.yellow.bold)
 )

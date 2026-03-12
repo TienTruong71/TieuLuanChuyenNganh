@@ -9,8 +9,40 @@ const router = express.Router()
 // @route   GET /api/client/services
 // @access  Public
 router.get('/', asyncHandler(async (req, res) => {
-    const services = await ServicePackage.find({})
-    res.json(services)
+    const page = parseInt(req.query.current || req.query.page) || 1;
+    const limit = parseInt(req.query.pageSize || req.query.limit) || 12;
+    const search = req.query.search || '';
+    const sortField = req.query.sortField || 'createdAt';
+    const sortOrder = (req.query.sortOrder === 'ascend' || req.query.sortOrder === 'asc') ? 1 : -1;
+
+    let filter = {};
+    if (search) {
+        filter.$or = [
+            { service_name: { $regex: search, $options: 'i' } },
+            { description: { $regex: search, $options: 'i' } }
+        ];
+    }
+
+    const sortObj = {};
+    sortObj[sortField] = sortOrder;
+
+    const total = await ServicePackage.countDocuments(filter);
+    const services = await ServicePackage.find(filter)
+        .sort(sortObj)
+        .skip((page - 1) * limit)
+        .limit(limit);
+
+    res.json({
+        services: services.map(sp => ({
+            ...sp.toObject(),
+            price: parseFloat(sp.price),
+        })),
+        pagination: {
+            current: page,
+            pageSize: limit,
+            total
+        }
+    });
 }))
 
 // @desc    Lấy chi tiết service

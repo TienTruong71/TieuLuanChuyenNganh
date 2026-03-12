@@ -12,16 +12,22 @@ import {
 // =====================================================
 // GET PRODUCT LIST
 // =====================================================
-export const listProducts = (keyword = '', category = '') => async (dispatch) => {
+export const listProducts = (paramsObj = {}) => async (dispatch) => {
   try {
     dispatch({ type: PRODUCT_LIST_REQUEST })
 
     // Build query params
-    let url = '/api/client/products?'
-    if (keyword) url += `keyword=${keyword}&`
-    if (category) url += `category=${category}&`
+    const params = new URLSearchParams()
+    if (paramsObj.current) params.append('current', paramsObj.current)
+    if (paramsObj.pageSize) params.append('pageSize', paramsObj.pageSize)
+    if (paramsObj.search) params.append('search', paramsObj.search)
+    if (paramsObj.category) params.append('category', paramsObj.category)
+    if (paramsObj.sortField) params.append('sortField', paramsObj.sortField)
+    if (paramsObj.sortOrder) params.append('sortOrder', paramsObj.sortOrder)
+    if (paramsObj.minPrice) params.append('minPrice', paramsObj.minPrice)
+    if (paramsObj.maxPrice) params.append('maxPrice', paramsObj.maxPrice)
 
-    const { data } = await axios.get(url)
+    const { data } = await axios.get(`/api/client/products?${params.toString()}`)
 
     dispatch({
       type: PRODUCT_LIST_SUCCESS,

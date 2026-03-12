@@ -6,7 +6,26 @@ import mongoose from 'mongoose'
 // @route   GET /api/admin/products
 // @access  Private (Manager)
 export const getAllProducts = asyncHandler(async (req, res) => {
-  const products = await Product.aggregate([
+  const page = parseInt(req.query.current || req.query.page) || 1;
+  const limit = parseInt(req.query.pageSize || req.query.limit) || 10;
+  const search = req.query.search || '';
+  const sortField = req.query.sortField || 'createdAt';
+  const sortOrder = (req.query.sortOrder === 'ascend' || req.query.sortOrder === 'asc') ? 1 : -1;
+
+  const pipeline = [];
+
+  if (search) {
+    pipeline.push({
+      $match: {
+        $or: [
+          { product_name: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } }
+        ]
+      }
+    });
+  }
+
+  pipeline.push(
     {
       $lookup: {
         from: 'inventories',       // Collection 'inventories'
@@ -30,40 +49,84 @@ export const getAllProducts = asyncHandler(async (req, res) => {
           $ifNull: [{ $arrayElemAt: ["$inventory_data.quantity_available", 0] }, 0]
         },
         // Mô phỏng populate: thay thế category_id bằng object category
-        category_id: { $arrayElemAt: ["$category_doc", 0] }
+        category_id: { $arrayElemAt: ["$category_doc", 0] },
+        cleanPrice: {
+          $cond: {
+            if: { $eq: [{ $type: "$price" }, "object"] },
+            then: { $toDouble: { $getField: { field: { $literal: "$numberDecimal" }, input: "$price" } } },
+            else: { $toDouble: "$price" }
+          }
+        }
       }
     },
     {
       $project: {
         inventory_data: 0, // Ẩn mảng tạm
-        category_doc: 0
+        category_doc: 0,
+        cleanPrice: 0
       }
-    },
-    {
-      $sort: { createdAt: -1 }
     }
-  ]);
+  );
 
-  res.json(products);
+  const sortObj = {};
+  sortObj[sortField === 'price' ? 'cleanPrice' : sortField] = sortOrder;
+  pipeline.push({ $sort: sortObj });
+
+  pipeline.push({
+    $facet: {
+      metadata: [{ $count: "total" }],
+      data: [{ $skip: (page - 1) * limit }, { $limit: limit }]
+    }
+  });
+
+  const result = await Product.aggregate(pipeline);
+  const total = result[0].metadata[0] ? result[0].metadata[0].total : 0;
+  const products = result[0].data;
+
+  res.json({
+    products,
+    pagination: {
+      current: page,
+      pageSize: limit,
+      total
+    }
+  });
 })
 
 // @desc    Lấy danh sách sản phẩm theo category
 // @route   GET /api/admin/products/:categoryId
 // @access  Private (Manager)
 export const getProductsByCategory = asyncHandler(async (req, res) => {
-  const { categoryId } = req.params
+  const { categoryId } = req.params;
+  const page = parseInt(req.query.current || req.query.page) || 1;
+  const limit = parseInt(req.query.pageSize || req.query.limit) || 10;
+  const search = req.query.search || '';
+  const sortField = req.query.sortField || 'createdAt';
+  const sortOrder = (req.query.sortOrder === 'ascend' || req.query.sortOrder === 'asc') ? 1 : -1;
 
   if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-    res.status(400)
-    throw new Error('Category ID không hợp lệ')
+    res.status(400);
+    throw new Error('Category ID không hợp lệ');
   }
 
-  const products = await Product.aggregate([
+  const pipeline = [
     {
+      $match: { category_id: new mongoose.Types.ObjectId(categoryId) }
+    }
+  ];
+
+  if (search) {
+    pipeline.push({
       $match: {
-        category_id: new mongoose.Types.ObjectId(categoryId)
+        $or: [
+          { product_name: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } }
+        ]
       }
-    },
+    });
+  }
+
+  pipeline.push(
     {
       $lookup: {
         from: 'inventories',
@@ -76,20 +139,47 @@ export const getProductsByCategory = asyncHandler(async (req, res) => {
       $addFields: {
         inventory_quantity: {
           $ifNull: [{ $arrayElemAt: ["$inventory_data.quantity_available", 0] }, 0]
+        },
+        cleanPrice: {
+          $cond: {
+            if: { $eq: [{ $type: "$price" }, "object"] },
+            then: { $toDouble: { $getField: { field: { $literal: "$numberDecimal" }, input: "$price" } } },
+            else: { $toDouble: "$price" }
+          }
         }
       }
     },
     {
       $project: {
-        inventory_data: 0
+        inventory_data: 0,
+        cleanPrice: 0
       }
-    },
-    {
-      $sort: { createdAt: -1 }
     }
-  ])
+  );
 
-  res.json(products)
+  const sortObj = {};
+  sortObj[sortField === 'price' ? 'cleanPrice' : sortField] = sortOrder;
+  pipeline.push({ $sort: sortObj });
+
+  pipeline.push({
+    $facet: {
+      metadata: [{ $count: "total" }],
+      data: [{ $skip: (page - 1) * limit }, { $limit: limit }]
+    }
+  });
+
+  const result = await Product.aggregate(pipeline);
+  const total = result[0].metadata[0] ? result[0].metadata[0].total : 0;
+  const products = result[0].data;
+
+  res.json({
+    products,
+    pagination: {
+      current: page,
+      pageSize: limit,
+      total
+    }
+  });
 })
 
 // @desc    Thêm sản phẩm mới

@@ -194,12 +194,20 @@ export const deleteCustomer = (id) => async (dispatch, getState) => {
 // CATEGORIES ACTIONS
 // ========================================
 
-export const listCategories = () => async (dispatch, getState) => {
+export const listCategories = (paramsObj = {}) => async (dispatch, getState) => {
   try {
     dispatch({ type: ADMIN_CATEGORY_LIST_REQUEST })
     const { userLogin: { userInfo } } = getState()
     const config = { headers: { Authorization: `Bearer ${userInfo.token}` } }
-    const { data } = await axios.get('/api/admin/categories', config)
+    
+    const params = new URLSearchParams()
+    if (paramsObj.current) params.append('current', paramsObj.current)
+    if (paramsObj.pageSize) params.append('pageSize', paramsObj.pageSize)
+    if (paramsObj.search) params.append('search', paramsObj.search)
+    if (paramsObj.sortField) params.append('sortField', paramsObj.sortField)
+    if (paramsObj.sortOrder) params.append('sortOrder', paramsObj.sortOrder)
+
+    const { data } = await axios.get(`/api/admin/categories?${params.toString()}`, config)
     dispatch({ type: ADMIN_CATEGORY_LIST_SUCCESS, payload: data })
   } catch (error) {
     dispatch({
@@ -232,12 +240,20 @@ export const createCategory = (categoryData) => async (dispatch, getState) => {
 // PRODUCTS ACTIONS
 // ========================================
 
-export const listProductsByCategory = (categoryId) => async (dispatch, getState) => {
+export const listProductsByCategory = (categoryId, paramsObj = {}) => async (dispatch, getState) => {
   try {
     dispatch({ type: ADMIN_PRODUCT_LIST_REQUEST })
     const { userLogin: { userInfo } } = getState()
     const config = { headers: { Authorization: `Bearer ${userInfo.token}` } }
-    const { data } = await axios.get(`/api/admin/products/${categoryId}`, config)
+    
+    const params = new URLSearchParams()
+    if (paramsObj.current) params.append('current', paramsObj.current)
+    if (paramsObj.pageSize) params.append('pageSize', paramsObj.pageSize)
+    if (paramsObj.search) params.append('search', paramsObj.search)
+    if (paramsObj.sortField) params.append('sortField', paramsObj.sortField)
+    if (paramsObj.sortOrder) params.append('sortOrder', paramsObj.sortOrder)
+
+    const { data } = await axios.get(`/api/admin/products/${categoryId}?${params.toString()}`, config)
     dispatch({ type: ADMIN_PRODUCT_LIST_SUCCESS, payload: data })
   } catch (error) {
     dispatch({
@@ -304,14 +320,20 @@ export const deleteProduct = (id) => async (dispatch, getState) => {
 // SERVICES ACTIONS
 // ========================================
 
-export const listServices = (page = 1, limit = 10, search = '') => async (dispatch, getState) => {
+export const listServices = (paramsObj = {}) => async (dispatch, getState) => {
   try {
     dispatch({ type: ADMIN_SERVICE_LIST_REQUEST })
     const { userLogin: { userInfo } } = getState()
     const config = { headers: { Authorization: `Bearer ${userInfo.token}` } }
-    const params = new URLSearchParams({ page, limit })
-    if (search) params.append('search', search)
-    const { data } = await axios.get(`/api/admin/service-packages?${params}`, config)
+    
+    const params = new URLSearchParams()
+    if (paramsObj.current) params.append('current', paramsObj.current)
+    if (paramsObj.pageSize) params.append('pageSize', paramsObj.pageSize)
+    if (paramsObj.search) params.append('search', paramsObj.search)
+    if (paramsObj.sortField) params.append('sortField', paramsObj.sortField)
+    if (paramsObj.sortOrder) params.append('sortOrder', paramsObj.sortOrder)
+
+    const { data } = await axios.get(`/api/admin/service-packages?${params.toString()}`, config)
     dispatch({ type: ADMIN_SERVICE_LIST_SUCCESS, payload: data })
   } catch (error) {
     dispatch({
@@ -377,12 +399,20 @@ export const deleteService = (id) => async (dispatch, getState) => {
 }
 
 // List ALL products (không phân theo category)
-export const listAllProducts = () => async (dispatch, getState) => {
+export const listAllProducts = (paramsObj = {}) => async (dispatch, getState) => {
   try {
     dispatch({ type: ADMIN_PRODUCT_LIST_REQUEST })
     const { userLogin: { userInfo } } = getState()
     const config = { headers: { Authorization: `Bearer ${userInfo.token}` } }
-    const { data } = await axios.get('/api/admin/products', config)
+    
+    const params = new URLSearchParams()
+    if (paramsObj.current) params.append('current', paramsObj.current)
+    if (paramsObj.pageSize) params.append('pageSize', paramsObj.pageSize)
+    if (paramsObj.search) params.append('search', paramsObj.search)
+    if (paramsObj.sortField) params.append('sortField', paramsObj.sortField)
+    if (paramsObj.sortOrder) params.append('sortOrder', paramsObj.sortOrder)
+
+    const { data } = await axios.get(`/api/admin/products?${params.toString()}`, config)
     dispatch({ type: ADMIN_PRODUCT_LIST_SUCCESS, payload: data })
   } catch (error) {
     dispatch({

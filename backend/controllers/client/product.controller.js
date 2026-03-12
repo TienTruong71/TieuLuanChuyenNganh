@@ -4,21 +4,95 @@ import mongoose from 'mongoose'
 
 
 export const getProducts = asyncHandler(async (req, res) => {
-  const { category, minPrice, maxPrice } = req.query
+  const { category, minPrice, maxPrice } = req.query;
+  const page = parseInt(req.query.current || req.query.page) || 1;
+  const limit = parseInt(req.query.pageSize || req.query.limit) || 10;
+  const search = req.query.search || '';
+  const sortField = req.query.sortField || 'createdAt';
+  const sortOrder = (req.query.sortOrder === 'ascend' || req.query.sortOrder === 'asc') ? 1 : -1;
 
-  let filter = {}
-  if (category) filter.category_id = category
-  if (minPrice || maxPrice) {
-    filter.price = {}
-    if (minPrice) filter.price.$gte = Number(minPrice)
-    if (maxPrice) filter.price.$lte = Number(maxPrice)
+  let matchQuery = {};
+  if (category && mongoose.Types.ObjectId.isValid(category)) {
+    matchQuery.category_id = new mongoose.Types.ObjectId(category);
   }
 
-  const products = await Product.find(filter)
-    .populate('category_id', 'category_name image')
-    .sort({ createdAt: -1 })
+  if (search) {
+    matchQuery.$or = [
+      { product_name: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } }
+    ];
+  }
 
-  res.json(products)
+  const pipeline = [
+    { $match: matchQuery },
+    {
+      $addFields: {
+        cleanPrice: {
+          $cond: {
+            if: { $eq: [{ $type: "$price" }, "object"] },
+            then: { $toDouble: { $getField: { field: { $literal: "$numberDecimal" }, input: "$price" } } },
+            else: { $toDouble: "$price" }
+          }
+        }
+      }
+    }
+  ];
+
+  if (minPrice || maxPrice) {
+    let priceFilter = {};
+    if (minPrice) priceFilter.$gte = Number(minPrice);
+    if (maxPrice) priceFilter.$lte = Number(maxPrice);
+    pipeline.push({ $match: { cleanPrice: priceFilter } });
+  }
+
+  const sortObj = {};
+  sortObj[sortField === 'price' ? 'cleanPrice' : sortField] = sortOrder;
+  
+  pipeline.push({ $sort: sortObj });
+
+  pipeline.push({
+    $facet: {
+      metadata: [{ $count: "total" }],
+      data: [
+        { $skip: (page - 1) * limit },
+        { $limit: limit },
+        {
+          $lookup: {
+            from: "categories",
+            localField: "category_id",
+            foreignField: "_id",
+            as: "category_info"
+          }
+        },
+        {
+          $unwind: {
+            path: "$category_info",
+            preserveNullAndEmptyArrays: true
+          }
+        },
+        {
+          $addFields: {
+            category_id: "$category_info"
+          }
+        },
+        { $project: { category_info: 0, cleanPrice: 0 } }
+      ]
+    }
+  });
+
+  const [result] = await Product.aggregate(pipeline);
+  
+  const total = result.metadata.length > 0 ? result.metadata[0].total : 0;
+  const products = result.data;
+
+  res.json({
+    products,
+    pagination: {
+      current: page,
+      pageSize: limit,
+      total
+    }
+  });
 })
 
 

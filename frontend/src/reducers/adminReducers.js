@@ -187,12 +187,16 @@ export const adminCustomerDeleteReducer = (state = {}, action) => {
 }
 
 // Category List Reducer
-export const adminCategoryListReducer = (state = { categories: [] }, action) => {
+export const adminCategoryListReducer = (state = { categories: [], pagination: {} }, action) => {
   switch (action.type) {
     case ADMIN_CATEGORY_LIST_REQUEST:
       return { loading: true, categories: [] }
     case ADMIN_CATEGORY_LIST_SUCCESS:
-      return { loading: false, categories: action.payload }
+      return { 
+        loading: false, 
+        categories: action.payload.categories || action.payload,
+        pagination: action.payload.pagination || {}
+      }
     case ADMIN_CATEGORY_LIST_FAIL:
       return { loading: false, error: action.payload }
     default:
@@ -217,12 +221,16 @@ export const adminCategoryCreateReducer = (state = {}, action) => {
 }
 
 // Product List Reducer
-export const adminProductListReducer = (state = { products: [] }, action) => {
+export const adminProductListReducer = (state = { products: [], pagination: {} }, action) => {
   switch (action.type) {
     case ADMIN_PRODUCT_LIST_REQUEST:
       return { loading: true, products: [] }
     case ADMIN_PRODUCT_LIST_SUCCESS:
-      return { loading: false, products: action.payload }
+      return { 
+        loading: false, 
+        products: action.payload.products || action.payload,
+        pagination: action.payload.pagination || {}
+      }
     case ADMIN_PRODUCT_LIST_FAIL:
       return { loading: false, error: action.payload }
     default:

@@ -22,11 +22,19 @@ import {
 } from '../constants/bookingConstants'
 
 // Lấy danh sách services
-export const listServices = () => async (dispatch) => {
+export const listServices = (paramsObj = {}) => async (dispatch) => {
   try {
     dispatch({ type: SERVICE_LIST_REQUEST })
+    
+    // Build query params
+    const params = new URLSearchParams()
+    if (paramsObj.current) params.append('current', paramsObj.current)
+    if (paramsObj.pageSize) params.append('pageSize', paramsObj.pageSize)
+    if (paramsObj.search) params.append('search', paramsObj.search)
+    if (paramsObj.sortField) params.append('sortField', paramsObj.sortField)
+    if (paramsObj.sortOrder) params.append('sortOrder', paramsObj.sortOrder)
 
-    const { data } = await axios.get('/api/client/services')
+    const { data } = await axios.get(`/api/client/services?${params.toString()}`)
 
     dispatch({
       type: SERVICE_LIST_SUCCESS,

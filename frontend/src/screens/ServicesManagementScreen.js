@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { Pagination, Input, Select } from 'antd'
 import '../styles/admin.css'
 import {
   listServices,
@@ -13,13 +14,22 @@ import {
   ADMIN_SERVICE_DELETE_RESET,
 } from '../constants/adminConstants'
 
+const { Search } = Input;
+const { Option } = Select;
+
 const ServicesManagementScreen = () => {
   const dispatch = useDispatch()
 
   const [showServiceModal, setShowServiceModal] = useState(false)
   const [editingService, setEditingService] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
+  
+  const [serviceParams, setServiceParams] = useState({
+    current: 1,
+    pageSize: 10,
+    search: '',
+    sortField: 'createdAt',
+    sortOrder: 'descend'
+  })
 
   // Service form
   const [serviceName, setServiceName] = useState('')
@@ -40,8 +50,8 @@ const ServicesManagementScreen = () => {
   const { loading: loadingServiceDelete, success: successServiceDelete } = serviceDelete
 
   useEffect(() => {
-    dispatch(listServices(currentPage, 10, searchTerm))
-  }, [dispatch, currentPage, searchTerm])
+    dispatch(listServices(serviceParams))
+  }, [dispatch, serviceParams])
 
   useEffect(() => {
     if (successServiceCreate) {
@@ -49,9 +59,9 @@ const ServicesManagementScreen = () => {
       setShowServiceModal(false)
       resetForm()
       dispatch({ type: ADMIN_SERVICE_CREATE_RESET })
-      dispatch(listServices(currentPage, 10, searchTerm))
+      dispatch(listServices(serviceParams))
     }
-  }, [successServiceCreate, dispatch, currentPage, searchTerm])
+  }, [successServiceCreate, dispatch, serviceParams])
 
   useEffect(() => {
     if (successServiceUpdate) {
@@ -59,16 +69,16 @@ const ServicesManagementScreen = () => {
       setShowServiceModal(false)
       resetForm()
       dispatch({ type: ADMIN_SERVICE_UPDATE_RESET })
-      dispatch(listServices(currentPage, 10, searchTerm))
+      dispatch(listServices(serviceParams))
     }
-  }, [successServiceUpdate, dispatch, currentPage, searchTerm])
+  }, [successServiceUpdate, dispatch, serviceParams])
 
   useEffect(() => {
     if (successServiceDelete) {
       alert('Xóa dịch vụ thành công!')
-      dispatch(listServices(currentPage, 10, searchTerm))
+      dispatch(listServices(serviceParams))
     }
-  }, [successServiceDelete, dispatch, currentPage, searchTerm])
+  }, [successServiceDelete, dispatch, serviceParams])
 
   // ✅ Cleanup: Reset success states khi unmount component
   useEffect(() => {
@@ -118,10 +128,17 @@ const ServicesManagementScreen = () => {
     }
   }
 
-  const handleSearch = (e) => {
-    e.preventDefault()
-    setCurrentPage(1)
-    dispatch(listServices(1, 10, searchTerm))
+  const handleSearch = (value) => {
+    setServiceParams({ ...serviceParams, search: value, current: 1 })
+  }
+
+  const handleSort = (value) => {
+    const [sortField, sortOrder] = value.split('-');
+    setServiceParams({ ...serviceParams, sortField, sortOrder, current: 1 })
+  }
+
+  const handlePageChange = (page, pageSize) => {
+    setServiceParams({ ...serviceParams, current: page, pageSize })
   }
 
   const formatPrice = (price) => {
@@ -137,16 +154,26 @@ const ServicesManagementScreen = () => {
         </button>
       </div>
 
-      {/* Search */}
-      <form className='search-bar-admin' onSubmit={handleSearch}>
-        <input
-          type='text'
-          placeholder='Tìm kiếm theo tên dịch vụ...'
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+      {/* Search and Sort */}
+      <div className="flex justify-between items-center mb-6">
+        <Search 
+          placeholder="Tìm kiếm dịch vụ..." 
+          onSearch={handleSearch}
+          enterButton 
+          className="max-w-md shadow-sm"
+          size="large"
+          allowClear
         />
-        {/* <button type='submit'>🔍 Tìm</button> */}
-      </form>
+        <div className="flex items-center space-x-2">
+          <span className="text-gray-600 font-medium">Sắp xếp:</span>
+          <Select defaultValue="createdAt-descend" style={{ width: 180 }} onChange={handleSort} size="large">
+            <Option value="createdAt-descend">Mới nhất</Option>
+            <Option value="createdAt-ascend">Cũ nhất</Option>
+            <Option value="price-ascend">Giá tăng dần</Option>
+            <Option value="price-descend">Giá giảm dần</Option>
+          </Select>
+        </div>
+      </div>
 
       {/* Services Grid */}
       {loadingServices ? (
@@ -183,25 +210,17 @@ const ServicesManagementScreen = () => {
           </div>
 
           {/* Pagination */}
-          {pagination && pagination.pages > 1 && (
-            <div className='pagination'>
-              <button
-                onClick={() => setCurrentPage(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                ← Trước
-              </button>
-              <span>
-                Trang {currentPage} / {pagination.pages}
-              </span>
-              <button
-                onClick={() => setCurrentPage(currentPage + 1)}
-                disabled={currentPage === pagination.pages}
-              >
-                Sau →
-              </button>
-            </div>
-          )}
+          <div className="flex flex-col items-center mt-8 mb-4">
+            <Pagination
+              current={pagination?.current || 1}
+              pageSize={pagination?.pageSize || 10}
+              total={pagination?.total || 0}
+              onChange={handlePageChange}
+              showSizeChanger
+              pageSizeOptions={['10', '20', '30', '50']}
+              className="shadow-sm bg-white px-4 py-2 rounded-lg"
+            />
+          </div>
         </>
       ) : (
         <div className='empty-state'>

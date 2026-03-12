@@ -6,22 +6,28 @@ import asyncHandler from 'express-async-handler'
 // @route   GET /api/admin/service-packages
 // @access  Private/Admin
 export const getServicePackages = asyncHandler(async (req, res) => {
-    const page = parseInt(req.query.page) || 1
-    const limit = parseInt(req.query.limit) || 10
-    const search = req.query.search || ''
+    const page = parseInt(req.query.current || req.query.page) || 1;
+    const limit = parseInt(req.query.pageSize || req.query.limit) || 10;
+    const search = req.query.search || '';
+    const sortField = req.query.sortField || 'createdAt';
+    const sortOrder = (req.query.sortOrder === 'ascend' || req.query.sortOrder === 'asc') ? 1 : -1;
 
-    const query = {
-        $or: [
+    const query = {}
+    if (search) {
+        query.$or = [
             { service_name: { $regex: search, $options: 'i' } },
             { description: { $regex: search, $options: 'i' } },
-        ],
+        ]
     }
+
+    const sortObj = {};
+    sortObj[sortField] = sortOrder;
 
     const total = await ServicePackage.countDocuments(query)
     const servicePackages = await ServicePackage.find(query)
+        .sort(sortObj)
         .skip((page - 1) * limit)
         .limit(limit)
-        .sort({ createdAt: -1 })
 
     res.json({
         servicePackages: servicePackages.map(sp => ({
@@ -29,10 +35,9 @@ export const getServicePackages = asyncHandler(async (req, res) => {
             price: parseFloat(sp.price),
         })),
         pagination: {
-            page,
-            limit,
+            current: page,
+            pageSize: limit,
             total,
-            pages: Math.ceil(total / limit),
         },
     })
 })

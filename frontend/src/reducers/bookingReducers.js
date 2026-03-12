@@ -23,12 +23,16 @@ import {
 } from '../constants/bookingConstants'
 
 // Service List Reducer
-export const serviceListReducer = (state = { services: [] }, action) => {
+export const serviceListReducer = (state = { services: [], pagination: {} }, action) => {
   switch (action.type) {
     case SERVICE_LIST_REQUEST:
-      return { loading: true, services: [] }
+      return { loading: true, services: [], pagination: {} }
     case SERVICE_LIST_SUCCESS:
-      return { loading: false, services: action.payload }
+      return { 
+        loading: false, 
+        services: action.payload.services || action.payload,
+        pagination: action.payload.pagination || {}
+      }
     case SERVICE_LIST_FAIL:
       return { loading: false, error: action.payload }
     default:

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { Pagination, Input, Select, ConfigProvider, theme } from 'antd'
 import '../styles/admin.css'
+import '../styles/antd-theme.css'
 import {
   listCategories,
   createCategory,
@@ -20,6 +22,9 @@ import {
   ADMIN_PRODUCT_UPDATE_RESET,
   ADMIN_PRODUCT_DELETE_RESET,
 } from '../constants/adminConstants'
+
+const { Search } = Input;
+const { Option } = Select;
 
 const ProductsManagementScreen = () => {
   const dispatch = useDispatch()
@@ -55,11 +60,22 @@ const ProductsManagementScreen = () => {
   const categoryUpdate = useSelector((state) => state.adminCategoryUpdate)
   const { loading: loadingCategoryUpdate, success: successCategoryUpdate } = categoryUpdate
 
+  const [searchText, setSearchText] = useState('')
+
   const categoryDelete = useSelector((state) => state.adminCategoryDelete)
   const { success: successCategoryDelete } = categoryDelete
 
   const productList = useSelector((state) => state.adminProductList)
-  const { loading: loadingProducts, products, error: errorProducts } = productList
+  const { loading: loadingProducts, products, pagination, error: errorProducts } = productList
+
+  // Params for searching, sorting, pagination
+  const [productParams, setProductParams] = useState({
+    current: 1,
+    pageSize: 10,
+    search: '',
+    sortField: 'createdAt',
+    sortOrder: 'descend'
+  })
 
   const productCreate = useSelector((state) => state.adminProductCreate)
   const { loading: loadingProductCreate, success: successProductCreate } = productCreate
@@ -186,11 +202,37 @@ const ProductsManagementScreen = () => {
 
   useEffect(() => {
     if (selectedCategory && viewMode === 'category') {
-      dispatch(listProductsByCategory(selectedCategory))
+      dispatch(listProductsByCategory(selectedCategory, productParams))
     } else if (viewMode === 'all') {
-      dispatch(listAllProducts())
+      dispatch(listAllProducts(productParams))
     }
-  }, [selectedCategory, viewMode, dispatch])
+  }, [selectedCategory, viewMode, dispatch, productParams])
+
+  // Debounce search
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      setProductParams((prev) => {
+        if (prev.search !== searchText) {
+          return { ...prev, search: searchText, current: 1 }
+        }
+        return prev
+      })
+    }, 500)
+    return () => clearTimeout(delayDebounceFn)
+  }, [searchText])
+
+  const handleSearchProduct = (value) => {
+    setProductParams({ ...productParams, search: value, current: 1 })
+  }
+
+  const handleSortProduct = (value) => {
+    const [sortField, sortOrder] = value.split('-');
+    setProductParams({ ...productParams, sortField, sortOrder, current: 1 })
+  }
+
+  const handlePageChange = (page, pageSize) => {
+    setProductParams({ ...productParams, current: page, pageSize })
+  }
 
   const resetProductForm = () => {
     setProductName('')
@@ -404,7 +446,7 @@ const ProductsManagementScreen = () => {
           <div className='error-message'>{errorCategories}</div>
         ) : viewMode === 'category' ? (
           <div className='category-pills'>
-            {categories && categories.length > 0 ? (
+            {Array.isArray(categories) && categories.length > 0 ? (
               categories.map((cat) => (
                 <div key={cat._id} className='category-pill-container'>
                   <button
@@ -444,12 +486,41 @@ const ProductsManagementScreen = () => {
       {/* Products List */}
       {(selectedCategory || viewMode === 'all') && (
         <div className='products-section'>
-          <div className='section-header'>
-            <h3>{viewMode === 'all' ? 'Tất cả sản phẩm' : 'Sản phẩm trong danh mục'}</h3>
+          <div className='section-header flex justify-between items-center bg-gray-50 p-4 rounded-md shadow-sm mb-4'>
+            <h3 className="text-lg font-semibold">{viewMode === 'all' ? 'Tất cả sản phẩm' : 'Sản phẩm trong danh mục'}</h3>
             <button className='btn-add' onClick={() => setShowProductModal(true)}>
               + Thêm sản phẩm
             </button>
           </div>
+
+          <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
+            <div className="flex justify-between items-center mb-6 ant-dark-theme-override">
+              <Search 
+                placeholder="Tìm kiếm sản phẩm..." 
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                onSearch={handleSearchProduct}
+                enterButton 
+                className="max-w-md shadow-sm"
+                size="large"
+                allowClear
+              />
+              <div className="flex items-center space-x-2">
+                <span className="text-gray-600 font-medium">Sắp xếp:</span>
+                <Select 
+                  defaultValue="createdAt-descend" 
+                  style={{ width: 180 }} 
+                  onChange={handleSortProduct} 
+                  size="large"
+                >
+                  <Option value="createdAt-descend">Mới nhất</Option>
+                  <Option value="createdAt-ascend">Cũ nhất</Option>
+                  <Option value="price-ascend">Giá tăng dần</Option>
+                  <Option value="price-descend">Giá giảm dần</Option>
+                </Select>
+              </div>
+            </div>
+          </ConfigProvider>
 
           {loadingProducts ? (
             <div className='loading-container'>
@@ -458,6 +529,7 @@ const ProductsManagementScreen = () => {
           ) : errorProducts ? (
             <div className='error-message'>{errorProducts}</div>
           ) : products && products.length > 0 ? (
+            <>
             <div className='products-grid'>
               {products.map((product) => {
                 const typeInfo = getProductTypeInfo(product.type)
@@ -542,6 +614,21 @@ const ProductsManagementScreen = () => {
                 )
               })}
             </div>
+            
+            <div className="flex flex-col items-center mt-8 mb-4">
+              <ConfigProvider theme={{ algorithm: theme.darkAlgorithm }}>
+                <Pagination
+                  current={pagination?.current || 1}
+                  pageSize={pagination?.pageSize || 10}
+                  total={pagination?.total || 0}
+                  onChange={handlePageChange}
+                  showSizeChanger
+                  pageSizeOptions={['10', '20', '30', '50']}
+                  className="shadow-sm px-4 py-2 rounded-lg"
+                />
+              </ConfigProvider>
+            </div>
+          </>
           ) : (
             <div className='empty-state'>
               <p>Chưa có sản phẩm nào trong danh mục này</p>

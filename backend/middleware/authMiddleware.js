@@ -5,19 +5,14 @@ import User from '../models/userModel.js'
 const protect = asyncHandler(async (req, res, next) => {
   let token
 
-  console.log('Protect middleware called')
-  console.log('Authorization header:', req.headers.authorization)
-
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
   ) {
     try {
       token = req.headers.authorization.split(' ')[1]
-      console.log('Token extracted:', token.substring(0, 20) + '...')
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET)
-      console.log('Token decoded successfully, user ID:', decoded.id)
 
       req.user = await User.findById(decoded.id).select('-password').populate('role_id')
 
@@ -27,7 +22,6 @@ const protect = asyncHandler(async (req, res, next) => {
         throw new Error('User not found')
       }
 
-      console.log('User authenticated:', req.user.email)
       next()
     } catch (error) {
       console.error('Auth error:', error.message)
@@ -49,11 +43,6 @@ export const admin = (req, res, next) => {
   )) {
     next()
   } else {
-    console.error('Admin check failed:', {
-      hasUser: !!req.user,
-      isAdmin: req.user?.isAdmin,
-      roleName: req.user?.role_id?.role_name,
-    })
     res.status(403)
     throw new Error('Không có quyền Admin')
   }
@@ -99,14 +88,6 @@ export const anyStaff = (req, res, next) => {
 // Admin hoặc bất kỳ Staff nào
 export const adminOrStaff = (req, res, next) => {
   const roleName = req.user?.role_id?.role_name?.toLowerCase()
-  const userDebug = {
-    hasUser: !!req.user,
-    userId: req.user?._id,
-    isAdmin: req.user?.isAdmin,
-    roleId: req.user?.role_id,
-    roleName: roleName,
-  }
-  console.log('adminOrStaff check:', userDebug)
 
   if (req.user && (
     req.user.isAdmin ||
@@ -115,7 +96,6 @@ export const adminOrStaff = (req, res, next) => {
   )) {
     next()
   } else {
-    console.error('❌ Permission denied:', userDebug)
     res.status(403)
     throw new Error('Không có quyền Admin hoặc Staff')
   }
