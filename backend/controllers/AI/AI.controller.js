@@ -17,11 +17,6 @@ export const AiChatController = {
 
       if (!message) return res.status(400).json({ success: false, error: "Empty message" });
 
-
-      // =================================================================================
-      // BƯỚC 1: SCHEMA PROMPT (Đã thêm intent category_check)
-      // =================================================================================
-
       const schemaPrompt = `
         Bạn là chuyên gia Query Database của CarsShop.
         Nhiệm vụ: Chuyển câu hỏi tự nhiên thành JSON Object.
@@ -60,13 +55,9 @@ export const AiChatController = {
         console.error("JSON Parse Fail:", e);
       }
 
-      // =================================================================================
-      // BƯỚC 2: EXECUTE QUERY
-      // =================================================================================
-
+      
       let dbContext = "Không tìm thấy dữ liệu.";
 
-      // --- 1. CATEGORY CHECK (Mới thêm) ---
       if (q.intent === "category_check") {
         const categories = await Category.find().limit(10);
         if (categories.length > 0) {
@@ -77,12 +68,10 @@ export const AiChatController = {
         }
       }
 
-      // --- 2. PRODUCT SEARCH ---
       else if (q.intent === "product_search") {
         let filter = {};
 
         if (q.mode === "list_all") {
-          // Lấy tất cả sản phẩm (bỏ filter type để lấy cả phụ kiện nếu có)
           filter = {};
         } else {
           const { keyword, max_price } = q;
@@ -119,7 +108,6 @@ export const AiChatController = {
         }
       }
 
-      // --- 3. SERVICE SEARCH ---
       else if (q.intent === "service_search") {
         let services = [];
 
@@ -146,7 +134,6 @@ export const AiChatController = {
         }
       }
 
-      // --- 4. ORDER TRACKING ---
       else if (q.intent === "order_tracking") {
         if (!currentUser) dbContext = "Vui lòng đăng nhập để tra cứu đơn hàng.";
         else {
@@ -171,7 +158,6 @@ export const AiChatController = {
         }
       }
 
-      // --- 5. BOOKING TRACKING ---
       else if (q.intent === "booking_tracking") {
         if (!currentUser) dbContext = "Vui lòng đăng nhập để xem lịch hẹn.";
         else {
@@ -199,7 +185,6 @@ export const AiChatController = {
         }
       }
 
-      // --- 6. TRADE-IN CHECK ---
       else if (q.intent === "tradein_check") {
         if (!currentUser) dbContext = "Vui lòng đăng nhập để kiểm tra xe cũ.";
         else {
@@ -228,10 +213,6 @@ export const AiChatController = {
         dbContext = "Thông tin chung: CarsShop chuyên mua bán xe mới/cũ, phụ kiện và dịch vụ bảo dưỡng uy tín.";
       }
 
-
-      // =================================================================================
-      // BƯỚC 3: RESPONSE GENERATION
-      // =================================================================================
 
       const finalPrompt = `
         Vai trò: Nhân viên tư vấn CarsShop chuyên nghiệp, thân thiện.
